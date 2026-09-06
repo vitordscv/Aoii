@@ -1,25 +1,27 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- Sincronização segura — PROPOSTA. Não aplicada.
+-- Sincronização segura — PARTE 1 (aditiva)
 --
--- Ler docs/SYNC-DESIGN.md antes. Resumo do que muda:
+-- Ler docs/SYNC-DESIGN.md antes.
 --
---   1. a tabela `financas` deixa de ser acessível pelo papel `anon`;
---   2. o acesso passa por duas funções SECURITY DEFINER, porque RLS não sabe
---      exigir "só se você filtrar por id" — com SELECT USING (true), a chave
---      anon baixa a tabela inteira;
---   3. gravar exige um token derivado da senha do usuário (o servidor guarda
---      só o hash), então quem descobrir o código consegue ler o texto cifrado
---      mas não consegue escrever;
---   4. gravar exige a revisão esperada, então dois aparelhos não se
---      sobrescrevem em silêncio.
+-- Esta parte NÃO tira permissão de ninguém: acrescenta colunas de controle,
+-- cria as duas funções de acesso e tira só o DELETE do acesso público (o app
+-- nunca apaga linha). O app que está no ar continua funcionando exatamente
+-- como antes, falando com a tabela por REST.
 --
--- Aplicar primeiro num projeto de teste. O SQL de reversão está no fim.
+-- Trancar a tabela é a PARTE 2 (0002_sync_fecha_tabela.sql), e só pode ser
+-- aplicada DEPOIS que o app publicado passar a usar aoii_get/aoii_put. Aplicar
+-- antes derruba a sincronização de quem estiver na versão anterior.
+--
+-- Estado de partida deste projeto, conferido em 06/09/2026:
+--   create policy "acesso publico" on financas for all using (true) with check (true);
+--   -- ou seja: quem tem a chave anon (publicada no HTML) lê, altera e apaga
+--   -- qualquer linha da tabela.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
 
--- ── 1. colunas novas ──────────────────────────────────────────────────────
--- `data` continua sendo o envelope inteiro (jsonb). O resto é controle.
+-- ── 1. colunas de controle ────────────────────────────────────────────────
+-- "data" continua sendo o envelope inteiro (jsonb). O resto é controle.
 
 create table if not exists public.financas (
   id          text primary key,
@@ -33,17 +35,12 @@ alter table public.financas
   add column if not exists write_token_hash  text,
   add column if not exists created_at        timestamptz not null default now();
 
--- ── 2. tranca a tabela ────────────────────────────────────────────────────
--- Sem política nenhuma + RLS ligada = ninguém acessa direto. As funções abaixo
--- rodam como dono (SECURITY DEFINER) e são a única porta.
-
-alter table public.financas enable row level security;
-alter table public.financas force row level security;
-
-revoke all on public.financas from anon, authenticated;
-
--- ── 3. leitura ────────────────────────────────────────────────────────────
+-- ── 2. leitura ────────────────────────────────────────────────────────────
 -- Uma linha, pelo id exato. Nunca devolve o hash do token.
+--
+-- Sem "force row level security" de propósito: SECURITY DEFINER roda como dono
+-- da tabela, e "force" sujeitaria o próprio dono às políticas — como não há
+-- política nenhuma depois da parte 2, as funções passariam a falhar.
 
 create or replace function public.aoii_get(p_id text)
 returns jsonb
@@ -63,15 +60,20 @@ as $$
   limit 1;
 $$;
 
--- ── 4. gravação ───────────────────────────────────────────────────────────
+-- ── 3. gravação ───────────────────────────────────────────────────────────
 -- Regras, nesta ordem:
 --   linha não existe            → cria, revision 1, guarda o hash do token
 --   token não confere           → {"erro":"token"}                (não grava)
 --   revisão diferente da atual  → {"conflito":true,"revision":N}  (não grava)
 --   tudo certo                  → grava, revision + 1
 --
--- O token chega em claro pela conexão TLS e é comparado por hash. Ele não sai
--- daqui: aoii_get não o devolve, e a tabela não é legível pelo anon.
+-- Linha do formato antigo ainda não tem token: a primeira gravação define o
+-- dela. É o que permite a migração acontecer sem uma janela em que ninguém
+-- consegue escrever.
+--
+-- Hash com sha256() nativo, não com digest() do pgcrypto: no Supabase o
+-- pgcrypto vive no schema "extensions", que não está no search_path desta
+-- função — digest() daria "function does not exist" na hora de gravar.
 
 create or replace function public.aoii_put(
   p_id                text,
@@ -85,8 +87,8 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  atual   public.financas%rowtype;
-  novo_ok boolean;
+  atual public.financas%rowtype;
+  hash  text;
 begin
   if p_id is null or length(p_id) < 8 or length(p_id) > 64 then
     return jsonb_build_object('erro', 'id');
@@ -100,17 +102,17 @@ begin
     return jsonb_build_object('erro', 'tamanho');
   end if;
 
+  hash := encode(sha256(convert_to(p_write_token, 'UTF8')), 'hex');
+
   select * into atual from public.financas where id = p_id for update;
 
   if not found then
     insert into public.financas (id, data, revision, device_id, write_token_hash, updated_at)
-    values (p_id, p_data, 1, p_data->>'device_id', encode(digest(p_write_token, 'sha256'), 'hex'), now());
+    values (p_id, p_data, 1, p_data->>'device_id', hash, now());
     return jsonb_build_object('ok', true, 'revision', 1);
   end if;
 
-  novo_ok := atual.write_token_hash is null   -- linha do formato antigo, ainda sem token
-             or atual.write_token_hash = encode(digest(p_write_token, 'sha256'), 'hex');
-  if not novo_ok then
+  if atual.write_token_hash is not null and atual.write_token_hash <> hash then
     return jsonb_build_object('erro', 'token');
   end if;
 
@@ -122,7 +124,7 @@ begin
      set data = p_data,
          revision = atual.revision + 1,
          device_id = p_data->>'device_id',
-         write_token_hash = encode(digest(p_write_token, 'sha256'), 'hex'),
+         write_token_hash = hash,
          updated_at = now()
    where id = p_id;
 
@@ -130,35 +132,50 @@ begin
 end;
 $$;
 
--- digest() vem do pgcrypto
-create extension if not exists pgcrypto with schema extensions;
-
--- ── 5. permissões ─────────────────────────────────────────────────────────
-
 revoke all on function public.aoii_get(text) from public;
 revoke all on function public.aoii_put(text, jsonb, integer, text) from public;
 grant execute on function public.aoii_get(text) to anon, authenticated;
 grant execute on function public.aoii_put(text, jsonb, integer, text) to anon, authenticated;
 
+-- ── 4. tira o DELETE do acesso público ────────────────────────────────────
+-- O app nunca apaga linha. Manter DELETE aberto só oferece a alguém com a
+-- chave anon a chance de destruir o espelho de todo mundo. Ler e escrever
+-- continuam abertos até a parte 2 — é o que mantém o app atual funcionando.
+
+drop policy if exists "acesso publico" on public.financas;
+
+create policy "leitura publica (temporario)" on public.financas
+  for select using (true);
+create policy "insercao publica (temporario)" on public.financas
+  for insert with check (true);
+create policy "atualizacao publica (temporario)" on public.financas
+  for update using (true) with check (true);
+
 commit;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- Conferir depois de aplicar (com a chave anon, não a de serviço):
+-- Conferir depois de aplicar:
 --
---   select * from financas;                    -- deve FALHAR (sem permissão)
---   select aoii_get('CODIGO-QUE-EXISTE');      -- deve devolver uma linha
---   select aoii_get('NAO-EXISTE');             -- deve devolver nulo
---   select aoii_put('CODIGO', '{}'::jsonb, 0, 'token-errado-com-32-caracteres!!');
---                                              -- deve devolver {"erro":"token"}
---   select aoii_put('CODIGO', '{}'::jsonb, 999, '<token certo>');
---                                              -- deve devolver {"conflito":true,...}
+--   select aoii_get('CODIGO-QUE-EXISTE');   -- devolve data/revision/updated_at
+--   select aoii_get('NAO-EXISTE');          -- devolve nulo
+--   select aoii_put('TESTE0001', '{"a":1}'::jsonb, 0, repeat('t',40));
+--                                           -- {"ok":true,"revision":1}
+--   select aoii_put('TESTE0001', '{"a":2}'::jsonb, 1, repeat('x',40));
+--                                           -- {"erro":"token"}
+--   select aoii_put('TESTE0001', '{"a":2}'::jsonb, 99, repeat('t',40));
+--                                           -- {"conflito":true,"revision":1}
+--   select aoii_put('TESTE0001', '{"a":2}'::jsonb, 1, repeat('t',40));
+--                                           -- {"ok":true,"revision":2}
+--   delete from financas where id='TESTE0001';   -- limpa o teste
 --
--- ── reversão ───────────────────────────────────────────────────────────────
+-- ── reversão desta parte ───────────────────────────────────────────────────
 --   begin;
 --   drop function if exists public.aoii_put(text, jsonb, integer, text);
 --   drop function if exists public.aoii_get(text);
---   alter table public.financas disable row level security;
---   grant all on public.financas to anon, authenticated;
+--   drop policy if exists "leitura publica (temporario)" on public.financas;
+--   drop policy if exists "insercao publica (temporario)" on public.financas;
+--   drop policy if exists "atualizacao publica (temporario)" on public.financas;
+--   create policy "acesso publico" on public.financas for all using (true) with check (true);
 --   -- as colunas podem ficar sem uso; para tirar de vez:
 --   -- alter table public.financas
 --   --   drop column if exists revision,

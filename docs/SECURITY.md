@@ -156,12 +156,37 @@ de conflito e os estados de status estão descritos em
 [SYNC-DESIGN.md](SYNC-DESIGN.md). Sem merge automático de valor financeiro:
 juntar dois saldos sem regra é pior do que perguntar.
 
-### 8. RLS do Supabase não verificada — desenhada, aguardando a mesma aprovação
+### 8. RLS do Supabase — **verificada em 06/09/2026, e está aberta**
 
-A URL e a chave `anon` estão no código publicado — isso é normal e esperado, não
-é vazamento de senha. O que não está verificado é se as políticas de linha
-impedem listar a tabela inteira ou escrever em linha alheia. **Funcionar não é
-prova de que a política está certa.**
+Deixou de ser suposição. A política em vigor no projeto de produção é:
+
+```sql
+create policy "acesso publico" on financas
+  for all using (true) with check (true);   -- roles: {public}
+```
+
+`for all` com `using (true)` para o papel `public` significa, na prática: quem
+tem a chave `anon` — que está no HTML publicado, e isso é normal — pode
+**listar a tabela inteira**, **alterar qualquer linha** e **apagar qualquer
+linha**. Não é só o dado de uma pessoa: é o de todo mundo que usa o mesmo
+projeto.
+
+Estado da tabela na mesma verificação: 14 linhas (10 códigos de sincronização e
+4 snapshots mensais), 27 kB, colunas `id text, data jsonb, updated_at
+timestamptz`. Tudo em texto puro.
+
+Isto é mais grave do que este documento dizia antes, e é o argumento mais forte
+para as duas partes do SQL proposto:
+
+- [`0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql) — aditiva,
+  pode ser aplicada agora sem quebrar nada: colunas de controle, as duas funções
+  de acesso, e tira o `DELETE` do acesso público (o app nunca apaga linha).
+- [`0002_sync_fecha_tabela.sql`](../supabase/migrations/0002_sync_fecha_tabela.sql) —
+  tranca a tabela de vez. **Só depois** que o app publicado usar as funções;
+  antes disso, derruba a sincronização de quem estiver na versão anterior.
+
+A URL e a chave `anon` estarem no código publicado continua sendo normal e
+esperado — não é vazamento de senha. O problema é o que a chave permite fazer.
 
 O SQL proposto tranca a tabela para o papel `anon` e põe o acesso atrás de duas
 funções `SECURITY DEFINER` — porque RLS não sabe exigir "só se você filtrar por

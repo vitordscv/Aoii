@@ -7,6 +7,12 @@ aprovada. Ver "Como sair daqui", no fim.
 
 ## O problema
 
+**Verificado no projeto de produção em 06/09/2026**, não suposto: a política em
+vigor é `for all using (true) with check (true)` para o papel `public`. Quem tem
+a chave `anon` lista a tabela inteira, altera qualquer linha e apaga qualquer
+linha — de todo mundo. A tabela tinha 14 linhas (10 códigos e 4 snapshots
+mensais), 27 kB, tudo em texto puro.
+
 Hoje, `src/storage/sync.js`:
 
 - manda o objeto financeiro inteiro, **sem criptografia**, para a tabela
@@ -82,7 +88,23 @@ funções `SECURITY DEFINER`, e a tabela deixa de ser acessível ao papel `anon`
 - `aoii_put(p_id, p_data, p_expected_revision, p_write_token)` → grava só se o
   token confere **e** a revisão é a esperada. Senão devolve conflito.
 
-SQL proposto: [`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql).
+SQL proposto, em duas partes — a ordem importa:
+
+- [`0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql) —
+  **aditiva, aplicável agora.** Colunas de controle, as duas funções, e tira o
+  `DELETE` do acesso público. O app que está no ar continua funcionando igual,
+  falando com a tabela por REST.
+- [`0002_sync_fecha_tabela.sql`](../supabase/migrations/0002_sync_fecha_tabela.sql) —
+  **só depois que o app publicado usar as funções.** Aplicar antes derruba a
+  sincronização de todo aparelho na versão anterior.
+
+Dois erros meus apareceram ao conferir o SQL contra o projeto real, e estão
+corrigidos: `force row level security` sujeitaria o próprio dono da tabela às
+políticas, e como depois da parte 2 não há política nenhuma, as funções
+`SECURITY DEFINER` passariam a falhar junto com todo o resto; e `digest()` vem
+do pgcrypto, que no Supabase vive no schema `extensions` — fora do `search_path`
+fixado na função, daria "function does not exist" na hora de gravar. Agora o
+hash usa `sha256()` nativo, sem extensão nenhuma.
 
 ### Conflito entre aparelhos
 
