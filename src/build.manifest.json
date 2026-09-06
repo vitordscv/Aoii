@@ -16,6 +16,7 @@
     "ui/background-art.js",
     "storage/encryption.js",
     "storage/sync.js",
+    "storage/sync-ciclo.js",
     "data/state.js",
     "data/schema.js",
     "data/validation.js",

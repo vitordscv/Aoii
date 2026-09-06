@@ -63,11 +63,12 @@ function recortarBloco(src,marcaInicio,ateFimDe){
 const BLOCOS=[
   ['const SCHEMA_VERSAO','adotarDadosDeFora'],   // data/schema.js + data/validation.js
   ['const CRIPTO_FORMATO','decifrarDaNuvem'],     // storage/encryption.js
+  ['const sync = {','migrarParaCifrado'],         // storage/sync-ciclo.js
 ];
 
 /* `const` no topo de um script vive no escopo léxico do contexto, não vira
    propriedade dele — então o teste não enxerga. Estas são copiadas na mão. */
-const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORMATO'];
+const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORMATO','sync'];
 
 /* funções puras de cálculo — a parte do app que os testes cobrem */
 const FUNCOES=[
