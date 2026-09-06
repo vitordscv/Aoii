@@ -101,13 +101,24 @@ para nada com valor de segurança — e hoje nada de segurança depende deles. V
 trocar por `crypto.randomUUID()` mesmo assim. A validação já usa
 `crypto.randomUUID()` quando precisa criar um id.
 
-### 4. `innerHTML` em 94 lugares
+### ~~4. `innerHTML` em 94 lugares~~ — guardado por lint
 
-Boa parte é template estático ou já passa por `esc()`. O trabalho é separar os
-casos que tocam dado externo — Diário, faturas, metas, cartões, investimentos,
-categorias, viagens, rendas, relatórios, importação e **resposta da IA** — e
-trocar por `createElement`/`textContent`/`dataset`. Onde o template continuar
-com `innerHTML`, deve ficar explícito que só aceita constante interna.
+A contagem enganava. Verificado caso a caso com uma regra automática
+(`scripts/lint.js`, que procura template com `<` interpolando campo de texto sem
+`esc()`), sobraram oito, e só um era exploitável de verdade: no relatório mensal
+exportado, a origem de cada despesa era `'💳 ' + nomeCartao(...)` sem escape —
+um cartão chamado `<img src=x onerror=…>` executava ao exportar. Corrigido,
+junto com os outros sete.
+
+A resposta da IA já era renderizada com `textContent` nos dois lugares onde
+aparece.
+
+A regra roda em `npm run check` e reprova qualquer caso novo. Quando a marcação
+é intencional, a saída é o nome da variável terminar em `Html` — está no código
+e na mensagem de erro do lint.
+
+Continuam existindo 94 `innerHTML`, agora sob essa regra. Trocá-los por
+`createElement` seria bom para clareza, não para segurança.
 
 ### 5. Chave do Gemini em texto puro
 
@@ -120,8 +131,8 @@ risco quando a pessoa escolher guardar, e oferecer apagar ao desligar a IA.
 ### 6. Consentimento sobre o que vai para a IA
 
 Não há tela que mostre o que será enviado antes do primeiro envio, nem opção de
-resumo reduzido sem nomes próprios. A resposta da IA precisa ser renderizada com
-`textContent`.
+resumo reduzido sem nomes próprios. (A resposta da IA já é renderizada com
+`textContent` — isso está certo.)
 
 ### 7. Conflito entre aparelhos
 

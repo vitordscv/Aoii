@@ -79,13 +79,17 @@ teste está certo.
 
 ## Segurança
 
-- Não renderize dado externo com `innerHTML`. Vindo de backup, Supabase, Gemini
-  ou de campo digitado, use `textContent` / `createElement` / `dataset`.
-- Não monte atributo HTML com concatenação de string.
+- **Texto do usuário dentro de HTML passa por `esc()`.** Vale para nome de
+  cartão, de compra, de meta, nota, categoria — qualquer coisa que a pessoa
+  digitou ou que veio de backup. `npm run lint` reprova quem esquecer. Se a
+  variável é marcação de propósito, o nome dela termina em `Html`.
+- Dado externo que é só texto (resposta da IA, por exemplo) vai por
+  `textContent`, não por `innerHTML`.
+- Não monte atributo HTML com concatenação de texto do usuário.
 - Não coloque o objeto financeiro em `console.log`.
 - Não mande nome de pessoa, banco, cartão ou nota para a IA sem necessidade.
 - Chave de API não entra em backup nem em sincronização.
-- Id vindo de fora não é confiável: gere com `crypto.randomUUID()`.
+- Dado de fora entra pelo `adotarDadosDeFora()` — nunca direto em `data`.
 
 Detalhes e o que ainda falta: [docs/SECURITY.md](docs/SECURITY.md).
 

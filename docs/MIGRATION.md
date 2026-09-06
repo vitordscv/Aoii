@@ -111,26 +111,79 @@ Dois destinos publicam este repositório:
 
 - Ícones e manifesto continuam embutidos em base64.
 
+## Rodada 2 — validação e XSS
+
+### Decisões
+
+**Uma porta só.** `adotarDadosDeFora()` (`src/data/validation.js`) é por onde
+todo dado de fora vira `data`: arquivo JSON, código de backup, resposta do
+Supabase e o próprio `localStorage`. O objeto é reconstruído campo a campo a
+partir de `src/data/schema.js` — o que não está declarado não entra.
+
+**Ids são restringidos, não trocados.** Todo id precisa caber em
+`[A-Za-z0-9:_-]{1,64}`; o que não couber ganha um id novo, e `cartaoId`,
+`viagemId` e `parcelamentoId` seguem a troca. Trocar *todos* — que era o plano
+original — quebraria a sincronização: ela compara o JSON local com o da nuvem
+pra saber se outro aparelho mexeu, e ids novos a cada leitura fariam a
+comparação nunca bater. Restringir o formato fecha a injeção por atributo sem
+esse efeito.
+
+**Valida, migra, valida de novo.** A segunda passada existe por dois motivos:
+`migrateData()` acrescenta no fim os campos que faltavam, então sem ela a ordem
+das chaves dependeria do que veio no backup (e a sincronização compara JSON como
+texto); e o que a migração escreve passa a obedecer o esquema também.
+
+**Dado local recusado não é apagado.** Vai para
+`localStorage['financas-data-recusado']`, com data e motivo ao lado. Recomeçar
+já era o comportamento do `catch`; o que faltava era não jogar fora.
+
+**Campo novo agora exige três lugares:** `schema.js`, `defaultData()` e
+`migrateData()`. Campo em só dois dos três se perde em silêncio no primeiro
+backup importado. Está no CLAUDE.md.
+
+### O que apareceu no caminho
+
+- **`modo` da entrada extra não podia ter padrão no esquema.** Com padrão, ele
+  chegava valendo `'unica'` e a migração do interruptor `aosPoucos` nunca
+  acontecia — quem viesse do formato antigo perderia o "recebendo aos poucos".
+- **Um XSS de verdade**, achado pela regra de lint nova: no relatório mensal
+  exportado, a origem da despesa é `'💳 ' + nomeCartao(...)` e ia para o HTML
+  sem `esc()`. Um cartão chamado `<img src=x onerror=…>` executava ao exportar.
+- **Dois bugs no próprio lint de camadas**: chave de objeto (`{ iaAtiva: … }`)
+  contava como uso da função de mesmo nome, e consumir o `:` na varredura fazia
+  `{id:uid()}` deixar de registrar o uso de `uid`. Corrigidos; três falsos
+  positivos saíram da baseline, que caiu de 18 para 17.
+- **O `innerHTML` era menos grave do que a contagem sugeria.** A resposta da IA
+  já ia por `textContent`; o texto visível quase todo já passava por `esc()`. Os
+  94 `innerHTML` não eram 94 buracos — o buraco eram os ids em atributos.
+  Reescrevê-los em `createElement` seria churn e risco de regressão por nenhum
+  ganho de segurança; a regra de lint garante a propriedade daqui pra frente.
+
+### Antes e depois
+
+| | rodada 1 | agora |
+|---|---|---|
+| entradas validadas | 0 de 4 | 4 de 4 |
+| versão de schema | não existia | 1 |
+| testes | 148 | 206 |
+| regras de lint | camadas | camadas + texto do usuário em HTML |
+| XSS conhecido | 1 (não sabido) | 0 |
+
 ## O que vem, em ordem
 
-1. **Validação e XSS.** `validateAndNormalizeData()` central em toda entrada
-   (arquivo, código de backup, resposta do Supabase); `schemaVersion` no modelo;
-   ids externos descartados e regerados com `crypto.randomUUID()`; atributos por
-   `dataset` em vez de concatenação; `innerHTML` fora dos pontos que tocam dado
-   externo. Testes com payload de XSS, prototype pollution e arquivo gigante.
-2. **Criptografia da sincronização.** `docs/SYNC-DESIGN.md` primeiro, com formato
+1. **Criptografia da sincronização.** `docs/SYNC-DESIGN.md` primeiro, com formato
    e migração, **antes** de qualquer alteração no Supabase.
-3. **RLS e conflitos.** Políticas em `supabase/migrations/`; `revision`,
+2. **RLS e conflitos.** Políticas em `supabase/migrations/`; `revision`,
    `updated_at` e `device_id`; gravação condicionada à revisão e tela de conflito
    em vez de sobrescrita silenciosa.
-4. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
+3. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
    `inert` no fundo, nome acessível em botão de emoji, `aria-live` no status de
    salvamento.
-5. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
+4. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
    shell; fallback offline; redesenho por seção em vez da tela inteira.
-6. **SEO e design.** Landing pública indexável, área do app fora do índice;
+5. **SEO e design.** Landing pública indexável, área do app fora do índice;
    hierarquia do Resumo; estados vazios com ação.
 
 Uma camada de comandos de domínio (`addTransaction()`, `registerIncomePayment()`,
-`updateGoal()`…) atravessa as etapas 1 e 3 e depende da validação estar pronta —
-ver o fim de [ARCHITECTURE.md](ARCHITECTURE.md).
+`updateGoal()`…) atravessa as etapas 1 e 2; agora que a validação existe, é o próximo passo
+estrutural — ver o fim de [ARCHITECTURE.md](ARCHITECTURE.md).
