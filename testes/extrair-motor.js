@@ -33,8 +33,8 @@ function recortar(src,nome){
 const FUNCOES=[
   'parseNum','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'defaultTargetValue','getTargetDate','daysBetweenInclusive','remainingWorkDaysUntil',
-  'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes','fatiasAosPoucos',
-  'transacoesGasto','gastoVariavelMedio','buildTimeline','_buildTimeline','saldoPrevistoEm',
+  'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes','restanteEntrada','fatiasAosPoucos',
+  'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','nextMonth','ensureFatura','lancarParcelamento',
   'registrarTransacao','registrarReceita','removerTransacao','gastoFixoAtivoEm',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',

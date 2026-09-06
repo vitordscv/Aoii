@@ -27,7 +27,7 @@ module.exports=function(t){
   grupoMultiCartao(t);
   grupoConsistencia(t);
   grupoSugestaoCompra(t);
-  grupoGastoVariavel(t);
+  grupoSemChuteDeGasto(t);
   grupoMedias(t);
   grupoAosPoucos(t);
 };
@@ -47,32 +47,86 @@ function grupoAosPoucos(t){
     'sem marcar, entra tudo de uma vez no mês corrente');
 
   /* ligado, até dezembro: setembro a dezembro = 4 meses */
-  const dividido=comEntrada({aosPoucos:true,dataPrevista:'2026-12-20'});
+  const dividido=comEntrada({modo:'aosPoucos',dataPrevista:'2026-12-20'});
   const linha=dividido.buildTimeline();
   const meses=[9,10,11,12].map(m=>linha.find(p=>p.mes===m&&p.ano===2026).extras);
   meses.forEach((v,i)=>t.valor(v,300,'mês '+[9,10,11,12][i]+' recebe 1200/4 = 300'));
   t.valor(linha.find(p=>p.ano===2027&&p.mes===1).extras,0,'depois do prazo não entra mais nada');
   t.valor(meses.reduce((s,v)=>s+v,0),1200,'a soma das parcelas continua sendo o valor cheio');
 
-  const f=dividido.fatiasAosPoucos(dividido===null?null:{aosPoucos:true,dataPrevista:'2026-12-20',valor:1200});
+  const f=dividido.fatiasAosPoucos(dividido===null?null:{modo:'aosPoucos',dataPrevista:'2026-12-20',valor:1200});
   t.igual(f&&f.meses,4,'o rótulo da linha diz 4 meses');
   t.valor(f&&f.porMes,300,'e R$ 300 por mês');
 
   /* ligado sem data: não dá pra dividir, então volta ao comportamento normal */
-  const semData=comEntrada({aosPoucos:true});
+  const semData=comEntrada({modo:'aosPoucos'});
   t.valor(semData.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,1200,
     'marcado mas sem data, não inventa divisão');
-  t.igual(semData.fatiasAosPoucos({aosPoucos:true,valor:1200}),null,
+  t.igual(semData.fatiasAosPoucos({modo:'aosPoucos',valor:1200}),null,
     'sem data o rótulo pede a data em vez de mostrar um número');
 
   /* data no passado: cai tudo no mês corrente, sem parcelas negativas */
-  const passado=comEntrada({aosPoucos:true,dataPrevista:'2026-07-01'});
+  const passado=comEntrada({modo:'aosPoucos',dataPrevista:'2026-07-01'});
   t.valor(passado.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,1200,
     'data já vencida vira uma parcela só, no mês corrente');
 
   /* o total pendente da lista não muda — é o que ainda falta receber */
   const tot=dividido.computeTotals();
   t.valor(tot.entradasPendentes,1200,'o "a receber" continua mostrando o valor cheio que falta');
+
+  /* sem previsão: continua a receber, mas sai da projeção */
+  const semPrevisao=comEntrada({modo:'semPrevisao'});
+  t.valor(semPrevisao.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,0,
+    '"sem previsão" não entra em nenhum mês da projeção');
+  const tp=semPrevisao.computeTotals();
+  t.valor(tp.entradasPendentes,1200,'mas continua contando como valor a receber');
+  t.valor(tp.entradasSemPrevisao,1200,'e é identificado à parte');
+  t.valor(tp.entradasNaProjecao,0,'nada dele entra na conta do saldo previsto');
+  const semProj=semPrevisao.getTrajectoryPoints();
+  const comProj=comEntrada({}).getTrajectoryPoints();
+  t.verdadeiro(semProj[1].value<comProj[1].value,
+    'a projeção fica mais conservadora do que contar tudo hoje',
+    semProj[1].value+' vs '+comProj[1].value);
+
+  grupoPagamentoParcial(t,comEntrada);
+}
+
+/* pagamentos chegando em pedaços imprevisíveis, anotados um a um */
+function grupoPagamentoParcial(t,comEntrada){
+  console.log('\n\x1b[1mAnotando quanto já foi pago\x1b[0m');
+
+  const c=comEntrada({modo:'semPrevisao',recebido:0});
+  t.valor(c.restanteEntrada({valor:1200,recebido:0}),1200,'nada recebido, falta tudo');
+  t.valor(c.restanteEntrada({valor:1200,recebido:450}),750,'recebeu 450, faltam 750');
+  t.valor(c.restanteEntrada({valor:1200,recebido:1200}),0,'quitado, não falta nada');
+  t.valor(c.restanteEntrada({valor:1200,recebido:1500}),0,'pagou a mais: nunca fica negativo');
+
+  /* o que entra na projeção é sempre o que FALTA */
+  const parcial=comEntrada({modo:'unica',recebido:900});
+  t.valor(parcial.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,300,
+    'a projeção conta só os 300 que ainda faltam, não os 1200 combinados');
+  t.valor(parcial.computeTotals().entradasPendentes,300,'o "a receber" também mostra o que falta');
+
+  const quitado=comEntrada({modo:'unica',recebido:1200});
+  t.valor(quitado.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,0,
+    'entrada já quitada não entra mais na projeção');
+
+  /* dividido aos poucos usa o saldo devedor, não o total original */
+  const dividido=comEntrada({modo:'aosPoucos',dataPrevista:'2026-12-20',recebido:400});
+  const f=dividido.fatiasAosPoucos({modo:'aosPoucos',dataPrevista:'2026-12-20',valor:1200,recebido:400});
+  t.igual(f&&f.meses,4,'ainda são 4 meses');
+  t.valor(f&&f.porMes,200,'mas divide os 800 que faltam, não os 1200');
+
+  /* registrar um pagamento: entra no saldo, aparece no Diário, abate a dívida */
+  const d=base(); d.saldoAtual=1000; d.entradasExtras=[{id:'e1',nome:'Guilherme',valor:1200,feito:false,modo:'semPrevisao',recebido:0}];
+  const ctx=criarAmbiente(d,HOJE);
+  ctx.registrarReceita('Guilherme',450,'Outros','pix');
+  d.entradasExtras[0].recebido=450;
+  t.valor(d.saldoAtual,1450,'o pagamento entra no saldo');
+  t.igual(d.transacoes.length,1,'e vira um lançamento no Diário');
+  t.igual(d.transacoes[0].tipo,'receita','marcado como entrada, não como gasto');
+  t.valor(ctx.restanteEntrada(d.entradasExtras[0]),750,'a dívida cai para 750');
+  t.valor(ctx.transacoesGasto().length,0,'e não polui o gasto do mês');
 }
 
 function grupoMultiCartao(t){
@@ -107,8 +161,8 @@ function grupoConsistencia(t){
 
   /* o hero tem que ser a soma exata das suas partes */
   const soma=1100+tot.rendaTrabalho-tot.gastosMensaisTotal-tot.faturasPendentes
-            +tot.entradasPendentes-tot.comprasPendentes-tot.variavelPrevisto-tot.aportesPrevistos;
-  t.valor(tot.projetado,soma,'projeção = disponível + renda − fixos − faturas + entradas − compras − variável − aportes');
+            +tot.entradasNaProjecao-tot.comprasPendentes-tot.aportesPrevistos;
+  t.valor(tot.projetado,soma,'projeção = disponível + renda − fixos − faturas + entradas − compras − aportes');
 
   const diario=ctx.computeDailyBudget();
   const set=pontos.find(p=>p.monthLabel==='Setembro/2026');
@@ -161,27 +215,26 @@ function grupoSugestaoCompra(t){
     'compra pequena com saldo folgado libera agora');
 }
 
-function grupoGastoVariavel(t){
-  console.log('\n\x1b[1mGasto variável médio\x1b[0m');
+/* o app não estima mais um "gasto variável médio" e desconta da projeção:
+   o que você lançou no Diário já baixou o saldo, e o futuro não leva chute */
+function grupoSemChuteDeGasto(t){
+  console.log('\n\x1b[1mProjeção sem chute de gasto\x1b[0m');
   const d=base();
   d.transacoes=[
     {id:'t1',nome:'a',valor:900,categoria:'Outros',metodo:'debito',data:'2026-05-10'},
     {id:'t2',nome:'b',valor:100,categoria:'Outros',metodo:'debito',data:'2026-06-10'},
     {id:'t3',nome:'c',valor:300,categoria:'Outros',metodo:'debito',data:'2026-07-10'},
-    {id:'t4',nome:'d',valor:500,categoria:'Outros',metodo:'debito',data:'2026-08-10'},
-    {id:'t5',nome:'e',valor:50,categoria:'Outros',metodo:'debito',data:'2026-09-02'},
-    {id:'t6',nome:'f',valor:9999,categoria:'Outros',metodo:'pix',data:'2026-08-11',tipo:'receita'}];
+    {id:'t4',nome:'d',valor:500,categoria:'Outros',metodo:'debito',data:'2026-08-10'}];
   const ctx=criarAmbiente(d,HOJE);
+  const limpo=criarAmbiente(base(),HOJE);
 
-  t.valor(ctx.gastoVariavelMedio(),300,'média dos 3 últimos meses FECHADOS (jun+jul+ago)/3, ignorando maio');
-  const set=ctx.buildTimeline().find(p=>p.mes===9);
-  t.valor(set.variavel,300*(25/30),'no mês corrente conta só a parte proporcional aos dias que faltam');
-  const out=ctx.buildTimeline().find(p=>p.mes===10);
-  t.valor(out.variavel,300,'nos meses futuros conta a média inteira');
-
-  const d2=base();
-  d2.transacoes=[{id:'r',nome:'so receita',valor:5000,categoria:'Outros',metodo:'pix',data:'2026-07-10',tipo:'receita'}];
-  t.valor(criarAmbiente(d2,HOJE).gastoVariavelMedio(),0,'entrada não vira gasto variável');
+  const p=k=>ctx.buildTimeline().find(x=>x.mes===k);
+  t.igual(p(9).variavel,undefined,'o ponto do gráfico não carrega mais um gasto estimado');
+  t.igual(ctx.computeTotals().variavelPrevisto,undefined,'os totais não têm mais "variável previsto"');
+  t.valor(p(10).delta,limpo.buildTimeline().find(x=>x.mes===10).delta,
+    'histórico do Diário não muda mais o saldo previsto dos meses futuros');
+  t.valor(ctx.computeTotals().projetado,limpo.computeTotals().projetado,
+    'a projeção do hero é a mesma com ou sem histórico de gastos');
 }
 
 function grupoMedias(t){
