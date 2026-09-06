@@ -31,7 +31,7 @@ function renderSaudeFinanceira(){
   el.innerHTML=`
   <div class="saude-card ${cls}">
     <div class="saude-top">
-      <span class="saude-label">${L('saude.titulo')}: ${label} <button type="button" class="info-tip-btn" data-tip="${esc(L('saude.tip'))}">?</button></span>
+      <span class="saude-label">${L('saude.titulo')}: ${esc(label)} <button type="button" class="info-tip-btn" data-tip="${esc(L('saude.tip'))}">?</button></span>
       <span class="saude-score">${score}/100</span>
     </div>
     <div class="saude-bar-track"><div class="saude-bar-fill" style="width:${score}%;"></div></div>

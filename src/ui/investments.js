@@ -43,7 +43,7 @@ function renderInvestimentos(){
   const filterEl=document.getElementById('inv-filter');
   if(!listEl||!filterEl) return;
   filterEl.innerHTML=[`<button type="button" class="cat-pill${invFiltro==='Todos'?' active':''}" data-f="Todos">✨ ${L('inv.todos')}</button>`]
-    .concat(TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${invFiltro===t.id?' active':''}" data-f="${t.id}">${t.icon} ${t.label}</button>`)).join('');
+    .concat(TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${invFiltro===t.id?' active':''}" data-f="${t.id}">${t.icon} ${esc(t.label)}</button>`)).join('');
   filterEl.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
     invFiltro=btn.getAttribute('data-f'); vibrate(6); renderInvestimentos();
   }));
@@ -65,15 +65,17 @@ function renderInvestimentos(){
     const subParts=[t.label];
     if(inv.descricao) subParts.push(inv.descricao);
     if(t.conservador&&inv.percentCdi) subParts.push(`${inv.percentCdi}% ${L('inv.doIndexador')} ${inv.tipo==='selic'?'Selic':'CDI'}`);
-    let tag='';
+    /* nome com Html no fim: é marcação pronta, não texto — o lint usa isso
+       pra saber que a interpolação sem esc() é intencional */
+    let tagHtml='';
     if(stats){
-      tag=`<span class="inv-yield-tag pos">${stats.qtd} ${stats.qtd===1?L('inv.provento'):L('inv.proventos')} · ${L('inv.mediana')} ${formatBRL(stats.med)} · ~${stats.yieldAno.toFixed(1)}% ${L('inv.aoAno')}</span>`;
+      tagHtml=`<span class="inv-yield-tag pos">${stats.qtd} ${stats.qtd===1?L('inv.provento'):L('inv.proventos')} · ${L('inv.mediana')} ${formatBRL(stats.med)} · ~${stats.yieldAno.toFixed(1)}% ${L('inv.aoAno')}</span>`;
     }else if(t.conservador){
       const base=taxaAnualDisponivel(inv.tipo==='selic'?'selic':'cdi');
       if(base&&inv.percentCdi){
         const taxa=base*(inv.percentCdi/100);
         const r=jurosProjetados(inv.valorInvestido||0,0,taxa,12);
-        tag=`<span class="inv-yield-tag">${taxa.toFixed(2)}% ${L('inv.aoAno')} · ${L('inv.em12m')}: ${formatBRL(r.composto)}</span>`;
+        tagHtml=`<span class="inv-yield-tag">${taxa.toFixed(2)}% ${L('inv.aoAno')} · ${L('inv.em12m')}: ${formatBRL(r.composto)}</span>`;
       }
     }
     return `
@@ -87,7 +89,7 @@ function renderInvestimentos(){
           <div class="gf-item-main">
             <div class="gf-item-nome">${t.icon} ${esc(inv.nome||t.label)}</div>
             <div class="inv-item-sub">${esc(subParts.join(' · '))}</div>
-            ${tag}
+            ${tagHtml}
           </div>
           <div class="gf-item-valor">${formatBRL(inv.valorInvestido||0)}</div>
         </div>
@@ -132,7 +134,7 @@ function setupInvSheet(){
 
   function renderTipoGrid(){
     const grid=document.getElementById('inv-tipo-grid');
-    grid.innerHTML=TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    grid.innerHTML=TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo'); vibrate(6); renderTipoGrid(); refreshFields();
     }));

@@ -61,7 +61,7 @@ function renderChips(){
   chips.push({label:L('chips.aPagar'), value:formatBRL(aPagar), num:aPagar, key:'pagar'});
   document.getElementById('stat-chips').innerHTML=chips.map(c=>`
     <div class="chip">
-      <div class="chip-label">${c.label}</div>
+      <div class="chip-label">${esc(c.label)}</div>
       <div class="chip-value" data-countup="${c.num}" data-countkey="chip-${c.key}" data-countfmt="${c.fmt||'moeda'}">${c.value}</div>
     </div>`).join('');
 

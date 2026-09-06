@@ -141,7 +141,7 @@ function bindStatic(){
     const detalhe=computeCategoryDetalhe();
     const prevMes=computeCategoryPrevMonth();
     const rowsDetalhadas=entries.map(([cat,v])=>{
-      const itens=(detalhe[cat]||[]).map(it=>`<tr><td class="sub">${esc(it.nome)}${it.data?` <span class="muted">· ${it.data}</span>`:''} <span class="muted" style="font-size:10.5px;">${it.origem||''}</span></td><td class="num sub">${formatBRL(it.val)}</td></tr>`).join('');
+      const itens=(detalhe[cat]||[]).map(it=>`<tr><td class="sub">${esc(it.nome)}${it.data?` <span class="muted">· ${it.data}</span>`:''} <span class="muted" style="font-size:10.5px;">${esc(it.origem||'')}</span></td><td class="num sub">${formatBRL(it.val)}</td></tr>`).join('');
       const antes=prevMes[cat]||0;
       let delta='';
       if(antes>0){
@@ -153,7 +153,7 @@ function bindStatic(){
 
     const receitaItens=computeReceitasMesDetalhe();
     const totalReceitas=receitaItens.reduce((s,i)=>s+i.val,0);
-    const rowsReceitas=receitaItens.map(i=>`<tr><td>${esc(i.nome)} <span class="muted" style="font-size:10.5px;">${i.tag}</span></td><td class="num">${formatBRL(i.val)}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">Nenhuma receita registrada neste mês.</td></tr>';
+    const rowsReceitas=receitaItens.map(i=>`<tr><td>${esc(i.nome)} <span class="muted" style="font-size:10.5px;">${esc(i.tag)}</span></td><td class="num">${formatBRL(i.val)}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">Nenhuma receita registrada neste mês.</td></tr>';
 
     const resultado=totalReceitas-total;
 

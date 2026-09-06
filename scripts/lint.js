@@ -145,6 +145,56 @@ function usos(codigo) {
   return achados;
 }
 
+/* ═══ texto do usuário virando HTML ═══
+   Procura template literal que constrói marcação (tem "<") e, dentro dele,
+   interpolação de um campo de texto que não passou por esc(). É a regra que
+   mantém fechada a porta de XSS: dado do usuário, de backup, da nuvem ou da IA
+   pode conter "<img onerror=…>", e a diferença entre texto e código é o esc().
+
+   Escapes conscientes: nome de variável terminado em `Html` diz "isto já é
+   marcação, de propósito". */
+const CAMPOS_DE_TEXTO = /\b(nome|nota|notas|descricao|categoria|categorias|tag|tags|texto|titulo|label|rotulo|origem|resposta|pergunta|termo|busca|msg|mensagem|dica|conselho|comentario|obs)\b/i;
+const CHAMADA_SEGURA = /^(esc|formatBRL|formatPct|Number|parseNum|catIcon|L|encodeURIComponent)\s*\(/;
+
+/* percorre os template literals de um arquivo, respeitando aninhamento */
+function templatesDe(codigo) {
+  const achados = [];
+  for (let i = 0; i < codigo.length; i++) {
+    if (codigo[i] !== '`') continue;
+    let j = i + 1, prof = 0;
+    for (; j < codigo.length; j++) {
+      if (codigo[j] === '\\') { j++; continue; }
+      if (codigo[j] === '$' && codigo[j + 1] === '{') { prof++; j++; continue; }
+      if (codigo[j] === '}' && prof > 0) { prof--; continue; }
+      if (codigo[j] === '`' && prof === 0) break;
+    }
+    achados.push({ ini: i, txt: codigo.slice(i, j + 1) });
+    i = j;
+  }
+  return achados;
+}
+
+function acharTextoEmHtml(SRC, modulos) {
+  const achados = [];
+  for (const rel of modulos) {
+    const codigo = fs.readFileSync(path.join(SRC, rel), 'utf8');
+    const linhaDe = pos => codigo.slice(0, pos).split('\n').length;
+    for (const t of templatesDe(codigo)) {
+      if (!t.txt.includes('<')) continue;
+      const re = /\$\{([^{}]*)\}/g;
+      let m;
+      while ((m = re.exec(t.txt))) {
+        const expr = m[1].trim();
+        if (!CAMPOS_DE_TEXTO.test(expr)) continue;
+        if (CHAMADA_SEGURA.test(expr) || expr.includes('esc(')) continue;
+        if (/Html\b/.test(expr)) continue;
+        achados.push(rel + ':' + linhaDe(t.ini + m.index) + ' → ${' + expr.slice(0, 70) + '}');
+      }
+    }
+  }
+  return achados.sort();
+}
+
 function main() {
   const modulos = listarModulos();
   const info = modulos.map(rel => {
@@ -217,10 +267,12 @@ function main() {
 
   const novas = violacoes.filter(v => !base.has(v));
   const resolvidas = [...base].filter(v => !violacoes.includes(v));
+  const emHtml = acharTextoEmHtml(SRC, modulos);
 
   console.log(modulos.length + ' módulos, ' + arestas.length + ' dependências entre arquivos');
   console.log('violações de camada: ' + violacoes.length +
     ' (na baseline: ' + base.size + ', novas: ' + novas.length + ')');
+  console.log('texto do usuário virando HTML sem esc(): ' + emHtml.length);
   const grandes = info.filter(m => m.linhas > 400).sort((a, b) => b.linhas - a.linhas);
   if (grandes.length) {
     console.log('módulos acima de 400 linhas (candidatos a nova divisão):');
@@ -237,6 +289,13 @@ function main() {
     console.error('\ndependência nova apontando para uma camada mais alta:');
     novas.forEach(v => console.error('  ' + v));
     console.error('Mova o código para a camada certa ou inverta a dependência.');
+  }
+  if (emHtml.length) {
+    falhou = true;
+    console.error('\ntexto do usuário indo pra dentro de HTML sem esc():');
+    emHtml.forEach(v => console.error('  ' + v));
+    console.error('Envolva em esc(), ou use textContent. Se for marcação de propósito,');
+    console.error('guarde numa variável com "Html" no nome (ex.: tagHtml).');
   }
   if (higiene.length) {
     falhou = true;

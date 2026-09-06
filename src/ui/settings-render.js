@@ -49,7 +49,7 @@ function renderSkipDays(){
   el.innerHTML=[...list].sort().map(ds=>{
     const d=new Date(ds+'T12:00:00');
     const label=d.toLocaleDateString(localeAtual(),{weekday:'short',day:'2-digit',month:'short',year:'2-digit'});
-    return `<span class="skip-tag">${label}<button data-action="del-skip" data-date="${ds}" title="${esc(L('btn.remover'))}">✕</button></span>`;
+    return `<span class="skip-tag">${esc(label)}<button data-action="del-skip" data-date="${ds}" title="${esc(L('btn.remover'))}">✕</button></span>`;
   }).join('');
   el.querySelectorAll('[data-action="del-skip"]').forEach(btn=>btn.addEventListener('click',async e=>{
     const date=e.target.getAttribute('data-date');

@@ -23,7 +23,7 @@ function renderRendas(){
         <div class="gf-item-row${pausada?' paused':''}" data-rr-id="${r.id}" style="border-top:none;border-bottom:1px solid var(--line);">
           <div class="gf-item-main">
             <div class="gf-item-nome">${t.icon} ${esc(r.nome||t.label)}</div>
-            <div class="inv-item-sub">${t.label} · cai dia ${r.diaDoMes}</div>
+            <div class="inv-item-sub">${esc(t.label)} · cai dia ${r.diaDoMes}</div>
             <span class="rr-tag${pausada?' pausada':''}">${pausada?'⏸ Pausada':'↻ Recorrente'}</span>
           </div>
           <div class="gf-item-valor">${formatBRL(r.valor)}</div>
@@ -64,7 +64,7 @@ function setupRRSheet(){
 
   function renderTipoGrid(){
     const grid=document.getElementById('rr-tipo-grid');
-    grid.innerHTML=TIPOS_RENDA.map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    grid.innerHTML=TIPOS_RENDA.map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo'); vibrate(6); renderTipoGrid();
     }));
