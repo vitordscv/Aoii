@@ -1,0 +1,55 @@
+name: check
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # verificar-build.js compara o dist/ gerado com o app publicado em
+          # 6556d20; sem histórico completo esse commit não existe no clone
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # o projeto não tem dependências; `npm ci` sem lockfile falharia
+      - name: instalar
+        run: npm ls --depth=0 || true
+
+      - name: lint, build, testes e auditoria
+        run: npm run check
+
+      - name: o build é determinístico
+        run: |
+          node scripts/build.js
+          sha1=$(sha1sum dist/index.html | cut -d' ' -f1)
+          rm -rf dist
+          node scripts/build.js
+          sha2=$(sha1sum dist/index.html | cut -d' ' -f1)
+          if [ "$sha1" != "$sha2" ]; then
+            echo "o build produziu saídas diferentes para a mesma fonte: $sha1 != $sha2"
+            exit 1
+          fi
+          echo "duas montagens, mesmo sha1: $sha1"
+
+      - name: nenhum arquivo gerado versionado
+        run: |
+          if git ls-files --error-unmatch dist/index.html >/dev/null 2>&1; then
+            echo "dist/ não pode ser versionado — é gerado pelo build"
+            exit 1
+          fi
+          echo "dist/ está fora do git, como deve"
+
+      - name: a extração ainda reproduz o app publicado
+        run: |
+          mkdir -p referencia
+          git show 6556d20:index.html > referencia/index-6556d20.html
+          node scripts/verificar-build.js || \
+            echo "AVISO: src/ já divergiu do 6556d20 — esperado assim que houver mudança de comportamento"

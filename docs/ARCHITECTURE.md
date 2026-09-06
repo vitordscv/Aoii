@@ -1,0 +1,135 @@
+# Arquitetura
+
+## O formato
+
+O Aoii é entregue como um arquivo só: `dist/index.html`, com CSS e JavaScript
+embutidos. Isso é proposital — abre offline, instala como PWA e não depende de
+servidor. O que mudou na extração foi de onde esse arquivo vem: antes ele *era*
+a fonte; agora é gerado a partir de `src/`.
+
+```
+src/index.html          esqueleto com três marcadores
+  <!--build:fonts-->      → src/styles/fonts.css
+  <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
+  <!--build:scripts-->    → os 63 módulos JS, na ordem do manifesto,
+                            embrulhados num único (function(){ "use strict"; … })()
+```
+
+`scripts/build.js` faz a substituição e escreve `dist/`. `public/` é copiado
+como está. Não há minificação nem transformação: o que se lê em `src/` é
+exatamente o que roda.
+
+### Por que concatenação e não módulos ES
+
+Os módulos continuam compartilhando um escopo só. Isso não é elegante, mas é o
+que permitiu partir 5.400 linhas em 63 arquivos sem tocar em nenhuma linha de
+lógica — e provar isso: o `dist/` da extração era byte a byte igual ao arquivo
+publicado antes dela.
+
+Converter para `import`/`export` de verdade é passo de outra rodada, feito folha
+por folha (`core/money.js` e `core/dates.js` primeiro, que não dependem de
+ninguém). Enquanto isso, quem faz o papel do sistema de módulos é o
+`scripts/lint.js`.
+
+## Camadas
+
+```
+data ─→ i18n ─→ core ─→ storage ─→ integrations ─→ ui
+```
+
+Cada camada só pode usar as que vêm antes. `npm run lint` lê os nomes declarados
+e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
+
+| camada | o que é | pode usar |
+|---|---|---|
+| `data` | constantes, o objeto `data`, defaults e migração | nada |
+| `i18n` | dicionários e `L()` | `data` |
+| `core` | cálculo puro: dinheiro, datas, projeção, cartão, métricas | `data`, `i18n` |
+| `storage` | localStorage e sincronização | + `core` |
+| `integrations` | Gemini, BrasilAPI | + `storage` |
+| `ui` | desenho, eventos, DOM | tudo |
+
+### Dívida conhecida
+
+18 dependências já apontavam para cima quando as fronteiras foram criadas. Elas
+estão congeladas em `scripts/lint-baseline.json` e caem em três grupos:
+
+- **`core` → `ui/effects.js`** — funções de cálculo chamando `vibrate()`,
+  `catIcon()`, `render()`. Efeito colateral de interface dentro do cálculo.
+- **`core` → `storage`** — cálculo chamando `persist()` direto.
+- **`integrations` → `ui`** — a integração desenhando o próprio resultado.
+
+O caminho para zerar é o mesmo nos três: a camada de baixo devolve valor, a de
+cima decide o que fazer com ele. Cada uma que sai deve sair da baseline no mesmo
+commit.
+
+## Fluxos
+
+### Abrir o app
+
+```
+init()                          src/ui/boot.js
+ ├─ store.get(STORAGE_KEY)      lê o localStorage
+ ├─ migrateData(d)              normaliza e completa campos
+ ├─ aplicarAportesAutomaticos() move dinheiro das metas se o mês virou
+ ├─ sincronização (se houver código configurado)
+ └─ render()
+```
+
+### Uma alteração financeira
+
+```
+evento na UI
+ → altera `data`
+ → persist()            invalida a timeline, grava, marca o status
+ → render()             invalida de novo e redesenha tudo
+```
+
+`persist()` sem `render()` é o erro clássico: os dados mudam, a tela não. Foi
+exatamente o que aconteceu com a data prevista das compras planejadas.
+
+### De onde vem cada número
+
+```
+data
+ └─ buildTimeline()              memoizado; um ponto por mês
+     ├─ mesMetrics/monthMetrics  renda, despesa e saldo de cada mês
+     ├─ entradas extras          só o que falta receber, fora as "sem previsão"
+     ├─ compras planejadas
+     └─ aportes automáticos das metas
+        ↓
+   pontos[]  ──→ getTrajectoryPoints()  → gráfico da trajetória
+             ──→ saldoPrevistoEm()      → número do hero
+             ──→ computeTotals()        → chips
+             ──→ renderMonths()         → cartões do mês
+             ──→ suggestPurchaseTiming()→ "melhor momento pra comprar"
+```
+
+Um motor só. Qualquer tela que precise de saldo futuro lê daqui — é o que faz o
+hero bater com o gráfico e com o cartão do mês.
+
+`buildTimeline()` guarda o resultado em memória; `invalidarTimeline()` limpa.
+`render()` e `persist()` já chamam.
+
+### Persistência
+
+```
+persist() → invalidarTimeline()
+          → store.set()   localStorage (com fallback silencioso)
+          → status "salvo"
+```
+
+A sincronização é separada e opcional: um código de 8 caracteres identifica a
+linha no Supabase, e o objeto inteiro vai e volta a cada gravação. **Isso ainda
+é o ponto mais frágil do projeto** — sem criptografia e com "última gravação
+vence". Ver [SECURITY.md](SECURITY.md).
+
+## O que ainda não existe
+
+A interface altera `data` diretamente em dezenas de handlers. Não há uma camada
+de comandos (`addTransaction()`, `registerIncomePayment()`, `updateGoal()`) por
+onde toda mudança passe. Isso é o que torna difícil garantir que nenhum caminho
+esqueça de validar, invalidar a timeline ou redesenhar.
+
+Criar essa camada é a mudança estrutural seguinte, e ela depende da validação
+central estar pronta — ver [MIGRATION.md](MIGRATION.md).
