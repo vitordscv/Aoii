@@ -67,7 +67,7 @@ const BLOCOS=[
 
 /* `const` no topo de um script vive no escopo léxico do contexto, não vira
    propriedade dele — então o teste não enxerga. Estas são copiadas na mão. */
-const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA'];
+const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORMATO'];
 
 /* funções puras de cálculo — a parte do app que os testes cobrem */
 const FUNCOES=[
@@ -83,6 +83,7 @@ const FUNCOES=[
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData',
+  'chamarRpc','nuvemLer','nuvemGravar',
   'computeInsights','invalidarTimeline'
 ];
 
@@ -92,6 +93,12 @@ function montarMotor(arquivo){
   const abrev=/const MONTH_ABBR\s*=\s*\[[^\]]*\]/.exec(src);
   const cats=/const CATEGORIAS_DEFAULT\s*=\s*\[[^\]]*\]/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'');
+  /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
+     existir, mas nenhum teste pode encostar no projeto real nem por acidente —
+     com um host inválido, um fetch que escapasse do dublê falha na hora em vez
+     de bater na produção. */
+  codigo+="const SUPABASE_URL='https://projeto-de-teste.invalido';\n";
+  codigo+="const SUPABASE_ANON_KEY='chave-de-teste-sem-valor';\n";
   codigo+='let _tlMemo=new Map();\n';
   BLOCOS.forEach(([ini,fim])=>{ codigo+=recortarBloco(src,ini,fim)+'\n'; });
   FUNCOES.forEach(n=>{

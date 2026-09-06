@@ -14,9 +14,17 @@
      WebAssembly de terceiros — num app que roda offline e guarda dinheiro, uma
      dependência a menos vale mais do que a diferença. O número de voltas fica no
      envelope, então dá pra subir depois sem quebrar o que já foi salvo.
-   - **Salt de 16 bytes e IV de 12, novos a cada gravação.** Reusar IV em AES-GCM
-     é a falha clássica que derruba a cifra inteira; gerar sempre torna o erro
-     impossível por construção.
+   - **IV de 12 bytes novo a cada gravação; salt de 16 bytes estável.** Reusar
+     IV em AES-GCM é a falha clássica que derruba a cifra inteira, então ele é
+     sorteado sempre. O salt do PBKDF2 é outra história: ele precisa ser único
+     por senha, não por mensagem. E precisa ser **estável**, porque o token de
+     escrita sai dele — girar o salt a cada gravação faria o token mudar junto,
+     e o outro aparelho, que derivou o dele do salt anterior, seria recusado
+     pelo servidor. O salt nasce uma vez, quando a sincronização é ligada, e é
+     carregado adiante em toda gravação.
+   - **Duas chaves da mesma senha, com contextos separados.** A chave que cifra
+     usa o salt; o token de escrita usa o salt + "/escrita". Nenhum dos dois
+     revela o outro, e o servidor só guarda o hash do token.
    - **Os metadados entram como dados autenticados (AAD).** `format_version`,
      `revision` e `device_id` precisam ficar em claro pro servidor comparar
      revisão. Amarrá-los ao AAD faz com que trocar qualquer um deles quebre a
@@ -57,9 +65,13 @@ function dadosAutenticados(env) {
     'aoii/' + env.format_version + '/' + (env.revision || 0) + '/' + (env.device_id || ''));
 }
 
+function materialDaSenha(senha) {
+  return crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveKey', 'deriveBits']);
+}
+
 async function derivarChave(senha, salt, voltas) {
-  const material = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveKey']);
+  const material = await materialDaSenha(senha);
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: voltas, hash: 'SHA-256' },
     material,
@@ -68,13 +80,42 @@ async function derivarChave(senha, salt, voltas) {
     ['encrypt', 'decrypt']);
 }
 
+/* Token de escrita: prova pro servidor que quem grava conhece a senha, sem que
+   a senha nem a chave de cifra saiam do aparelho. Sai do mesmo salt, mas com um
+   sufixo de contexto — então nem o token revela a chave, nem o contrário.
+
+   O servidor guarda só sha256(token) e compara. Sai como hexadecimal de 64
+   caracteres, acima do mínimo de 32 que aoii_put exige. */
+async function derivarTokenDeEscrita(senha, salt, voltas) {
+  if (!cryptoDisponivel()) throw new Error('cripto-indisponivel');
+  const contexto = new Uint8Array(salt.length + 8);
+  contexto.set(salt, 0);
+  contexto.set(new TextEncoder().encode('/escrita'), salt.length);
+  const material = await materialDaSenha(senha);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: contexto, iterations: voltas, hash: 'SHA-256' }, material, 256);
+  return Array.from(new Uint8Array(bits), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* Salt novo, pra quando a sincronização é ligada pela primeira vez. Depois
+   disso ele é carregado adiante — ver o cabeçalho deste arquivo. */
+function novoSaltDeSenha() {
+  if (!cryptoDisponivel()) throw new Error('cripto-indisponivel');
+  return bytesParaB64(crypto.getRandomValues(new Uint8Array(CRIPTO_SALT_BYTES)));
+}
+
 /* objeto → envelope pronto pra guardar */
 async function cifrarParaNuvem(objeto, senha, meta) {
   if (!cryptoDisponivel()) throw new Error('cripto-indisponivel');
   if (!senha) throw new Error('senha-vazia');
   meta = meta || {};
 
-  const salt = crypto.getRandomValues(new Uint8Array(CRIPTO_SALT_BYTES));
+  /* `meta.salt` é o salt já em uso por esta sincronização. Sem ele, esta é a
+     primeira gravação e o salt nasce agora. Ver o cabeçalho: girar o salt a
+     cada gravação quebraria o token de escrita dos outros aparelhos. */
+  const salt = meta.salt ? b64ParaBytes(meta.salt)
+                         : crypto.getRandomValues(new Uint8Array(CRIPTO_SALT_BYTES));
+  if (salt.length < 8) throw new Error('salt-invalido');
   const iv = crypto.getRandomValues(new Uint8Array(CRIPTO_IV_BYTES));
   const chave = await derivarChave(senha, salt, CRIPTO_VOLTAS);
 

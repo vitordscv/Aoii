@@ -52,13 +52,45 @@ module.exports=async function(t){
   try{ await c.decifrarDaNuvem(env,SENHA+'x'); }catch(e){ erro=e.message; }
   t.igual(erro,'senha-errada','senha errada não devolve conteúdo, dá erro nomeado');
 
-  /* ── nada de IV ou salt repetido ── */
-  const env2=await c.cifrarParaNuvem(SEGREDO,SENHA,{revision:7,device_id:'aparelho-a'});
+  /* ── IV novo a cada gravação, salt estável ── */
+  const env2=await c.cifrarParaNuvem(SEGREDO,SENHA,{revision:7,device_id:'aparelho-a',salt:env.kdf.salt});
   t.verdadeiro(env.cipher.iv!==env2.cipher.iv,'cada gravação usa um IV novo',
     'reusar IV em AES-GCM derruba a cifra inteira');
-  t.verdadeiro(env.kdf.salt!==env2.kdf.salt,'e um salt novo');
+  t.igual(env2.kdf.salt,env.kdf.salt,
+    'o salt informado é carregado adiante, não sorteado de novo');
   t.verdadeiro(env.cipher.ciphertext!==env2.cipher.ciphertext,
-    'o mesmo conteúdo cifrado duas vezes não dá o mesmo texto');
+    'mesmo com o salt igual, o mesmo conteúdo não dá o mesmo texto cifrado (é o IV)');
+  const semSalt=await c.cifrarParaNuvem(SEGREDO,SENHA,{});
+  t.verdadeiro(semSalt.kdf.salt!==env.kdf.salt,
+    'sem salt informado, nasce um novo — é a primeira gravação de uma sincronização');
+
+  /* ── token de escrita ──
+     Sai da mesma senha e do mesmo salt, mas com contexto separado. Precisa ser
+     ESTÁVEL: é ele que o servidor compara a cada gravação, e o outro aparelho
+     deriva o dele por conta própria. Se mudasse a cada gravação, o segundo
+     aparelho seria recusado. */
+  const salt=env.kdf.salt;
+  const tok1=await c.derivarTokenDeEscrita(SENHA,c.b64ParaBytes(salt),c.CRIPTO_VOLTAS);
+  const tok2=await c.derivarTokenDeEscrita(SENHA,c.b64ParaBytes(salt),c.CRIPTO_VOLTAS);
+  t.igual(tok1,tok2,'mesma senha e mesmo salt dão sempre o mesmo token');
+  t.verdadeiro(tok1.length>=32,'o token tem pelo menos 32 caracteres (aoii_put exige)',
+    'veio com '+tok1.length);
+  t.verdadeiro(/^[0-9a-f]+$/.test(tok1),'e é hexadecimal, seguro em qualquer transporte');
+
+  const tokOutraSenha=await c.derivarTokenDeEscrita(SENHA+'x',c.b64ParaBytes(salt),c.CRIPTO_VOLTAS);
+  t.verdadeiro(tok1!==tokOutraSenha,'senha diferente dá token diferente');
+  const tokOutroSalt=await c.derivarTokenDeEscrita(SENHA,c.b64ParaBytes(semSalt.kdf.salt),c.CRIPTO_VOLTAS);
+  t.verdadeiro(tok1!==tokOutroSalt,'salt diferente dá token diferente');
+
+  /* o token não pode ser a chave de cifra disfarçada */
+  const chaveCrua=await crypto.subtle.deriveBits(
+    {name:'PBKDF2',salt:c.b64ParaBytes(salt),iterations:c.CRIPTO_VOLTAS,hash:'SHA-256'},
+    await crypto.subtle.importKey('raw',new TextEncoder().encode(SENHA),'PBKDF2',false,['deriveBits']),
+    256);
+  const chaveHex=Array.from(new Uint8Array(chaveCrua),b=>b.toString(16).padStart(2,'0')).join('');
+  t.verdadeiro(tok1!==chaveHex,
+    'o token de escrita não é a chave que cifra — contextos separados',
+    'se fossem iguais, mandar o token pro servidor entregaria a chave junto');
 
   /* ── adulteração ── */
   const virarUmByte=(b64)=>{
