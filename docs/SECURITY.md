@@ -175,15 +175,27 @@ Estado da tabela na mesma verificação: 14 linhas (10 códigos de sincronizaç�
 4 snapshots mensais), 27 kB, colunas `id text, data jsonb, updated_at
 timestamptz`. Tudo em texto puro.
 
-Isto é mais grave do que este documento dizia antes, e é o argumento mais forte
-para as duas partes do SQL proposto:
+Era mais grave do que este documento dizia antes. **A parte 1 do SQL foi
+aplicada no mesmo dia** e o quadro hoje é:
 
-- [`0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql) — aditiva,
-  pode ser aplicada agora sem quebrar nada: colunas de controle, as duas funções
-  de acesso, e tira o `DELETE` do acesso público (o app nunca apaga linha).
+| | antes | agora |
+|---|---|---|
+| SELECT pela chave anon | tabela inteira | tabela inteira (só muda na parte 2) |
+| INSERT / UPDATE | qualquer linha | qualquer linha (idem) |
+| **DELETE** | **qualquer linha** | **barrado** |
+| funções `aoii_get` / `aoii_put` | não existiam | criadas, com token de escrita e controle de revisão |
+
+- [`0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql) —
+  **aplicada e conferida em 06/09/2026** (o rodapé do arquivo traz o resultado
+  de cada verificação). Nada quebrou: o app publicado continua lendo e gravando
+  por REST.
 - [`0002_sync_fecha_tabela.sql`](../supabase/migrations/0002_sync_fecha_tabela.sql) —
-  tranca a tabela de vez. **Só depois** que o app publicado usar as funções;
-  antes disso, derruba a sincronização de quem estiver na versão anterior.
+  fecha o SELECT e o resto. **Ainda não aplicada, e não deve ser**: só depois
+  que o app publicado usar as funções, senão derruba a sincronização de quem
+  estiver na versão anterior.
+
+Ou seja: o vandalismo (apagar o espelho de todo mundo) está fechado; a leitura
+indevida continua aberta até a etapa do app.
 
 A URL e a chave `anon` estarem no código publicado continua sendo normal e
 esperado — não é vazamento de senha. O problema é o que a chave permite fazer.

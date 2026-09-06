@@ -1,9 +1,10 @@
 # Sincronização: desenho proposto
 
-**Estado: proposta. Nada aqui foi aplicado no Supabase.**
-O código de criptografia já existe e está testado (`src/storage/encryption.js`),
-mas a sincronização continua gravando em texto puro até esta proposta ser
-aprovada. Ver "Como sair daqui", no fim.
+**Estado: parte 1 aplicada em 06/09/2026; parte 2 não.**
+As colunas de controle e as funções `aoii_get`/`aoii_put` já existem no projeto
+de produção, e o `DELETE` pela chave anon já está barrado. O que falta é o app
+passar a usar as funções e a criptografia — até lá, `src/storage/sync.js`
+continua gravando em texto puro por REST. Ver "Como sair daqui", no fim.
 
 ## O problema
 
@@ -195,14 +196,15 @@ branch, antes de qualquer criptografia — é o que torna a migração segura.
 
 ## Como sair daqui
 
-Nesta ordem, e a etapa 1 depende de você:
-
-1. **Você revisa e aprova** este documento e o SQL. Nada é aplicado antes disso.
-2. Aplicar o SQL num projeto de teste do Supabase e conferir: listar a tabela
-   com a chave `anon` falha; `aoii_get` com id certo funciona; `aoii_put` com
-   token errado falha; com revisão velha devolve conflito.
-3. Implementar no app: código de 12 caracteres com `crypto.getRandomValues`,
-   tela de senha, migração, tela de conflito, estados de status.
+1. ~~Revisar e aprovar o desenho e o SQL.~~ Feito.
+2. ~~Aplicar a parte 1 e conferir.~~ Feito em 06/09/2026 — o rodapé de
+   `0001_sync_seguro.sql` traz o resultado de cada verificação.
+3. **Implementar no app** ← é aqui que estamos: código de 12 caracteres com
+   `crypto.getRandomValues`, tela de senha (com backup local obrigatório antes),
+   derivação do token de escrita, troca de `/rest/v1/financas` por
+   `aoii_get`/`aoii_put`, migração do formato antigo, tela de conflito, estados
+   de status, e o fim do `catch(e){}` vazio.
 4. Testes de dois aparelhos na mesma revisão, conflito sem sobrescrita, falha de
    rede, modo offline, retomada, snapshot cifrado.
-5. Só então aplicar no projeto de produção.
+5. Publicar e abrir o app em cada aparelho pelo menos uma vez.
+6. Só então aplicar a **parte 2**, que fecha a leitura.

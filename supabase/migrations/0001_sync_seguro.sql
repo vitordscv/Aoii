@@ -16,6 +16,22 @@
 --   create policy "acesso publico" on financas for all using (true) with check (true);
 --   -- ou seja: quem tem a chave anon (publicada no HTML) lê, altera e apaga
 --   -- qualquer linha da tabela.
+--
+-- APLICADA em 06/09/2026 no projeto vpfinptbmxxamndvmtkn (produção).
+-- Conferido depois de rodar:
+--   funções aoii_get e aoii_put criadas ....................... 2
+--   RLS ligada na tabela ...................................... true
+--   políticas: SELECT, INSERT, UPDATE (nenhuma de DELETE) ..... 3
+--   colunas: id, data, updated_at, revision, device_id,
+--            write_token_hash, created_at
+--   linhas preservadas ........................................ 14
+--   aoii_put cria do zero ..................... {"ok":true,"revision":1}
+--   aoii_put com token errado ................. {"erro":"token"}
+--   aoii_put com revisão velha ................ {"conflito":true,"revision":1}
+--   aoii_put com token e revisão certos ....... {"ok":true,"revision":2}
+--   aoii_get não devolve o hash do token ...... confirmado
+--   REST (o caminho do app publicado): GET 200, POST 201, upsert 200
+--   REST DELETE: a linha sobrevive — barrado pela RLS
 -- ═══════════════════════════════════════════════════════════════════════════
 
 begin;
