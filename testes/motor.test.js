@@ -29,7 +29,51 @@ module.exports=function(t){
   grupoSugestaoCompra(t);
   grupoGastoVariavel(t);
   grupoMedias(t);
+  grupoAosPoucos(t);
 };
+
+/* quem te deve pagando em pedaços: o valor que falta se divide pelos meses */
+function grupoAosPoucos(t){
+  console.log('\n\x1b[1mEntrada recebida aos poucos\x1b[0m');
+  const comEntrada=(extra)=>{
+    const d=base(); d.dataAlvo='2027-06-30';
+    d.entradasExtras=[Object.assign({id:'e1',nome:'Geovane',valor:1200,feito:false},extra)];
+    return criarAmbiente(d,HOJE);
+  };
+
+  /* desligado: continua tudo no mês corrente, como antes */
+  const normal=comEntrada({});
+  t.valor(normal.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,1200,
+    'sem marcar, entra tudo de uma vez no mês corrente');
+
+  /* ligado, até dezembro: setembro a dezembro = 4 meses */
+  const dividido=comEntrada({aosPoucos:true,dataPrevista:'2026-12-20'});
+  const linha=dividido.buildTimeline();
+  const meses=[9,10,11,12].map(m=>linha.find(p=>p.mes===m&&p.ano===2026).extras);
+  meses.forEach((v,i)=>t.valor(v,300,'mês '+[9,10,11,12][i]+' recebe 1200/4 = 300'));
+  t.valor(linha.find(p=>p.ano===2027&&p.mes===1).extras,0,'depois do prazo não entra mais nada');
+  t.valor(meses.reduce((s,v)=>s+v,0),1200,'a soma das parcelas continua sendo o valor cheio');
+
+  const f=dividido.fatiasAosPoucos(dividido===null?null:{aosPoucos:true,dataPrevista:'2026-12-20',valor:1200});
+  t.igual(f&&f.meses,4,'o rótulo da linha diz 4 meses');
+  t.valor(f&&f.porMes,300,'e R$ 300 por mês');
+
+  /* ligado sem data: não dá pra dividir, então volta ao comportamento normal */
+  const semData=comEntrada({aosPoucos:true});
+  t.valor(semData.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,1200,
+    'marcado mas sem data, não inventa divisão');
+  t.igual(semData.fatiasAosPoucos({aosPoucos:true,valor:1200}),null,
+    'sem data o rótulo pede a data em vez de mostrar um número');
+
+  /* data no passado: cai tudo no mês corrente, sem parcelas negativas */
+  const passado=comEntrada({aosPoucos:true,dataPrevista:'2026-07-01'});
+  t.valor(passado.buildTimeline().find(p=>p.mes===9&&p.ano===2026).extras,1200,
+    'data já vencida vira uma parcela só, no mês corrente');
+
+  /* o total pendente da lista não muda — é o que ainda falta receber */
+  const tot=dividido.computeTotals();
+  t.valor(tot.entradasPendentes,1200,'o "a receber" continua mostrando o valor cheio que falta');
+}
 
 function grupoMultiCartao(t){
   console.log('\n\x1b[1mLinha do tempo com vários cartões\x1b[0m');

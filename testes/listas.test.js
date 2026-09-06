@@ -83,6 +83,31 @@ module.exports=function(t){
   t.valor(dm2.metas[0].valorGuardado,1000,'o aporte para no alvo da meta');
   t.valor(dm2.saldoAtual,900,'e só o que entrou de fato sai da conta (100, não 250)');
 
+  console.log('\n\x1b[1mReserva de emergência: na conta ou guardada à parte\x1b[0m');
+  {
+    const naConta=base(); naConta.reservaGuardado=2000; naConta.reservaNaConta=true;
+    const c1=criarAmbiente(naConta,HOJE);
+    t.valor(c1.reservaContaNoPatrimonio(),0,'"na conta": não entra de novo no patrimônio');
+    t.valor(c1.patrimonioCalculado(),1000,'patrimônio = só o saldo (a reserva já está dentro dele)');
+
+    const fora=base(); fora.reservaGuardado=2000; fora.reservaNaConta=false;
+    const c2=criarAmbiente(fora,HOJE);
+    t.valor(c2.reservaContaNoPatrimonio(),2000,'"guardada à parte": entra somada');
+    t.valor(c2.patrimonioCalculado(),3000,'patrimônio = saldo + reserva');
+
+    /* quem já usava o app e nunca respondeu não pode ver o número mudar */
+    const antigo=base(); antigo.reservaGuardado=2000; delete antigo.reservaNaConta;
+    const c3=criarAmbiente(antigo,HOJE);
+    t.valor(c3.patrimonioCalculado(),1000,'sem resposta ainda, vale "na conta" — patrimônio não muda sozinho');
+
+    /* a reserva não interfere em quem guarda em metas */
+    const misto=base(); misto.reservaGuardado=500; misto.reservaNaConta=false;
+    misto.metas=[{id:'m',nome:'Viagem',valorAlvo:5000,valorGuardado:800,aporteMensal:0}];
+    misto.dinheiroVivo=200;
+    t.valor(criarAmbiente(misto,HOJE).patrimonioCalculado(),2500,
+      'saldo 1000 + vivo 200 + meta 800 + reserva 500');
+  }
+
   console.log('\n\x1b[1mMédia da fatura para a reserva de emergência\x1b[0m');
   const dr=base();
   dr.gastosMensais=[{id:'g',nome:'Aluguel',valor:1000,diaDoMes:10,ativo:true,categoria:'Casa'}];

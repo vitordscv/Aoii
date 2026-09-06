@@ -33,14 +33,15 @@ function recortar(src,nome){
 const FUNCOES=[
   'parseNum','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'defaultTargetValue','getTargetDate','daysBetweenInclusive','remainingWorkDaysUntil',
-  'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes',
+  'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes','fatiasAosPoucos',
   'transacoesGasto','gastoVariavelMedio','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','nextMonth','ensureFatura','lancarParcelamento',
   'registrarTransacao','registrarReceita','removerTransacao','gastoFixoAtivoEm',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal',
-  'custoMensalEssencial','patrimonioCalculado','aplicarAportesAutomaticos','computeReceitasMesDetalhe',
+  'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
+  'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'computeInsights','invalidarTimeline'
 ];
 
