@@ -8,12 +8,14 @@
      o ETag do arquivo publicado. Se o service worker servisse o cache
      primeiro, o verificador veria versão nova, recarregaria, receberia o
      cache velho de novo e entraria em laço.
-   - fontes do Google: CACHE PRIMEIRO, porque não mudam.
+   - fontes do Google e as ilustrações de fundo em /assets/: CACHE
+     PRIMEIRO, porque não mudam e são pesadas.
    - qualquer outra coisa: passa direto, sem interferir. */
 
-const VERSAO='aoii-v1';
+const VERSAO='aoii-v2';
 const CACHE_PAGINA=VERSAO+'-pagina';
 const CACHE_FONTES=VERSAO+'-fontes';
+const CACHE_ARTE=VERSAO+'-arte';
 
 self.addEventListener('install',e=>{ self.skipWaiting(); });
 
@@ -46,6 +48,19 @@ self.addEventListener('fetch',e=>{
         if(guardado) return guardado;
         throw err;
       }
+    })());
+    return;
+  }
+
+  /* ilustrações de fundo: pesadas e imutáveis, guarda na primeira vez */
+  if(url.origin===self.location.origin&&url.pathname.startsWith('/assets/')){
+    e.respondWith((async()=>{
+      const c=await caches.open(CACHE_ARTE);
+      const guardado=await c.match(req);
+      if(guardado) return guardado;
+      const res=await fetch(req);
+      if(res&&res.ok) c.put(req,res.clone());
+      return res;
     })());
     return;
   }
