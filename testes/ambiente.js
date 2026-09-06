@@ -50,6 +50,9 @@ function criarAmbiente(dados,hojeISO,arquivo){
     CATS:()=>(dados.categorias&&dados.categorias.length?dados.categorias:['Mercado','Transporte','Lazer','Saúde','Casa','Outros']),
     todayISO:()=>{const d=congelado;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');},
     mediana:a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;},
+    /* Web Crypto e companhia: o módulo de criptografia usa as mesmas APIs do
+       navegador, então o teste roda contra o código de verdade, sem dublê */
+    crypto, TextEncoder, TextDecoder, btoa, atob, Uint8Array, Promise, Error,
   };
   ctx.window=ctx; ctx.globalThis=ctx;
   vm.createContext(ctx);

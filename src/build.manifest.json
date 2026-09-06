@@ -14,6 +14,7 @@
     "data/constants.js",
     "storage/supabase-config.js",
     "ui/background-art.js",
+    "storage/encryption.js",
     "storage/sync.js",
     "data/state.js",
     "data/schema.js",

@@ -23,8 +23,17 @@ function estaEmpacotado(arquivo){
     .some(l=>l.trim().startsWith('"<!DOCTYPE html>'));
 }
 
+/* onde a função começa, seja ela `function x(` ou `async function x(` */
+function inicioDaFuncao(src,nome,de){
+  const a=src.indexOf('\nfunction '+nome+'(',de||0);
+  const b=src.indexOf('\nasync function '+nome+'(',de||0);
+  if(a<0) return b;
+  if(b<0) return a;
+  return Math.min(a,b);
+}
+
 function recortar(src,nome){
-  const i=src.indexOf('\nfunction '+nome+'(');
+  const i=inicioDaFuncao(src,nome);
   if(i<0) throw new Error('função não encontrada: '+nome);
   let k=src.indexOf('{',i), profundidade=0, str=null;
   for(;k<src.length;k++){
@@ -44,7 +53,7 @@ function recortar(src,nome){
 function recortarBloco(src,marcaInicio,ateFimDe){
   const i=src.indexOf(marcaInicio);
   if(i<0) throw new Error('não achei o início do bloco: '+marcaInicio);
-  const j=src.indexOf('\nfunction '+ateFimDe+'(',i);
+  const j=inicioDaFuncao(src,ateFimDe,i);
   if(j<0) throw new Error('não achei o fim do bloco: '+ateFimDe);
   const corpo=recortar(src.slice(j),ateFimDe);
   return src.slice(i,j)+'\n'+corpo;
@@ -53,6 +62,7 @@ function recortarBloco(src,marcaInicio,ateFimDe){
 /* blocos inteiros: [marca de início, função que fecha o bloco] */
 const BLOCOS=[
   ['const SCHEMA_VERSAO','adotarDadosDeFora'],   // data/schema.js + data/validation.js
+  ['const CRIPTO_FORMATO','decifrarDaNuvem'],     // storage/encryption.js
 ];
 
 /* `const` no topo de um script vive no escopo léxico do contexto, não vira

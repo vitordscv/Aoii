@@ -32,18 +32,25 @@ const t={
   }
 };
 
-const arquivos=['motor.test.js','entrada.test.js','datas.test.js','listas.test.js','i18n.test.js','validacao.test.js'];
-for(const f of arquivos){
-  try{ require(path.join(__dirname,f))(t); }
-  catch(e){ falhou++; console.log('\n\x1b[31mFALHA AO CARREGAR '+f+':\x1b[0m '+e.message+'\n'+e.stack); }
-}
+const arquivos=['motor.test.js','entrada.test.js','datas.test.js','listas.test.js','i18n.test.js',
+                'validacao.test.js','cripto.test.js'];
 
-console.log('\n'+'─'.repeat(58));
-if(falhou===0){
-  console.log('\x1b[32m\x1b[1m'+passou+' testes passaram.\x1b[0m');
-  process.exit(0);
-}else{
-  console.log('\x1b[31m\x1b[1m'+falhou+' falha(s)\x1b[0m de '+(passou+falhou)+' testes.\n');
-  falhas.forEach(f=>console.log('  • '+f));
-  process.exit(1);
-}
+/* O arquivo de teste pode devolver uma promessa — a criptografia é assíncrona
+   por natureza (Web Crypto). Esperar por ela é o que impede o resumo de sair
+   antes dos testes terminarem, contando tudo como se tivesse passado. */
+(async()=>{
+  for(const f of arquivos){
+    try{ await require(path.join(__dirname,f))(t); }
+    catch(e){ falhou++; console.log('\n\x1b[31mFALHA AO CARREGAR '+f+':\x1b[0m '+e.message+'\n'+e.stack); }
+  }
+
+  console.log('\n'+'─'.repeat(58));
+  if(falhou===0){
+    console.log('\x1b[32m\x1b[1m'+passou+' testes passaram.\x1b[0m');
+    process.exit(0);
+  }else{
+    console.log('\x1b[31m\x1b[1m'+falhou+' falha(s)\x1b[0m de '+(passou+falhou)+' testes.\n');
+    falhas.forEach(f=>console.log('  • '+f));
+    process.exit(1);
+  }
+})();

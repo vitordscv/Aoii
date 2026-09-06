@@ -48,22 +48,32 @@ dinheiro**, compras planejadas e viagens.
 
 ## Pendências, por gravidade
 
-### 1. Sincronização sem criptografia
+### 1. Sincronização sem criptografia — desenho pronto, **aguardando aprovação**
 
-`src/storage/sync.js`. O objeto financeiro vai e volta em texto puro. O código
-de 8 caracteres é ao mesmo tempo o identificador da linha e a única credencial —
-não há segredo separado, e ele é gerado com `Math.random()`.
+`src/storage/sync.js`. O objeto financeiro ainda vai e volta em texto puro. O
+código de 8 caracteres é ao mesmo tempo o identificador da linha e a única
+credencial — não há segredo separado, e ele é gerado com `Math.random()`.
 
-Quem souber o código lê e **escreve**. Não há verificação de que quem escreve é
-quem criou.
+Quem souber o código lê e **escreve**.
 
-O que precisa existir: AES-GCM 256 com chave derivada por PBKDF2 (SHA-256, ≥
-310.000 iterações, salt aleatório de 16 bytes, IV de 12), tudo no aparelho; o
-servidor guardando só ciphertext. Formato proposto e plano de migração vão em
-`docs/SYNC-DESIGN.md`, **antes** de qualquer alteração no Supabase.
+O que já existe: `src/storage/encryption.js`, com AES-GCM 256 e chave derivada
+por PBKDF2 (SHA-256, 310.000 voltas, salt de 16 bytes e IV de 12 novos a cada
+gravação), metadados amarrados como dados autenticados, e 31 testes contra a
+Web Crypto de verdade — inclusive adulteração de um byte, do IV, da revisão e do
+`device_id`.
 
-Enquanto isso não existe, a sincronização deve ser tratada como "publicar os
-dados num endereço que só quem tem o código conhece".
+O que falta: ligar isso à sincronização, o que exige mudar o Supabase.
+[SYNC-DESIGN.md](SYNC-DESIGN.md) tem o desenho completo — formato, token de
+escrita, controle de revisão, migração e rollback — e
+[`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql)
+tem o SQL. **Nada foi aplicado.**
+
+Enquanto isso, a sincronização deve ser tratada como "publicar os dados num
+endereço que só quem tem o código conhece".
+
+Uma proteção da migração **já está no ar**: a validação recusa tanto um envelope
+cifrado quanto um objeto sem nenhum campo do Aoii. Sem ela, uma versão antiga do
+app leria a cópia cifrada como "backup vazio" e a salvaria por cima.
 
 ### ~~2. Importação sem validação~~ — resolvido
 
@@ -134,20 +144,33 @@ Não há tela que mostre o que será enviado antes do primeiro envio, nem opçã
 resumo reduzido sem nomes próprios. (A resposta da IA já é renderizada com
 `textContent` — isso está certo.)
 
-### 7. Conflito entre aparelhos
+### 7. Conflito entre aparelhos — desenhado, aguardando a mesma aprovação
 
 Cada gravação manda o objeto inteiro e a última vence. Dois aparelhos editando
-no mesmo dia perdem trabalho em silêncio. Faltam `revision`, `updated_at`,
-`device_id` e gravação condicionada à revisão, com tela de conflito em vez de
-sobrescrita.
+no mesmo dia perdem trabalho em silêncio, e o `catch(e){}` da sincronização
+engole erro de rede sem nenhum sinal na tela.
 
-### 8. RLS do Supabase não verificada
+`aoii_put(id, data, revisão_esperada, token)` no SQL proposto grava só se a
+revisão ainda for a esperada e devolve conflito em vez de sobrescrever. A tela
+de conflito e os estados de status estão descritos em
+[SYNC-DESIGN.md](SYNC-DESIGN.md). Sem merge automático de valor financeiro:
+juntar dois saldos sem regra é pior do que perguntar.
+
+### 8. RLS do Supabase não verificada — desenhada, aguardando a mesma aprovação
 
 A URL e a chave `anon` estão no código publicado — isso é normal e esperado, não
 é vazamento de senha. O que não está verificado é se as políticas de linha
 impedem listar a tabela inteira ou escrever em linha alheia. **Funcionar não é
-prova de que a política está certa.** As políticas devem virar SQL versionado em
-`supabase/migrations/`.
+prova de que a política está certa.**
+
+O SQL proposto tranca a tabela para o papel `anon` e põe o acesso atrás de duas
+funções `SECURITY DEFINER` — porque RLS não sabe exigir "só se você filtrar por
+id", e com `SELECT USING (true)` a chave `anon` baixa a tabela inteira. Gravar
+passa a exigir um token derivado da senha, do qual o servidor guarda só o hash:
+quem descobrir o código lê o texto cifrado, mas não escreve.
+
+O arquivo traz também o roteiro de conferência (o que precisa falhar) e o SQL de
+reversão.
 
 ## Regras para quem for mexer
 
@@ -165,3 +188,7 @@ prova de que a política está certa.** As políticas devem virar SQL versionado
 Apresentar e ter aprovado, nesta ordem: SQL proposto, políticas RLS, formato do
 dado criptografado, plano de migração e plano de recuperação/rollback. O formato
 antigo não é apagado sem estratégia de recuperação.
+
+Isso está pronto e parado esperando revisão: [SYNC-DESIGN.md](SYNC-DESIGN.md) e
+[`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql).
+**Nenhuma alteração foi aplicada em nenhum projeto do Supabase.**

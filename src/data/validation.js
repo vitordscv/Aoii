@@ -310,6 +310,31 @@ function validateAndNormalizeData(entrada, opcoes) {
     }
   }
 
+  /* Envelope cifrado não é dado: é a cópia da nuvem que esta versão do app não
+     sabe (ou não deveria) abrir aqui. Sem esta recusa, ele passaria pela
+     validação como um punhado de campos desconhecidos, sobraria um objeto vazio
+     e o app poderia sobrescrever a nuvem com nada. A checagem é feita à mão, e
+     não chamando storage/encryption.js, pra que a fronteira de confiança não
+     dependa de outra camada. */
+  if (entrada.aoii === 'sync' && entrada.cipher) {
+    return {
+      ok: false, data: null, descartados: [],
+      problemas: ['isto é uma cópia cifrada, não um backup legível — abra com a senha da sincronização'],
+    };
+  }
+
+  /* Objeto com conteúdo, mas nenhum campo que a gente reconheça. Aceitar
+     resultaria num `data` vazio no lugar dos dados reais — e, pior, esse vazio
+     seria salvo por cima. É o que aconteceria com um arquivo de outro app, ou
+     com um formato futuro que esta versão não entende. */
+  const conhecidos = Object.keys(entrada).filter(k => Object.prototype.hasOwnProperty.call(ESQUEMA, k));
+  if (Object.keys(entrada).length > 0 && conhecidos.length === 0) {
+    return {
+      ok: false, data: null, descartados: Object.keys(entrada).slice(0, 20),
+      problemas: ['nenhum campo reconhecido — isto não parece um backup do Aoii'],
+    };
+  }
+
   const versao = numeroDeFora(entrada.schemaVersion);
   if (versao !== null && versao > SCHEMA_VERSAO) {
     return {

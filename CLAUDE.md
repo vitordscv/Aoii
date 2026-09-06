@@ -91,6 +91,11 @@ teste está certo.
 - Chave de API não entra em backup nem em sincronização.
 - Dado de fora entra pelo `adotarDadosDeFora()` — nunca direto em `data`.
 
+A sincronização ainda grava **em texto puro**. `src/storage/encryption.js` está
+pronto e testado, mas ligá-lo exige mudar o Supabase — e isso depende de
+aprovação. **Não aplique nada no Supabase**: o desenho e o SQL estão em
+[docs/SYNC-DESIGN.md](docs/SYNC-DESIGN.md) esperando revisão.
+
 Detalhes e o que ainda falta: [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Como fazer as coisas
@@ -133,4 +138,5 @@ ordem original no manifesto, rode `npm run check`.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — fluxos e limites entre módulos
 - [docs/DATA-MODEL.md](docs/DATA-MODEL.md) — o objeto `data`, campo a campo
 - [docs/SECURITY.md](docs/SECURITY.md) — modelo de ameaça e pendências
+- [docs/SYNC-DESIGN.md](docs/SYNC-DESIGN.md) — sincronização cifrada (proposta)
 - [docs/MIGRATION.md](docs/MIGRATION.md) — o que já mudou e o que vem

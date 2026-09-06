@@ -169,21 +169,84 @@ backup importado. Está no CLAUDE.md.
 | regras de lint | camadas | camadas + texto do usuário em HTML |
 | XSS conhecido | 1 (não sabido) | 0 |
 
+## Rodada 3 — criptografia (a parte que não toca o servidor)
+
+### O que entrou
+
+`src/storage/encryption.js`: AES-GCM 256 com chave derivada por PBKDF2
+(SHA-256, 310.000 voltas, salt de 16 bytes e IV de 12 novos a cada gravação),
+tudo em Web Crypto, sem dependência. Os metadados que precisam ficar em claro
+pro servidor comparar revisão (`format_version`, `revision`, `device_id`) entram
+como dados autenticados: dá pra ler, não dá pra falsificar.
+
+31 testes contra a Web Crypto de verdade, sem dublê: o que sai não contém nome,
+valor nem senha; a ida e volta bate; senha errada falha com erro nomeado; um
+byte trocado no conteúdo, no IV, na revisão ou no `device_id` quebra a
+decifragem; IV e salt nunca se repetem; envelope malformado é recusado por
+motivo específico.
+
+**A sincronização continua gravando em texto puro.** Ligar a criptografia exige
+mudar o Supabase, e isso depende de aprovação — o desenho está em
+[SYNC-DESIGN.md](SYNC-DESIGN.md) e o SQL em
+`supabase/migrations/0001_sync_seguro.sql`. Nada aplicado.
+
+### A proteção que já está no ar
+
+A validação passou a recusar duas coisas que antes atravessariam como "campos
+desconhecidos" e virariam um `data` vazio:
+
+- **envelope cifrado** — uma versão do app que não sabe decifrar não vai
+  confundir a cópia da nuvem com backup e salvá-la por cima;
+- **objeto sem nenhum campo do Aoii** — arquivo de outro app, ou formato futuro.
+
+Sem isso, a migração para o formato cifrado seria perigosa para quem tivesse um
+aparelho na versão antiga. Por isso entrou antes.
+
+### Decisões do desenho
+
+**O código de sincronização deixa de ser credencial** e vira endereço. A senha,
+escolhida pelo usuário, vira a chave — e nunca sai do aparelho.
+
+**Token de escrita derivado da senha**, com o servidor guardando só o hash. É o
+que impede quem descobriu o código de sobrescrever os dados, sem precisar de um
+sistema de contas. Não substitui `auth.uid()` com RLS por usuário; resolve o
+caso prático.
+
+**Acesso por função, não por tabela.** RLS não sabe exigir "só se você filtrar
+por id": com `SELECT USING (true)`, a chave `anon` baixa a tabela inteira. Duas
+funções `SECURITY DEFINER` resolvem isso e ainda dão lugar ao controle de
+revisão.
+
+**Não há recuperação de senha**, e isso é dito antes de o usuário escolher uma.
+O servidor nunca tem a chave; a nuvem é espelho, não original.
+
+### Um campo esquecido, e a checagem que veio dele
+
+Ao começar a mexer na sincronização, apareceu que `data.snapshotsMensais` não
+estava no esquema — então era descartado a cada leitura, e o app mandaria um
+snapshot novo pra nuvem toda vez que abrisse. Junto com ele, `revisoesVistas` e
+`temaAutoNoite`.
+
+Era exatamente a falha que a rodada 2 documentou (campo em dois dos três lugares
+se perde em silêncio), e aconteceu na semana seguinte. Documentar não bastou:
+`npm run lint` agora compara todo `data.x` usado em `src/` com o que o esquema
+declara.
+
 ## O que vem, em ordem
 
-1. **Criptografia da sincronização.** `docs/SYNC-DESIGN.md` primeiro, com formato
-   e migração, **antes** de qualquer alteração no Supabase.
-2. **RLS e conflitos.** Políticas em `supabase/migrations/`; `revision`,
-   `updated_at` e `device_id`; gravação condicionada à revisão e tela de conflito
-   em vez de sobrescrita silenciosa.
-3. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
+1. **Ligar a criptografia à sincronização** — depende da aprovação do desenho e
+   do SQL. Depois: código de 12 caracteres com `crypto.getRandomValues`, tela de
+   senha, migração, tela de conflito, estados de status e o fim do `catch(e){}`
+   vazio da sincronização.
+
+2. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
    `inert` no fundo, nome acessível em botão de emoji, `aria-live` no status de
    salvamento.
-4. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
+3. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
    shell; fallback offline; redesenho por seção em vez da tela inteira.
-5. **SEO e design.** Landing pública indexável, área do app fora do índice;
+4. **SEO e design.** Landing pública indexável, área do app fora do índice;
    hierarquia do Resumo; estados vazios com ação.
 
 Uma camada de comandos de domínio (`addTransaction()`, `registerIncomePayment()`,
-`updateGoal()`…) atravessa as etapas 1 e 2; agora que a validação existe, é o próximo passo
+`updateGoal()`…) atravessa a etapa 1; agora que a validação existe, é o próximo passo
 estrutural — ver o fim de [ARCHITECTURE.md](ARCHITECTURE.md).
