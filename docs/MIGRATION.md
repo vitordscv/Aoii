@@ -30,9 +30,11 @@ cada commit.
 **O build é concatenação, não empacotamento.** Os 63 módulos JS continuam sendo
 fatias de um `(function(){ "use strict"; … })()` só, na ordem original. Foi essa
 escolha que permitiu partir 5.400 linhas em 63 arquivos sem tocar em uma linha
-de lógica — e provar: `scripts/verificar-build.js` compara o `dist/` gerado com
-o documento que estava dentro do `index.html` do `6556d20` e eles são **byte a
-byte iguais**.
+de lógica — e provar: no commit da extração, o `dist/` gerado a partir de `src/`
+era **byte a byte igual** ao documento que estava dentro do `index.html` do
+`6556d20`, 1.031.311 bytes. O script que fazia essa comparação
+(`scripts/verificar-build.js`) foi aposentado na rodada 2, quando `src/` passou
+a receber mudanças de comportamento e a igualdade deixou de valer.
 
 Consequência aceita: um arquivo de `src/` não é analisável isoladamente (é
 fragmento de IIFE), então ferramenta de lint padrão não roda por arquivo. Quem
@@ -107,14 +109,6 @@ Dois destinos publicam este repositório:
 
 ### Pendências que a rodada deixou de propósito
 
-- `src/data/constants.js` começa com um memorando de 60 linhas sobre
-  criptografia e RLS que veio junto no recorte. O conteúdo já está em
-  [SECURITY.md](SECURITY.md); a remoção do comentário ficou de fora porque
-  quebraria a prova de igualdade byte a byte. **Primeira coisa a fazer na
-  próxima rodada.**
-- `scripts/verificar-build.js` só faz sentido enquanto "nada mudou" precisa ser
-  provado. Assim que `src/` receber a primeira mudança de comportamento, ele
-  deve ser aposentado.
 - Ícones e manifesto continuam embutidos em base64.
 
 ## O que vem, em ordem

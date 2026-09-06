@@ -1,37 +1,6 @@
-
-/* ═══════════════════════════════════════════════════════════════════
-   AVALIAÇÕES PEDIDAS (ainda NÃO implementadas — só análise):
-
-   1) CRIPTOGRAFIA CLIENT-SIDE ANTES DO SYNC (Supabase)
-      Viável e recomendado usando só APIs nativas (Web Crypto):
-      - Derivar a chave da senha do usuário com PBKDF2
-        → crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},…)
-      - Cifrar JSON.stringify(data) com AES-GCM (IV aleatório por gravação)
-        e salvar {salt, iv, ciphertext} em base64 no campo `data` do Supabase.
-      - supabaseSet cifraria antes do POST; supabaseGet decifraria após o GET.
-        A senha nunca sai do aparelho; sem ela o servidor só vê bytes opacos.
-      Cuidados: senha esquecida = dados irrecuperáveis (manter o export
-      local em claro como backup); pedir a senha 1x por sessão e guardar a
-      CryptoKey só em memória; o polling de 20s passa a decifrar a cada
-      comparação (barato). Nenhuma dependência externa é necessária.
-
-   2) PESO DO ARQUIVO — ✅ OTIMIZADO (de ~4,9 MB para ~0,86 MB)
-      Aplicado: ícones PWA reexportados (favicon 192px, apple 180px,
-      manifest com 192/512 reais, todos otimizados) e a máscara SVG do
-      padrão de fundo definida uma única vez via var(--pattern-mask).
-      Análise original (mantida como referência):
-      As fontes NÃO estão embutidas (vêm do Google Fonts). O peso real é:
-      - linha 9: manifest em base64 com ícones PNG (~2,4 MB!)
-      - linhas 4 e 8: favicon/apple-touch-icon PNG 800×800 (~0,9 MB cada)
-      - linhas 182–183: máscara SVG do padrão de fundo (~0,25 MB)
-      Sugestões sem mudar a aparência:
-      a) Reexportar os ícones em 192px/512px comprimidos (tinypng/squoosh):
-         cada um cai pra ~15–40 KB → o HTML fica com menos de 500 KB.
-      b) Servir manifest.webmanifest + ícones como arquivos separados no
-         mesmo host (o app continua instalável e o HTML perde ~4 MB).
-      c) Minificar a máscara SVG (svgo) ou trocá-la por um pattern SVG
-         inline de poucos KB com o mesmo visual.
-   ═══════════════════════════════════════════════════════════════════ */
+/* Nomes de mês, dias da semana e a chave do localStorage.
+   Vale para todos os idiomas: applyIdiomaMonths() troca o conteúdo destes
+   arrays no lugar, então quem já guardou uma referência continua válido. */
 
 const MONTH_NAMES  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MONTH_ABBR   = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];

@@ -10,10 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # verificar-build.js compara o dist/ gerado com o app publicado em
-          # 6556d20; sem histórico completo esse commit não existe no clone
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -46,10 +42,3 @@ jobs:
             exit 1
           fi
           echo "dist/ está fora do git, como deve"
-
-      - name: a extração ainda reproduz o app publicado
-        run: |
-          mkdir -p referencia
-          git show 6556d20:index.html > referencia/index-6556d20.html
-          node scripts/verificar-build.js || \
-            echo "AVISO: src/ já divergiu do 6556d20 — esperado assim que houver mudança de comportamento"
