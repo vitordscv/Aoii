@@ -50,11 +50,23 @@ function criarAparelho(motor) {
     Uint8Array, Promise, Error, AbortController, setTimeout, clearTimeout,
     localStorage: armazenamentoFalso(),
     data: {},
+    /* O desvio, e ele é de propósito explícito.
+
+       montarMotor injeta um SUPABASE_URL inválido pra que nenhum teste alcance
+       a produção por acidente. Aqui a gente troca esse endereço pelo real E
+       redireciona as duas funções pras gêmeas de homologação — nas duas trocas,
+       de uma vez. O motor continua sem conseguir sair sozinho: quem abre a
+       porta é este arquivo, e só pra `_homolog`. */
     async fetch(url, opcoes) {
       const alvo = String(url)
+        .replace('https://projeto-de-teste.invalido', URL_BASE)
         .replace('/rpc/aoii_get', '/rpc/aoii_get_homolog')
         .replace('/rpc/aoii_put', '/rpc/aoii_put_homolog');
-      return globalThis.fetch(alvo, opcoes);
+      if (alvo.includes('invalido')) throw new Error('o endereço não foi desviado: ' + alvo);
+      if (!alvo.includes('_homolog')) throw new Error('recusando chamar função que não é de homologação: ' + alvo);
+      return globalThis.fetch(alvo, Object.assign({}, opcoes, {
+        headers: Object.assign({}, opcoes && opcoes.headers, { apikey: CHAVE, Authorization: 'Bearer ' + CHAVE }),
+      }));
     },
     L: k => k, formatBRL: n => String(n), esc: s => String(s), vibrate: () => {},
     uid: () => 'id-' + Math.random().toString(36).slice(2, 10),
@@ -197,11 +209,52 @@ async function main() {
     })).json();
     igual(inexistente, null, 'aoii_get de um id que não existe devolve nulo');
 
+    /* ── 13. criação abusiva ──
+       Só roda se 0005 estiver aplicado. O teto de homologação é baixo (10) de
+       propósito, pra dar pra bater nele em segundos. */
+    const temLimites = (await rest('rpc/aoii_put_homolog', {
+      method: 'POST',
+      body: JSON.stringify({ p_id: 'ABUSO000000', p_data: { x: 1 }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
+    }));
+    const primeira = await temLimites.json();
+    if (primeira && primeira.erro === 'limite-criacao') {
+      ok('o teto de criação já estava batido — é o próprio limite funcionando');
+    } else {
+      let recusouEm = null;
+      for (let i = 1; i <= 20 && recusouEm === null; i++) {
+        const r = await (await rest('rpc/aoii_put_homolog', {
+          method: 'POST',
+          body: JSON.stringify({ p_id: 'ABUSO' + String(i).padStart(6, '0'), p_data: { x: i }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
+        })).json();
+        if (r && r.erro === 'limite-criacao') recusouEm = i;
+      }
+      if (recusouEm === null) {
+        nok('criação em massa é barrada por um teto',
+          '20 linhas criadas em sequência sem recusa — 0005_homologacao_limites.sql não está aplicado');
+      } else {
+        ok('criação em massa é barrada: recusou na ' + recusouEm + 'ª linha nova seguida');
+        const aindaAtualiza = await (await rest('rpc/aoii_put_homolog', {
+          method: 'POST',
+          body: JSON.stringify({ p_id: CODIGO, p_data: { toque: 1 }, p_expected_revision: 4, p_write_token: 'z'.repeat(64) }),
+        })).json();
+        verdade(aindaAtualiza.erro !== 'limite-criacao',
+          'e o teto não atrapalha quem já tem linha: atualizar continua permitido',
+          'atualizar não pode cair no limite de CRIAÇÃO');
+      }
+    }
+
   } finally {
-    /* limpa tudo que este ensaio criou */
+    /* Limpa tudo que este ensaio criou. Depende da política de DELETE que
+       0005_homologacao_limites.sql cria — sem ela, o DELETE devolve 204 e não
+       apaga nada, e as sobras vão empurrando o teto de criação. */
+    const antes = (await (await rest('financas_homolog?select=id')).json()).length;
     await rest('financas_homolog?id=like.HOMOLOGA*', { method: 'DELETE' });
-    await rest('financas_homolog?id=eq.' + CODIGO, { method: 'DELETE' });
-    await rest('financas_homolog?id=eq.' + CODIGO + 'BIG', { method: 'DELETE' });
+    await rest('financas_homolog?id=like.ABUSO*', { method: 'DELETE' });
+    await rest('financas_homolog?id=like.PROBE*', { method: 'DELETE' });
+    const depois = (await (await rest('financas_homolog?select=id')).json()).length;
+    if (depois === 0) console.log('\n  faxina: ' + antes + ' linha(s) de ensaio removidas');
+    else console.log('\n  \x1b[33mfaxina incompleta: sobraram ' + depois + ' linha(s).' +
+      ' Falta a política de DELETE de 0005_homologacao_limites.sql.\x1b[0m');
   }
 
   console.log('\n' + '─'.repeat(58));
