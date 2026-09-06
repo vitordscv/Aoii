@@ -209,6 +209,31 @@ quem descobrir o código lê o texto cifrado, mas não escreve.
 O arquivo traz também o roteiro de conferência (o que precisa falhar) e o SQL de
 reversão.
 
+### 9. Criação anônima ilimitada de registros — desenhada, não aplicada
+
+`aoii_put` cria linha nova sem exigir token, e não pode ser diferente: se
+exigisse, ninguém conseguiria ligar a sincronização a primeira vez. Como a chave
+`anon` está no HTML publicado, qualquer um pode criar linhas até estourar a cota
+do plano.
+
+**Criptografia não resolve isto.** Ela protege o conteúdo, não o espaço.
+
+[`0004_limites_e_abuso.sql`](../supabase/migrations/0004_limites_e_abuso.sql)
+propõe três camadas: teto de 5 MB por linha (já em vigor desde a parte 1), teto
+de **criações** por hora e teto total de linhas. A distinção entre criar e
+atualizar é o que faz isso não atrapalhar ninguém: um usuário real cria uma
+linha e depois só atualiza, milhares de vezes. Quem cria mil por hora não é
+usuário.
+
+Os números ficam numa tabela (`aoii_limites`), não no corpo da função, pra dar
+pra afrouxar num incidente sem recriar nada. E uma view `aoii_crescimento`
+mostra linhas criadas por dia — nenhuma das duas é acessível pelo `anon`.
+
+**Risco residual assumido:** isto não é rate limiting de borda. Um atacante
+paciente, dentro do teto por hora, ainda enche a tabela devagar. O Supabase
+oferece limitação de taxa no plano pago; enquanto não houver, os tetos são o que
+existe, e a view de crescimento é como se percebe.
+
 ## Regras para quem for mexer
 
 - Todo conteúdo de backup, Supabase, Gemini ou campo digitado é **não confiável**.

@@ -199,12 +199,22 @@ branch, antes de qualquer criptografia — é o que torna a migração segura.
 1. ~~Revisar e aprovar o desenho e o SQL.~~ Feito.
 2. ~~Aplicar a parte 1 e conferir.~~ Feito em 06/09/2026 — o rodapé de
    `0001_sync_seguro.sql` traz o resultado de cada verificação.
-3. **Implementar no app** ← é aqui que estamos: código de 12 caracteres com
-   `crypto.getRandomValues`, tela de senha (com backup local obrigatório antes),
-   derivação do token de escrita, troca de `/rest/v1/financas` por
-   `aoii_get`/`aoii_put`, migração do formato antigo, tela de conflito, estados
-   de status, e o fim do `catch(e){}` vazio.
-4. Testes de dois aparelhos na mesma revisão, conflito sem sobrescrita, falha de
-   rede, modo offline, retomada, snapshot cifrado.
-5. Publicar e abrir o app em cada aparelho pelo menos uma vez.
-6. Só então aplicar a **parte 2**, que fecha a leitura.
+3. ~~Motor do ciclo, com ensaio de dois aparelhos.~~ Feito:
+   `src/storage/sync-ciclo.js`, com o roteiro completo em
+   `testes/ciclo-sync.test.js`.
+4. **Aplicar `0003_homologacao.sql` e rodar `npm run homolog`** ← aqui.
+   O mesmo roteiro contra o Postgres de verdade. Sem essa passagem, o que existe
+   é ensaio contra uma nuvem de mentira.
+5. **A interface**, que ainda não existe: tela de senha (com backup local
+   obrigatório antes e o aviso de que senha perdida = cópia da nuvem perdida),
+   tela de conflito, os sete estados de status, e a troca das chamadas antigas
+   pelo motor novo. **Enquanto isso não estiver pronto, o app não deve ser
+   publicado** — `src/storage/sync.js` ainda usa `supabaseGet`/`supabaseSet` por
+   REST, em texto puro.
+6. Aplicar `0004_limites_e_abuso.sql` (criação abusiva) e testar em homologação.
+7. Publicar e abrir o app em cada aparelho pelo menos uma vez, confirmando que a
+   migração aconteceu em todos.
+8. Só então aplicar a **parte 2**, que fecha a leitura — e conferir, com a chave
+   `anon`: REST direto falha, não dá pra listar, `aoii_get` só lê pelo id exato,
+   `aoii_put` respeita token e revisão, token errado não altera nada, revisão
+   antiga devolve conflito, e o que está guardado é só envelope.
