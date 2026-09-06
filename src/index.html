@@ -891,6 +891,43 @@
     </div>
   </div>
 
+  <!-- senha da sincronização -->
+  <div class="modal-backdrop" id="senha-backdrop" style="display:none;z-index:95;"></div>
+  <div class="confirm-dialog senha-dialog" id="senha-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="senha-titulo">
+    <div class="cd-title" id="senha-titulo" data-i18n="senha.titulo">Senha da sincronização</div>
+    <div class="cd-text" id="senha-texto"></div>
+    <div class="senha-campos">
+      <div class="senha-linha">
+        <input type="password" id="senha-input" autocomplete="current-password" spellcheck="false"
+               placeholder="Senha" data-i18n-placeholder="senha.campo">
+        <button type="button" class="senha-olho" id="senha-olho" aria-label="Mostrar senha" data-i18n-title="senha.mostrar" title="Mostrar senha">👁</button>
+      </div>
+      <div class="senha-linha" id="senha-linha-2" style="display:none;">
+        <input type="password" id="senha-input-2" autocomplete="new-password" spellcheck="false"
+               placeholder="Repita a senha" data-i18n-placeholder="senha.repita">
+      </div>
+      <div class="senha-erro" id="senha-erro" role="alert" aria-live="polite"></div>
+    </div>
+    <div class="cd-actions">
+      <button type="button" class="cd-cancel" id="senha-cancelar" data-i18n="btn.cancelar">Cancelar</button>
+      <button type="button" class="cd-ok senha-ok" id="senha-ok" data-i18n="btn.confirmar">Confirmar</button>
+    </div>
+  </div>
+
+  <!-- conflito entre aparelhos -->
+  <div class="modal-backdrop" id="conflito-backdrop" style="display:none;z-index:95;"></div>
+  <div class="confirm-dialog conflito-dialog" id="conflito-dialog" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="conflito-titulo">
+    <div class="cd-title" id="conflito-titulo" data-i18n="conflito.titulo">Os dois lados mudaram</div>
+    <div class="cd-text" data-i18n="conflito.texto">Este aparelho e a nuvem foram alterados desde a última vez que conversaram. Escolher um lado descarta as mudanças do outro — vale exportar os dois antes.</div>
+    <div class="conflito-lados" id="conflito-lados"></div>
+    <div class="conflito-acoes">
+      <button type="button" class="reset-btn" id="conflito-exportar" data-i18n="conflito.exportarOsDois">⬇️ Exportar os dois</button>
+      <button type="button" class="reset-btn" id="conflito-manter" data-i18n="conflito.manterEste">Manter este aparelho</button>
+      <button type="button" class="reset-btn" id="conflito-usar" data-i18n="conflito.usarNuvem">Usar a versão da nuvem</button>
+      <button type="button" class="cd-cancel" id="conflito-depois" data-i18n="conflito.decidirDepois">Decidir depois</button>
+    </div>
+  </div>
+
   <!-- toast de desfazer -->
   <div class="undo-toast" id="undo-toast" style="display:none;">
     <span id="undo-toast-msg"></span>

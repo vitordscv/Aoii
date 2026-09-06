@@ -16,28 +16,49 @@ function bindStatic(){
     }
   }
   refreshSyncUI();
+  /* Ligar a sincronização pela primeira vez. A ordem aqui É a proteção:
+     backup local exigido → senha (duas vezes) → só então o código nasce.
+     Não existe recuperar senha; se ela se perder, o arquivo baixado é o que
+     sobra. Por isso ele vem ANTES, e não como sugestão depois. */
   document.getElementById('sync-gen-btn')?.addEventListener('click',async()=>{
-    const code=genSyncCode();
+    if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ setSaveStatus(L('st.syncErroAtivar')); return; }
+
+    const jaTemBackup=await confirmDialog({
+      title:L('sync.backupTitulo'),
+      text:L('sync.backupTexto'),
+      okLabel:L('sync.backupOk'),
+    });
+    if(!jaTemBackup){ document.getElementById('download-json-btn')?.click(); return; }
+
+    const senha=await pedirSenhaSync({
+      titulo:L('senha.novaTitulo'),
+      texto:L('senha.novaTexto'),
+      confirmar:true,
+      okLabel:L('senha.criarOk'),
+    });
+    if(!senha) return;
+
+    const code=gerarCodigoSync();
     setSyncCode(code);
     refreshSyncUI();
-    if(syncConfigured()){ try{ await supabaseSet(code,data); setSaveStatus(L('st.syncAtivada')); }catch(e){ setSaveStatus(L('st.syncErroAtivar')); } }
+    sync.status='sincronizando'; renderStatusSync();
+
+    const abriu=await abrirSincronizacao(code,senha);
+    if(abriu.resultado!=='nova'){ setSaveStatus(L('st.syncErroAtivar')); renderStatusSync(); return; }
+    const env=await enviarParaNuvem(data);
+    setSaveStatus(env.resultado==='enviado'?L('st.syncAtivada'):L('st.syncErroAtivar'));
+    renderStatusSync();
   });
+
+  /* Entrar num código que já existe: pede a senha e deixa o motor descobrir se
+     é cópia cifrada, registro antigo a migrar, ou código que ainda não existe. */
   document.getElementById('sync-use-btn')?.addEventListener('click',async()=>{
     const code=(syncInput?.value||'').trim().toUpperCase();
     if(!code) return;
+    if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ setSaveStatus(L('st.syncErroAtivar')); return; }
     setSyncCode(code);
     refreshSyncUI();
-    if(syncConfigured()){
-      try{
-        const remote=await supabaseGet(code);
-        if(remote){
-          const r=adotarDadosDeFora(remote,'nuvem');
-          if(!r.ok){ setSaveStatus(L('st.syncRecusado')); return; }
-          data=r.data; render(); setSaveStatus(L('st.syncDados'));
-        }
-        else{ await supabaseSet(code,data); setSaveStatus(L('st.syncAtivada')); }
-      }catch(e){ setSaveStatus(L('st.syncErro')); }
-    }
+    await destrancarSincronizacao(code);
   });
   document.querySelectorAll('#cfg-tipo-renda .segmented-btn').forEach(btn=>{
     btn.addEventListener('click',async()=>{

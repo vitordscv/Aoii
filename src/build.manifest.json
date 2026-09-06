@@ -45,6 +45,7 @@
     "core/insights.js",
     "core/budgets.js",
     "ui/dialogs.js",
+    "ui/sync-ui.js",
     "integrations/brasil-api.js",
     "core/interest.js",
     "ui/investments.js",

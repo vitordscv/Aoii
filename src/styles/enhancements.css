@@ -374,3 +374,28 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 .tour-callout-actions{display:flex;gap:10px;align-items:center;}
 .tour-skip{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
 .tour-next{background:var(--disney-blue-deep);border:none;color:var(--on-accent);border-radius:8px;padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer;}
+
+/* ── senha da sincronização ── */
+.senha-dialog .senha-campos{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+.senha-linha{display:flex;gap:8px;align-items:stretch;}
+.senha-linha input{flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+  font-family:'Nunito Sans',sans-serif;font-size:14px;background:var(--white);color:var(--num-color);min-height:42px;}
+.senha-linha input:focus{border-color:var(--disney-blue-deep);outline:none;}
+.senha-olho{background:none;border:1px solid var(--line);border-radius:9px;width:44px;min-height:42px;
+  font-size:15px;cursor:pointer;color:var(--muted);}
+.senha-olho:hover{background:var(--mist-lilac);}
+.senha-olho[aria-pressed="true"]{background:var(--mist-lilac);color:var(--ink-navy);}
+.senha-erro{font-size:12px;color:var(--neg);min-height:16px;line-height:1.4;}
+.senha-dialog .senha-ok{background:var(--disney-blue-deep);}
+.senha-aviso{font-size:12px;color:var(--gold-ink);line-height:1.5;margin-top:6px;}
+
+/* ── conflito entre aparelhos ── */
+.conflito-dialog{width:min(94vw,460px);}
+.conflito-lados{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.conflito-lado{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--cream);}
+.conflito-lado h4{font-family:'Sora',sans-serif;font-size:12.5px;color:var(--ink-navy);margin-bottom:6px;font-weight:600;}
+.conflito-lado dl{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted);}
+.conflito-lado .num{font-weight:700;color:var(--num-color);font-size:13px;}
+.conflito-acoes{display:flex;flex-direction:column;gap:8px;}
+.conflito-acoes button{width:100%;text-align:center;}
+@media(max-width:420px){ .conflito-lados{grid-template-columns:1fr;} }

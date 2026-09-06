@@ -1,24 +1,31 @@
 function getSyncCode(){ try{ return localStorage.getItem('financas-sync-code')||''; }catch(e){ return ''; } }
 function setSyncCode(c){ try{ localStorage.setItem('financas-sync-code',c); }catch(e){} }
 function syncConfigured(){ return !!(SUPABASE_URL && SUPABASE_ANON_KEY && getSyncCode()); }
-/* snapshot mensal: guarda uma cópia intocável dos dados do mês, na mesma tabela (id próprio, nunca sobrescrita) — backup real, não só espelho */
+/* Snapshot mensal: uma cópia intocável dos dados do mês, com id próprio, nunca
+   sobrescrita — backup de verdade, não só espelho.
+
+   Cifrada com a mesma senha do espelho. Guardar snapshot em texto puro seria
+   uma porta dos fundos aberta ao lado de uma porta trancada. E por isso ele só
+   acontece com a sincronização destrancada: sem senha, não há o que cifrar. */
 async function ensureMonthlySnapshot(){
   try{
     const code=getSyncCode(); if(!code) return;
+    if(!sincronizacaoDestrancada()) return;
     const t=today(); const chave=`${code}-snap-${t.getFullYear()}-${t.getMonth()+1}`;
-    const jaFeito=(data.snapshotsMensais||[]).includes(chave);
-    if(jaFeito) return;
-    await supabaseSet(chave, data);
+    if((data.snapshotsMensais||[]).includes(chave)) return;
+
+    const envelope=await cifrarParaNuvem(data,sync.senha,{
+      revision:1, device_id:idDesteAparelho(), salt:sync.salt,
+    });
+    /* revisão esperada 0: snapshot nasce e nunca é atualizado. Se já existir,
+       o servidor devolve conflito e a gente só marca como feito. */
+    const r=await nuvemGravar(chave,envelope,0,sync.token);
+    if(!r.ok&&!r.conflito) return;
+
     if(!data.snapshotsMensais) data.snapshotsMensais=[];
     data.snapshotsMensais.push(chave);
     await persist();
   }catch(e){}
-}
-function genSyncCode(){
-  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  let c='';
-  for(let i=0;i<8;i++) c+=chars[Math.floor(Math.random()*chars.length)];
-  return c;
 }
 /* ═══════════════════════════════════════════════════════════════════════════
    Transporte novo: as duas funções do banco, no lugar do acesso direto à tabela.
@@ -31,11 +38,24 @@ function genSyncCode(){
    Ver docs/SYNC-DESIGN.md e supabase/migrations/0001_sync_seguro.sql.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Modo de ensaio. Com localStorage['aoii-homolog'] = '1', o app fala com as
+   funções gêmeas de homologação (aoii_get_homolog / aoii_put_homolog), numa
+   tabela separada e descartável. Serve pra validar a interface inteira — senha,
+   migração, conflito, queda de rede — sem encostar em dado de ninguém.
+
+   Sem botão e desligado por padrão: quem liga precisa saber o que está
+   fazendo. Ver docs/SYNC-DESIGN.md. */
+function sufixoDeHomologacao(){
+  try{ return localStorage.getItem('aoii-homolog')==='1' ? '_homolog' : ''; }
+  catch(e){ return ''; }
+}
+function emHomologacao(){ return sufixoDeHomologacao()!==''; }
+
 async function chamarRpc(nome,corpo,segundos){
   const ctrl=new AbortController();
   const t=setTimeout(()=>ctrl.abort(),(segundos||8)*1000);
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${nome}`,{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${nome}${sufixoDeHomologacao()}`,{
       method:'POST',
       signal:ctrl.signal,
       headers:{

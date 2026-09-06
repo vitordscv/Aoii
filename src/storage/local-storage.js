@@ -1,13 +1,15 @@
-/* ─── storage (Claude + localStorage fallback) ─── */
+/* ─── armazenamento local ───
+
+   Só o aparelho. Até aqui, `store` também lia e gravava na nuvem a cada
+   persist() — e era ali que o objeto financeiro inteiro saía em texto puro,
+   sem ninguém pedir.
+
+   Agora a nuvem é assunto de quem tem a senha: empurrarParaNuvem() e
+   puxarDaNuvem(), chamadas explicitamente. Sem senha na sessão, o app funciona
+   inteiro, só não espelha. */
 
 const store={
   async get(key){
-    if(syncConfigured()){
-      try{
-        const d=await supabaseGet(getSyncCode());
-        if(d) return {value:JSON.stringify(d)};
-      }catch(e){ console.warn('sync get falhou, usando local',e); }
-    }
     try{
       if(typeof window.storage!=='undefined'&&window.storage.get){
         const r=await window.storage.get(key,false); return r;
@@ -16,10 +18,6 @@ const store={
     try{ const v=localStorage.getItem(key); return v?{value:v}:null; }catch(e){ return null; }
   },
   async set(key,value){
-    if(syncConfigured()){
-      try{ await supabaseSet(getSyncCode(),JSON.parse(value)); }
-      catch(e){ console.warn('sync set falhou',e); }
-    }
     try{
       if(typeof window.storage!=='undefined'&&window.storage.set){
         const r=await window.storage.set(key,value,false); return r;
@@ -31,11 +29,20 @@ const store={
 
 function setSaveStatus(t){ const el=document.getElementById('save-status'); if(el) el.textContent=t; }
 
+/* Quem quiser saber que os dados foram gravados se inscreve aqui.
+
+   É a interface que espelha na nuvem, e o armazenamento não pode chamá-la: a
+   camada de baixo não conhece a de cima. Então ele avisa, e quem se inscreveu
+   decide o que fazer — hoje, agendar o espelho cifrado. */
+let _aoSalvar=null;
+function avisarQuandoSalvar(fn){ _aoSalvar=fn; }
+
 async function persist(){
   invalidarTimeline();
   setSaveStatus(L('st.salvando'));
   const ok=await store.set(STORAGE_KEY,JSON.stringify(data));
-  setSaveStatus(ok?'salvo ✓':'erro ao salvar');
+  setSaveStatus(ok?L('st.salvoAqui'):L('st.erroAoSalvar'));
+  if(_aoSalvar){ try{ _aoSalvar(); }catch(e){} }
 }
 
 /* Antes de começar do zero, guarda o que não deu pra ler.

@@ -50,18 +50,15 @@ async function init(){
     }
   },true);
   if(syncConfigured()){
-    ensureMonthlySnapshot();
-    setInterval(async()=>{
-      try{
-        const remote=await supabaseGet(getSyncCode());
-        if(remote && JSON.stringify(remote)!==JSON.stringify(data)){
-          const r=adotarDadosDeFora(remote,'nuvem');
-          if(!r.ok){ setSaveStatus(L('st.syncRecusado')); return; }
-          data=r.data; render();
-          setSaveStatus(L('st.outroAparelho'));
-        }
-      }catch(e){}
-    },20000);
+    /* Sem senha na sessão, não há o que ler nem o que escrever. Pergunta uma
+       vez ao abrir; se a pessoa dispensar, o app segue inteiro em modo local e
+       o status diz que está trancada. */
+    renderStatusSync();
+    destrancarSincronizacao().then(abriu=>{
+      if(!abriu) return;
+      ensureMonthlySnapshot();
+      setInterval(()=>{ puxarDaNuvem(); },20000);
+    });
   }
   setupAutoUpdate();
   if('serviceWorker' in navigator){

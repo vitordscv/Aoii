@@ -84,7 +84,7 @@ const FUNCOES=[
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData',
-  'chamarRpc','nuvemLer','nuvemGravar',
+  'sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'computeInsights','invalidarTimeline'
 ];
 
