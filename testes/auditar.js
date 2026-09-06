@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-/* Auditorias estruturais do index.html — as coisas que um teste de unidade
-   não pega: integridade do arquivo empacotado, cobertura de tradução,
-   contraste dos temas, classes de CSS órfãs e ids repetidos.
+/* Auditorias estruturais do HTML publicado — as coisas que um teste de unidade
+   não pega: integridade do arquivo, cobertura de tradução, contraste dos temas,
+   classes de CSS órfãs e ids repetidos.
 
    Uso:  node testes/auditar.js  [caminho/para/index.html]
+   Sem argumento, audita dist/index.html (rode npm run build antes).
    Sai com 0 se estiver tudo certo, 1 se houver problema. */
 const fs=require('fs');
 const path=require('path');
-const {lerAppInterno,CAMINHO_PADRAO}=require('./extrair-motor');
+const {lerAppInterno,estaEmpacotado,CAMINHO_PADRAO}=require('./extrair-motor');
 
 const ARQUIVO=process.argv[2]?path.resolve(process.argv[2]):CAMINHO_PADRAO;
 const src=lerAppInterno(ARQUIVO);
@@ -23,16 +24,23 @@ const h2=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join(
 const lum=c=>{const f=c.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return .2126*f[0]+.7152*f[1]+.0722*f[2];};
 const cr=(a,b)=>{const l1=lum(a),l2=lum(b);return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);};
 
-titulo('Integridade do arquivo empacotado');
+titulo('Integridade do arquivo publicado');
 {
-  const linhas=bruto.split('\n');
-  const i=linhas.findIndex(l=>l.trim().startsWith('"<!DOCTYPE html>'));
-  try{
-    JSON.parse(linhas[i]);
-    ok('o template desempacota como JSON válido');
-  }catch(e){ ruim('o template não desempacota','JSON inválido: '+e.message); }
-  if(linhas[i].includes('</')) ruim('há "</" cru dentro da string do template — isso fecha o <script> antes da hora');
-  else ok('nenhum "</" cru dentro da string (o </script> não vaza)');
+  if(estaEmpacotado(ARQUIVO)){
+    /* formato antigo (até 6556d20): a página vive como string JSON */
+    const linhas=bruto.split('\n');
+    const i=linhas.findIndex(l=>l.trim().startsWith('"<!DOCTYPE html>'));
+    try{ JSON.parse(linhas[i]); ok('o template desempacota como JSON válido'); }
+    catch(e){ ruim('o template não desempacota','JSON inválido: '+e.message); }
+    if(linhas[i].includes('</')) ruim('há "</" cru dentro da string do template — isso fecha o <script> antes da hora');
+    else ok('nenhum "</" cru dentro da string (o </script> não vaza)');
+  }else{
+    if(/^<!DOCTYPE html>/i.test(bruto.trim())) ok('documento HTML simples, sem invólucro de bundler');
+    else ruim('o arquivo não começa com <!DOCTYPE html>');
+    const aviso=bruto.split('\n')[1]||'';
+    if(aviso.includes('ARQUIVO GERADO')) ok('traz o aviso de arquivo gerado');
+    else ruim('falta o aviso "ARQUIVO GERADO" na segunda linha','quem editar isto à mão perde o trabalho no próximo build');
+  }
   const vm=require('vm');
   const blocos=[...src.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)]
     .filter(m=>!/type=["'](?!text\/javascript|module)/.test(m[0].slice(0,m[0].indexOf('>')+1)))
@@ -44,14 +52,27 @@ titulo('Integridade do arquivo empacotado');
 
 titulo('Tradução');
 {
-  const ini=src.indexOf('const I18N='), fim=src.indexOf('function localeAtual');
-  const bloco=src.slice(ini,fim>ini?fim:src.indexOf('function L(key)'));
+  /* Hoje cada idioma é um `const I18N_XX={…};` próprio (src/i18n/<idioma>.js).
+     Até a extração era um objeto único, `const I18N={pt:{…},en:{…}}`. Reconhece
+     os dois pra poder auditar também um index.html antigo. */
+  const chaves=t=>new Set((t.match(/'([a-zA-Z0-9_.]+)':/g)||[]).map(k=>k.slice(1,-2)));
+  const IDIOMAS=['pt','en','es','fr','it'];
   const idiomas={};
-  const marcas=['pt','en','es','fr','it'].map(id=>({id,pos:bloco.indexOf('\n  '+id+':{')})).sort((a,b)=>a.pos-b.pos);
-  marcas.forEach((m,i)=>{
-    const trecho=bloco.slice(m.pos, i+1<marcas.length?marcas[i+1].pos:bloco.length);
-    idiomas[m.id]=new Set((trecho.match(/'([a-zA-Z0-9_.]+)':/g)||[]).map(k=>k.slice(1,-2)));
-  });
+  if(src.includes('const I18N_PT={')){
+    IDIOMAS.forEach(id=>{
+      const ini=src.indexOf('const I18N_'+id.toUpperCase()+'={');
+      if(ini<0){ ruim('não achei o dicionário de '+id); idiomas[id]=new Set(); return; }
+      const fim=src.indexOf('\n};',ini);
+      idiomas[id]=chaves(src.slice(ini,fim<0?src.length:fim));
+    });
+  }else{
+    const ini=src.indexOf('const I18N='), fim=src.indexOf('function localeAtual');
+    const bloco=src.slice(ini,fim>ini?fim:src.indexOf('function L(key)'));
+    const marcas=IDIOMAS.map(id=>({id,pos:bloco.indexOf('\n  '+id+':{')})).sort((a,b)=>a.pos-b.pos);
+    marcas.forEach((m,i)=>{
+      idiomas[m.id]=chaves(bloco.slice(m.pos, i+1<marcas.length?marcas[i+1].pos:bloco.length));
+    });
+  }
   const usadas=new Set([
     ...(src.match(/L\('([a-zA-Z0-9_.]+)'\)/g)||[]).map(s=>s.slice(3,-2)),
     ...(src.match(/data-i18n(?:-placeholder|-title)?="([a-zA-Z0-9_.]+)"/g)||[]).map(s=>s.split('"')[1])]);

@@ -1,0 +1,16 @@
+{
+  "name": "aoii",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Planejamento financeiro pessoal — app de arquivo único, montado a partir de src/",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/dev.js",
+    "test": "npm run build && node testes/executar.js",
+    "audit": "npm run build && node testes/auditar.js",
+    "lint": "node scripts/lint.js",
+    "check": "node scripts/lint.js && node scripts/build.js && node testes/executar.js && node testes/auditar.js && node scripts/build.js --check"
+  }
+}

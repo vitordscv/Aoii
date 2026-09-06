@@ -1,0 +1,8 @@
+# gerado pelo build — nunca versionado, nunca editado à mão
+dist/
+
+# cópia de referência usada só na verificação byte a byte (vem do git)
+referencia/
+
+node_modules/
+.DS_Store

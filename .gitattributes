@@ -1,0 +1,8 @@
+# O build monta o HTML concatenando arquivos de src/ e espera LF em todos eles.
+# Sem isto, um clone no Windows vira CRLF e o lint reprova a árvore inteira.
+* text=auto eol=lf
+
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.ico  binary

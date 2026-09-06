@@ -1,0 +1,82 @@
+/* ── TEMA: NOITE (modo escuro) ── */
+html[data-theme="noite"]{
+  --cream:#111B2E; --white:#182742;
+  --disney-blue:#6C9BDB; --disney-blue-deep:#4677BE;
+  --ink-navy:#EDEFF6; --mist-lilac:#233254; --line:#2D3E5F; --num-color:#EDEFF6;
+  --pos:#6FBE9C; --neg:#E17E68;
+  --gold:#D8B579; --gold-ink:var(--gold); --indigo-deep:#060B16;
+  --muted:#9AA6C4; --muted2:#858FAC; --muted3:#717CA2; --on-accent:#FFFFFF; --accent-ink:#7BA5E2;
+  --hero-grad1:#132546; --hero-neg-text:#F0E4D0; --hero-text:#EDEFF6;
+  --warn-bg:#3A2A24; --warn-border:#6B4235; --warn-text:#F0B29B;
+  --reset-border:#5B4A32; --reset-text:#E3BE86; --reset-hover:#2A2116;
+  --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+}
+
+/* ── TEMA: SAKURA ── */
+html[data-theme="sakura"]{
+  --cream:#FBEFEF; --white:#FFFAFA;
+  --disney-blue:#C77B93; --disney-blue-deep:#9C4B66;
+  --ink-navy:#5C2E3F; --mist-lilac:#F6E3E8; --line:#EBC9CE; --num-color:#5C2E3F;
+  --pos:#3F6C57; --neg:#B23B4A;
+  --gold:#C79A5C; --gold-ink:#8A5D1F; --indigo-deep:#5C2C3C;
+  --muted:#705960; --muted2:#86646C; --muted3:#A36F79; --on-accent:#FFFFFF; --accent-ink:var(--disney-blue-deep);
+  --hero-grad1:#7A3B52; --hero-neg-text:#F6E0D8; --hero-text:#FBEFEF;
+  --warn-bg:#FBE4DE; --warn-border:#E3AFA4; --warn-text:#8A3B24;
+  --reset-border:#E0B9A8; --reset-text:#8A5A2A; --reset-hover:#FBEFE0;
+  --pattern-tint: color-mix(in srgb, var(--cream), black 11%);
+}
+
+/* ── TEMA: MATCHA ── */
+html[data-theme="matcha"]{
+  --cream:#EFF1DE; --white:#FAFBF2;
+  --disney-blue:#5C8259; --disney-blue-deep:#3A5A3D;
+  --ink-navy:#33421F; --mist-lilac:#E4E9D6; --line:#CBD3AC; --num-color:#33421F;
+  --pos:#3E6F5C; --neg:#A2482E;
+  --gold:#A78A3F; --gold-ink:#7F6217; --indigo-deep:#1D2A18;
+  --muted:#59634D; --muted2:#666F57; --muted3:#75825B; --on-accent:#FFFFFF; --accent-ink:var(--disney-blue-deep);
+  --hero-grad1:#38512F; --hero-neg-text:#F0E4D0; --hero-text:#EFF1DE;
+  --warn-bg:#F7EAD6; --warn-border:#D8B98B; --warn-text:#6B4A1E;
+  --reset-border:#C3B36E; --reset-text:#6B5A2A; --reset-hover:#F5EFD8;
+  --pattern-tint: color-mix(in srgb, var(--cream), black 11%);
+}
+*,*::before,*::after{box-sizing:border-box;}
+
+/* ── TEMA: POUPA (escuro + verde-esmeralda, inspirado no Poupa Rápido) ── */
+html[data-theme="poupa"]{
+  --cream:#0F1E16; --white:#17291F;
+  --disney-blue:#1FBE99; --disney-blue-deep:#0E8E73;
+  --ink-navy:#E9F3EC; --mist-lilac:#1D3327; --line:#23392C; --num-color:#E9F3EC;
+  --pos:#3ECF8E; --neg:#E6685A;
+  --gold:#1FBE99; --gold-ink:var(--gold); --indigo-deep:#081711;
+  --muted:#8FA79A; --muted2:#7B9386; --muted3:#678475; --on-accent:#111111; --accent-ink:var(--disney-blue);
+  --hero-grad1:#12483B; --hero-neg-text:#F7E3D4; --hero-text:#E9F3EC;
+  --warn-bg:#3A2A24; --warn-border:#6B4235; --warn-text:#F0B29B;
+  --reset-border:#23392C; --reset-text:#1FBE99; --reset-hover:#1D3327;
+  --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+}
+/* ── TEMA: GRAFITE (escuro monocromático — preto e cinza) ── */
+html[data-theme="grafite"]{
+  --cream:#131313; --white:#1C1C1C;
+  --disney-blue:#B5B5B5; --disney-blue-deep:#8A8A8A;
+  --ink-navy:#EDEDED; --mist-lilac:#262626; --line:#333333; --num-color:#EDEDED;
+  --pos:#8FBF9A; --neg:#C97B72;
+  --gold:#A8A8A8; --gold-ink:var(--gold); --indigo-deep:#0A0A0A;
+  --muted:#9A9A9A; --muted2:#878787; --muted3:#747474; --on-accent:#111111; --accent-ink:var(--disney-blue);
+  --hero-grad1:#242424; --hero-neg-text:#E6D9CE; --hero-text:#F2F2F2;
+  --warn-bg:#2E2A28; --warn-border:#5A5250; --warn-text:#D8B9AC;
+  --reset-border:#3A3A3A; --reset-text:#C7C7C7; --reset-hover:#242424;
+  --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+}
+/* ── TEMA: ROXO (roxo profundo sobre fundo escuro) ── */
+html[data-theme="roxo"]{
+  --cream:#12071C; --white:#1D0F2B;
+  --disney-blue:#B47CE8; --disney-blue-deep:#8A2BE0;
+  --ink-navy:#F0E9F7; --mist-lilac:#2A1740; --line:#3A2352; --num-color:#F0E9F7;
+  --pos:#5FC98A; --neg:#E8756A;
+  --gold:#D9B45C; --gold-ink:var(--gold); --indigo-deep:#0C0413;
+  --muted:#B0A0C4; --muted2:#8D7BA3; --muted3:#7A6792; --on-accent:#FFFFFF; --accent-ink:var(--disney-blue);
+  --hero-grad1:#6D18B8; --hero-neg-text:#F7DDEF; --hero-text:#FFFFFF;
+  --warn-bg:#33231B; --warn-border:#5E4433; --warn-text:#E0B894;
+  --reset-border:#3A2352; --reset-text:#B47CE8; --reset-hover:#241234;
+  --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+}

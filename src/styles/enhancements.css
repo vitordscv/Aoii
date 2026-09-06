@@ -1,0 +1,376 @@
+/* ═══ MELHORIAS: animações, swipe, undo, orçamento, investimentos ═══ */
+
+/* tooltip interativo dos gráficos */
+.chart-card,.patrimonio-chart-wrap{position:relative;}
+.chart-tooltip{position:absolute;pointer-events:none;background:var(--ink-navy);color:var(--cream);font-family:'Nunito Sans',sans-serif;font-size:11px;padding:6px 9px;border-radius:8px;box-shadow:0 8px 20px -6px rgba(11,24,48,.4);white-space:nowrap;transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;z-index:5;}
+.chart-tooltip.visible{opacity:1;}
+.chart-tooltip .tt-date{opacity:.7;font-size:10px;display:block;}
+.tt-guide{stroke:var(--muted2);stroke-width:1;stroke-dasharray:3,3;opacity:0;transition:opacity .12s;}
+.tt-guide.visible{opacity:.7;}
+
+/* barras de progresso animadas (preenchem ao aparecer) */
+.cat-bar-fill,.mini-bar-fill{transition:width .6s cubic-bezier(.25,.8,.3,1);}
+.limit-bar-fill,.meta-bar-fill,.gf-health-bar-fill{transition:width .6s cubic-bezier(.25,.8,.3,1);}
+
+/* swipe nos itens de lista */
+.swipe-item{position:relative;overflow:hidden;}
+.swipe-actions{position:absolute;inset:0 0 0 auto;display:flex;align-items:stretch;}
+.swipe-actions button{border:none;width:64px;font-size:16px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;}
+.swipe-act-edit{background:var(--disney-blue-deep);}
+.swipe-act-del{background:var(--neg);}
+.swipe-content{position:relative;background:var(--white);transition:transform .25s cubic-bezier(.2,.9,.3,1);touch-action:pan-y;}
+.swipe-content.dragging{transition:none;}
+.gf-group .swipe-content{background:var(--cream);}
+.swipe-item+.swipe-item .item-row{border-top:1px solid var(--line);}
+
+/* toast de desfazer */
+.undo-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));z-index:80;background:var(--ink-navy);color:var(--cream);border-radius:12px;padding:10px 10px 10px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px -8px rgba(11,24,48,.5);animation:undoIn .22s cubic-bezier(.2,.9,.3,1);max-width:92vw;}
+.undo-toast.closing{animation:undoOut .18s ease forwards;}
+@keyframes undoIn{from{opacity:0;transform:translate(-50%,12px);}to{opacity:1;transform:translate(-50%,0);}}
+@keyframes undoOut{from{opacity:1;}to{opacity:0;transform:translate(-50%,10px);}}
+.undo-toast button{background:none;border:none;color:var(--gold-ink);font-weight:800;font-size:13px;padding:6px 10px;cursor:pointer;letter-spacing:.02em;}
+
+/* insights automáticos */
+#insights-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:46px;}
+#insights-cards:empty{display:none;}
+.insight-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 10px 26px -10px rgba(11,24,48,0.28);opacity:0;animation:insightIn .45s cubic-bezier(.2,.9,.3,1) forwards;}
+@keyframes insightIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.insight-icon{font-size:18px;margin-bottom:6px;}
+.insight-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;}
+.insight-value{font-family:'Nunito Sans',sans-serif;font-size:15px;font-weight:700;color:var(--num-color);}
+.insight-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+@media(prefers-reduced-motion:reduce){.insight-card{opacity:1;}}
+
+/* busca e navegação por mês no Diário */
+.diario-search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.diario-search-row input[type=search]{flex:1;min-width:150px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;background:var(--white);color:var(--ink-navy);}
+.diario-search-row select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:var(--white);color:var(--ink-navy);}
+.diario-search-row .csv-btn{border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--muted);font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;}
+.diario-search-row .csv-btn:hover{background:var(--mist-lilac);color:var(--ink-navy);}
+
+/* orçamento por categoria */
+.orc-row{padding:10px 0;border-top:1px solid var(--line);}
+
+/* ── realce de linha nas listas percorridas com o olho ── */
+.item-row,.gasto-row,.gf-item-row,.div-row,.orc-row{transition:background-color .12s;}
+@media(hover:hover){
+  .item-row:hover,.gasto-row:hover,.gf-item-row:hover,.div-row:hover,.orc-row:hover{
+    background:var(--mist-lilac);
+    box-shadow:0 0 0 6px var(--mist-lilac);  /* estende o realce até a borda do card */
+    border-radius:2px;
+  }
+}
+/* ── afundar de leve ao pressionar ── */
+.gasto-fab,.sheet-submit-btn,.sheet-cancel-btn,.reset-btn,.gf-new-btn,.add-gasto-confirm,
+.skip-add-btn,.cat-pill,.pay-method-btn,.gasto-tipo-btn,.segmented-btn,.theme-menu-item{
+  transition:transform .1s ease, background-color .15s, color .15s, border-color .15s;
+}
+.gasto-fab:active,.sheet-submit-btn:active,.sheet-cancel-btn:active,.reset-btn:active,
+.gf-new-btn:active,.add-gasto-confirm:active,.skip-add-btn:active,.cat-pill:active,
+.pay-method-btn:active,.gasto-tipo-btn:active,.segmented-btn:active{transform:scale(.96);}
+/* ── cabeçalho grudado do calendário ganha sombra quando há mais linhas acima ── */
+.cal-head{transition:box-shadow .18s;}
+.cal-scroll.rolado .cal-head{box-shadow:0 6px 14px -8px rgba(0,0,0,.45);}
+.orc-row:first-child{border-top:none;}
+.orc-top{display:flex;align-items:center;gap:8px;}
+.orc-nome{flex:1;font-size:12.5px;font-weight:600;color:var(--ink-navy);}
+.orc-gasto{font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted);}
+.orc-teto-input{width:86px;border:1px solid transparent;background:none;font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--num-color);text-align:right;padding:9px 5px;border-radius:6px;}
+.orc-teto-input:hover,.orc-teto-input:focus{border-color:var(--line);background:var(--cream);}
+.orc-bar-track{width:100%;height:8px;background:var(--mist-lilac);border-radius:6px;overflow:hidden;margin-top:7px;}
+.orc-bar-fill{height:100%;border-radius:6px;background:var(--pos);transition:width .6s cubic-bezier(.25,.8,.3,1);}
+.orc-bar-fill.warn{background:var(--gold);}
+.orc-bar-fill.danger{background:var(--neg);}
+.orc-foot{display:flex;justify-content:space-between;margin-top:5px;font-size:10.5px;color:var(--muted2);}
+.orc-hint{font-size:11.5px;color:var(--muted2);margin-top:10px;line-height:1.4;}
+#orcamento-card .warn-banner{margin-top:12px;}
+
+/* celebração ao bater meta */
+.meta-celebrate{position:relative;}
+.celebrate-burst{position:absolute;inset:0;pointer-events:none;overflow:visible;}
+.celebrate-piece{position:absolute;top:40%;left:50%;width:7px;height:7px;border-radius:2px;opacity:0;animation:confettiPop 1.3s cubic-bezier(.2,.8,.4,1) forwards;}
+@keyframes confettiPop{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(var(--cx),var(--cy)) rotate(var(--cr)) scale(.6);}}
+.meta-row-glow{animation:metaGlow 1.2s ease;}
+@keyframes metaGlow{0%{background:transparent;}30%{background:color-mix(in srgb,var(--pos),transparent 82%);border-radius:12px;}100%{background:transparent;}}
+
+/* skeleton loaders (carregamento inicial) */
+.skeleton{position:relative;overflow:hidden;background:var(--mist-lilac);border-radius:8px;}
+.skeleton::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:skShimmer 1.2s infinite;}
+@keyframes skShimmer{100%{transform:translateX(100%);}}
+.hero .skeleton{background:rgba(255,255,255,.14);}
+.sk-line{height:14px;margin:8px 0;}
+.sk-big{height:52px;width:min(320px,70%);margin:12px 0;}
+.sk-chip{height:74px;border-radius:16px;}
+
+/* estados vazios ilustrados */
+.empty-illus{text-align:center;padding:26px 14px;color:var(--muted2);font-size:12.5px;line-height:1.5;}
+.empty-illus .ei-icon{font-size:30px;display:block;margin-bottom:8px;animation:eiFloat 3.2s ease-in-out infinite;}
+@keyframes eiFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+/* investimentos */
+.inv-item-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
+.inv-yield-tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;margin-top:4px;background:var(--mist-lilac);color:var(--ink-navy);}
+.inv-yield-tag.pos{background:color-mix(in srgb,var(--pos),transparent 92%);color:var(--pos);}
+.inv-calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px;}
+.inv-calc-grid .sheet-field{margin-top:0;}
+.inv-result{background:var(--cream);border-radius:14px;padding:14px 16px;margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.inv-result-item .lbl{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted2);}
+.inv-result-item .val{font-family:'Nunito Sans',sans-serif;font-size:17px;font-weight:700;color:var(--num-color);margin-top:3px;}
+.inv-result-item .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.inv-taxa-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted);}
+.inv-taxa-row button{border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--accent-ink);font-size:12px;font-weight:700;padding:7px 12px;cursor:pointer;}
+.inv-taxa-row button:hover{background:var(--mist-lilac);}
+.inv-taxa-manual{display:flex;gap:6px;align-items:center;}
+.inv-taxa-manual input{width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:'Nunito Sans',sans-serif;font-size:12px;}
+.div-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px;}
+.div-row:first-child{border-top:none;}
+.div-row .d-data{font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted2);flex:none;}
+.div-row .d-valor{font-family:'Nunito Sans',sans-serif;font-weight:600;color:var(--num-color);margin-left:auto;}
+.div-stats{background:var(--cream);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;}
+.div-stats strong{color:var(--num-color);font-family:'Nunito Sans',sans-serif;}
+.div-add-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.div-add-row input[type=date]{border:1px solid var(--line);border-radius:9px;padding:8px;font-family:'Nunito Sans',sans-serif;font-size:12px;}
+.div-add-row input[inputmode=decimal]{width:100px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;}
+.div-add-row button{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;}
+
+/* ═══ ORÇAMENTO DIÁRIO + STATUS DO MÊS ═══ */
+.daily-card{margin-top:14px;background:var(--white);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 10px 26px -10px rgba(11,24,48,0.28);}
+.daily-main{padding:20px 22px 18px;}
+.daily-eyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);}
+.daily-value{font-family:'Sora',sans-serif;font-weight:600;font-size:clamp(34px,6vw,54px);color:var(--pos);line-height:1.05;margin:6px 0 2px;}
+.daily-value.neg{color:var(--neg);}
+.daily-days{font-size:12.5px;color:var(--muted);}
+.mp-track{width:100%;height:9px;background:var(--mist-lilac);border-radius:6px;overflow:hidden;margin-top:14px;}
+.mp-fill{height:100%;border-radius:6px;background:var(--disney-blue-deep);transition:width .6s cubic-bezier(.25,.8,.3,1);}
+.daily-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--muted2);font-family:'Nunito Sans',sans-serif;}
+.status-banner{display:flex;gap:12px;align-items:flex-start;padding:16px 22px;background:linear-gradient(135deg,var(--hero-grad1),var(--indigo-deep));color:var(--hero-text);}
+.sb-icon{font-size:22px;line-height:1;margin-top:2px;}
+.sb-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.09em;background:rgba(255,255,255,.16);border-radius:999px;padding:3px 10px;margin-bottom:5px;}
+.sb-text{font-size:12.5px;line-height:1.5;opacity:.92;}
+.sb-text strong{font-family:'Nunito Sans',sans-serif;}
+
+/* ═══ CALENDÁRIO DO MÊS ═══ */
+.cal-card{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 26px -10px rgba(11,24,48,0.28);overflow:hidden;}
+.cal-head,.cal-row{display:grid;grid-template-columns:56px 1fr 1fr 1.1fr;gap:8px;align-items:center;padding:10px 16px;}
+.cal-head{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--line);background:var(--white);position:sticky;top:0;z-index:2;}
+.cal-head span:not(:first-child){text-align:right;}
+.cal-scroll{max-height:380px;overflow-y:auto;position:relative;}
+.cal-row{transition:background-color .12s;}
+.cal-row:hover{background:var(--mist-lilac);}
+.cal-row.today:hover{background:color-mix(in srgb,var(--pos),transparent 78%);}
+.cal-row{border-bottom:1px solid var(--line);font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted);}
+.cal-row:last-child{border-bottom:none;}
+.cal-dia{font-weight:700;color:var(--ink-navy);font-size:13px;line-height:1.1;}
+.cal-dia small{display:block;font-size:9.5px;font-weight:600;color:var(--muted2);text-transform:uppercase;}
+.cal-gasto,.cal-plan{text-align:right;}
+.cal-gasto.ok{color:var(--pos);font-weight:600;}
+.cal-gasto.over{color:var(--neg);font-weight:700;}
+.cal-plan{color:var(--muted);}
+.cal-saldo{text-align:right;font-weight:700;color:var(--num-color);}
+.cal-saldo.neg{color:var(--neg);}
+.cal-row.today{background:color-mix(in srgb,var(--pos),transparent 86%);}
+.cal-row.today .cal-dia{color:var(--pos);}
+.cal-row.today .cal-dia small{color:var(--pos);}
+.cal-row.passado{opacity:.75;}
+@media(max-width:420px){ .cal-head,.cal-row{padding:10px 12px;grid-template-columns:46px 1fr 1fr 1.1fr;} }
+
+/* ═══ EVOLUÇÃO MENSAL DOS GASTOS FIXOS (barras) ═══ */
+#gf-evolucao-card{margin-top:14px;}
+.gfe-title{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);}
+.gfe-value{font-family:'Nunito Sans',sans-serif;font-size:20px;font-weight:700;color:var(--num-color);margin-top:2px;}
+.gf-bar{transform-box:fill-box;transform-origin:50% 100%;animation:barRise .55s cubic-bezier(.2,.8,.3,1) both;}
+@keyframes barRise{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+
+/* ═══ TEMA ROXO: fundo liso, sem padrão (mais próximo de apps de banco escuros) ═══ */
+html[data-theme="roxo"] .bg-pattern{
+  -webkit-mask-image:none; mask-image:none;
+  background-image:none;
+  background-color:var(--cream);
+}
+
+/* ═══ TEMA ONDA: fundo Kanagawa (paper-cut) ═══ */
+html.bg-ilustrado[data-theme="onda"] .bg-pattern{
+  background-color:#F1EBDF; /* cor do papel washi da imagem — preenche o espaço acima sem costura */
+  -webkit-mask-image:none; mask-image:none;
+  background-image:var(--onda-bg);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:cover;
+}
+
+/* onda sutil mesclada no fundo do hero (removida quando a arte ilustrada do tema onda está ativa) */
+.hero-wave{display:none;}
+.hero-wave svg{position:absolute;right:-4%;bottom:-6%;width:78%;max-width:640px;height:auto;}
+@media(max-width:759px){ .hero-wave svg{width:120%;right:-14%;bottom:-4%;} }
+
+/* evolução mensal — versão clean com seletor de período */
+.gfe-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.gfe-seg{display:flex;gap:4px;background:var(--mist-lilac);border-radius:10px;padding:3px;}
+.gfe-seg button{border:none;background:none;font-size:11px;font-weight:700;color:var(--muted);padding:5px 11px;border-radius:8px;cursor:pointer;font-family:'Nunito Sans',sans-serif;letter-spacing:.03em;transition:background .15s,color .15s;}
+.gfe-seg button.active{background:var(--white);color:var(--ink-navy);box-shadow:0 2px 6px -2px rgba(11,24,48,.25);}
+.gfe-delta{font-size:11px;font-family:'Nunito Sans',sans-serif;margin-top:3px;font-weight:600;}
+.gfe-delta.up{color:var(--neg);}
+.gfe-delta.down{color:var(--pos);}
+.gfe-delta.flat{color:var(--muted2);}
+
+/* tema onda: versão retrato do fundo para celular (arte completa na vertical) */
+@media(max-width:759px){
+  html.bg-ilustrado[data-theme="onda"] .bg-pattern{
+    background-color:#F1EBDF;
+    background-image:var(--onda-bg-m);
+    background-size:100% auto;
+    background-position:center bottom;
+  }
+}
+
+
+/* ═══ TEMA MATCHA: fundo ilustrado (jardim de chá) ═══ */
+html.bg-ilustrado[data-theme="matcha"] .bg-pattern{
+  background-color:#F1E8D8; /* cor do papel da ilustração — preenche o espaço acima sem costura */
+  -webkit-mask-image:none; mask-image:none;
+  background-image:var(--matcha-bg);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:cover;
+}
+
+/* versão retrato do fundo matcha para celular (arte completa na vertical) */
+@media(max-width:759px){
+  html.bg-ilustrado[data-theme="matcha"] .bg-pattern{
+    background-color:#F1E8D8;
+    background-image:var(--matcha-bg-m);
+    background-size:100% auto;
+    background-position:center bottom;
+  }
+}
+
+
+/* ═══ TEMA SAKURA: fundo ilustrado (cerejeiras) ═══ */
+html.bg-ilustrado[data-theme="sakura"] .bg-pattern{
+  background-color:#F8EDDE; /* cor do papel da ilustração — preenche o espaço acima sem costura */
+  -webkit-mask-image:none; mask-image:none;
+  background-image:var(--sakura-bg);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:cover;
+}
+
+/* versão retrato do fundo sakura para celular (arte completa na vertical) */
+@media(max-width:759px){
+  html.bg-ilustrado[data-theme="sakura"] .bg-pattern{
+    background-color:#F8EDDE;
+    background-image:var(--sakura-bg-m);
+    background-size:100% auto;
+    background-position:center bottom;
+  }
+}
+
+
+/* ═══ TEMA NOITE: fundo ilustrado (noite de lua cheia) ═══ */
+html.bg-ilustrado[data-theme="noite"] .bg-pattern{
+  background-color:#040C19; /* cor do céu da ilustração — preenche o espaço acima sem costura */
+  -webkit-mask-image:none; mask-image:none;
+  background-image:var(--noite-bg);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:cover;
+}
+
+/* versão retrato do fundo noite para celular (arte completa na vertical) */
+@media(max-width:759px){
+  html.bg-ilustrado[data-theme="noite"] .bg-pattern{
+    background-color:#040C19;
+    background-image:var(--noite-bg-m);
+    background-size:100% auto;
+    background-position:center bottom;
+  }
+}
+
+
+/* ═══ TEMA POUPA: fundo ilustrado (nascer do sol, campos) ═══ */
+html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
+  background-color:#EAD1A7; /* cor do céu da ilustração — preenche o espaço acima sem costura */
+  -webkit-mask-image:none; mask-image:none;
+  background-image:var(--poupa-bg);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:cover;
+}
+
+/* versão retrato do fundo poupa para celular (arte completa na vertical) */
+@media(max-width:759px){
+  html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
+    background-color:#EAD1A7;
+    background-image:var(--poupa-bg-m);
+    background-size:100% auto;
+    background-position:center bottom;
+  }
+}
+
+/* linha de reserva das metas no card diário */
+.daily-reserva{font-size:12px;color:var(--muted);margin-top:6px;background:var(--cream);border-radius:9px;padding:7px 11px;display:inline-block;}
+.cal-nota{font-size:10.5px;color:var(--muted2);padding:9px 16px;border-top:1px solid var(--line);background:var(--cream);}
+
+/* ═══ RENDAS RECORRENTES ═══ */
+.rr-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:2px 8px;background:var(--mist-lilac);color:var(--ink-navy);margin-top:4px;}
+.rr-tag.pausada{background:var(--cream);color:var(--muted2);}
+.rr-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;background:var(--cream);border-radius:12px;}
+.rr-toggle-row .t-txt{font-size:12.5px;color:var(--ink-navy);font-weight:600;}
+.rr-toggle-row .t-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
+
+/* janela de confirmação */
+.confirm-dialog{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(92vw,380px);box-shadow:0 24px 60px -12px rgba(11,24,48,.45);}
+.confirm-dialog .cd-title{font-family:'Sora',sans-serif;font-size:19px;color:var(--ink-navy);margin-bottom:8px;}
+.confirm-dialog .cd-text{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:18px;}
+.confirm-dialog .cd-actions{display:flex;gap:10px;justify-content:flex-end;}
+.confirm-dialog .cd-cancel{background:none;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;}
+.confirm-dialog .cd-cancel:hover{background:var(--mist-lilac);}
+.confirm-dialog .cd-ok{background:var(--neg);border:none;color:#fff;border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;}
+
+/* assistente de primeiro uso */
+.onboarding-dialog{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:26px;width:min(92vw,400px);max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.28);}
+.ob-title{font-family:'Sora',sans-serif;font-size:19px;color:var(--ink-navy);margin-bottom:4px;}
+.ob-sub{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:18px;}
+.ob-label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:14px 0 6px;}
+.onboarding-dialog select,.onboarding-dialog input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;box-sizing:border-box;}
+.ob-cartao-row{display:flex;gap:8px;}
+.ob-actions{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:10px;}
+.ob-skip{background:none;border:none;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;padding:8px 4px;}
+.ob-skip:hover{color:var(--ink-navy);}
+.ob-confirm{background:var(--disney-blue-deep);border:none;color:var(--on-accent);border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700;cursor:pointer;}
+
+/* botãozinho de ajuda contextual ── */
+.info-tip-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--mist-lilac);color:var(--muted);border:none;font-size:10px;font-weight:700;position:relative;}
+/* área de toque de 32px sem mudar o tamanho desenhado */
+/* área de toque de 32px nas caixinhas de marcar, sem mudar o desenho */
+.item-check::before,.gasto-pago-check::before,.mini-check input::before,
+.month-fatura-check input::before,.item-cartao-toggle input::before,
+.gasto-checkbox-label input[type="checkbox"]::before{
+  content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;
+  transform:translate(-50%,-50%);border-radius:8px;
+}
+/* botões baixinhos: altura mínima confortável, sem crescer visualmente */
+.gf-expand-toggle,.add-gasto-btn,.gastos-toggle-btn,.gfe-seg button,.cat-pill{
+  min-height:32px;
+}
+
+.info-tip-btn::after,.revisao-close::after,.item-del::after,.gasto-del::after,
+.gasto-del-parc::after,.month-del::after,.cat-manage-del::after,.gm-del::after{
+  content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;transform:translate(-50%,-50%);
+}
+.revisao-close,.item-del,.gasto-del,.gasto-del-parc,.month-del,.cat-manage-del,.gm-del{position:relative;}
+.info-tip-btn::after{content:'';position:absolute;inset:-14px;}cursor:pointer;margin-left:5px;vertical-align:middle;line-height:1;}
+.info-tip-btn:hover{background:var(--disney-blue-deep);color:var(--on-accent);}
+.info-tip-popover{position:fixed;z-index:130;background:var(--ink-navy);color:var(--cream);font-size:12px;line-height:1.5;border-radius:10px;padding:10px 13px;max-width:260px;box-shadow:0 10px 26px rgba(0,0,0,.25);display:none;}
+
+/* tour guiado (coach marks) */
+.tour-blocker{position:fixed;inset:0;z-index:140;background:transparent;}
+.tour-spotlight{position:fixed;z-index:141;pointer-events:none;border-radius:14px;border:2px solid var(--disney-blue-deep);box-shadow:0 0 0 9999px rgba(10,14,24,.64);transition:top .32s cubic-bezier(.2,.9,.3,1),left .32s cubic-bezier(.2,.9,.3,1),width .32s cubic-bezier(.2,.9,.3,1),height .32s cubic-bezier(.2,.9,.3,1);}
+.tour-callout{position:fixed;z-index:142;background:var(--white);color:var(--ink-navy);border-radius:14px;padding:16px 18px;width:min(86vw,300px);box-shadow:0 16px 40px rgba(0,0,0,.3);transition:top .32s cubic-bezier(.2,.9,.3,1),left .32s cubic-bezier(.2,.9,.3,1);}
+.tour-callout-title{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;margin-bottom:5px;}
+.tour-callout-text{font-size:12.5px;line-height:1.5;color:var(--muted);margin-bottom:14px;}
+.tour-callout-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.tour-callout-progress{font-size:11px;color:var(--muted2);font-weight:600;}
+.tour-callout-actions{display:flex;gap:10px;align-items:center;}
+.tour-skip{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
+.tour-next{background:var(--disney-blue-deep);border:none;color:var(--on-accent);border-radius:8px;padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer;}
