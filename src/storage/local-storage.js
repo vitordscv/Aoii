@@ -38,11 +38,38 @@ async function persist(){
   setSaveStatus(ok?'salvo ✓':'erro ao salvar');
 }
 
+/* Antes de começar do zero, guarda o que não deu pra ler.
+   Recomeçar já era o comportamento; o que faltava era não jogar fora — se a
+   recusa vier de um engano da validação, ou de um app mais novo que salvou um
+   formato desconhecido, o original continua ali pra ser recuperado. */
+const CHAVE_RESGATE=STORAGE_KEY+'-recusado';
+function guardarParaResgate(texto,motivo){
+  try{
+    localStorage.setItem(CHAVE_RESGATE,texto);
+    localStorage.setItem(CHAVE_RESGATE+'-motivo',new Date().toISOString()+' · '+motivo);
+    console.warn('[aoii] dados locais não aceitos ('+motivo+'). '+
+      'Cópia guardada em localStorage["'+CHAVE_RESGATE+'"].');
+  }catch(e){ console.warn('[aoii] dados locais não aceitos e sem espaço pra guardar cópia'); }
+}
+
 async function loadData(){
+  let bruto=null;
   try{
     const res=await store.get(STORAGE_KEY);
-    if(res&&res.value){ data=migrateData(JSON.parse(res.value)); setSaveStatus(L('st.salvo')); }
-    else{ data=defaultData(); await persist(); }
-  }catch(e){ data=defaultData(); try{await persist();}catch(e2){} }
+    if(!(res&&res.value)){ data=defaultData(); await persist(); return; }
+    bruto=res.value;
+    /* o que está no localStorage também passa pela validação: ele guarda o que
+       entrou por um backup em alguma sessão anterior, e pode ter sido editado
+       à mão pelo console */
+    const r=adotarDadosDeFora(JSON.parse(bruto),'local',{bytes:bruto.length});
+    if(!r.ok){
+      guardarParaResgate(bruto,r.problemas[0]||'formato não reconhecido');
+      data=defaultData(); await persist(); return;
+    }
+    data=r.data; setSaveStatus(L('st.salvo'));
+  }catch(e){
+    if(bruto) guardarParaResgate(bruto,'erro ao ler: '+(e&&e.message||e));
+    data=defaultData(); try{await persist();}catch(e2){}
+  }
 }
 

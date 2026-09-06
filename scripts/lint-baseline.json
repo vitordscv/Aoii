@@ -11,7 +11,6 @@
     "core/metrics.js → ui/effects.js",
     "data/defaults.js → core/dates.js",
     "data/defaults.js → core/helpers.js",
-    "data/defaults.js → core/income.js",
     "data/defaults.js → core/metrics.js",
     "data/defaults.js → core/money.js",
     "integrations/brasil-api.js → ui/investments.js",

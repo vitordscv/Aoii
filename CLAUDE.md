@@ -96,12 +96,16 @@ nos cinco arquivos (`pt, en, es, fr, it`). Marcador `{mes}` no português tem qu
 aparecer em todas as línguas. `npm test` reprova se faltar; `npm run audit`
 conta as chaves usadas contra as definidas.
 
-**Adicionar um campo persistido.** Coloque o padrão em `defaultData()` e a
-normalização em `migrateData()` (`src/data/defaults.js`) — `migrateData` roda em
-todo dado que entra, inclusive importado, e precisa aceitar o formato antigo sem
-quebrar. Documente o campo em [docs/DATA-MODEL.md](docs/DATA-MODEL.md). Hoje não
-há número de versão de schema; criar um é a primeira tarefa da fase de validação
-(ver [docs/MIGRATION.md](docs/MIGRATION.md)).
+**Adicionar um campo persistido.** Ele precisa estar em **três** lugares:
+
+1. `src/data/schema.js` — declare o tipo e o limite. Campo que não está lá é
+   **descartado** ao entrar, e o backup do usuário o perde em silêncio.
+2. `defaultData()` — o valor de quem começa hoje.
+3. `migrateData()` — o que fazer com quem já tinha dados sem esse campo.
+
+Depois documente em [docs/DATA-MODEL.md](docs/DATA-MODEL.md). Mudou a *forma* de
+um campo que já existia? Suba `SCHEMA_VERSAO` e escreva a migração do formato
+anterior.
 
 **Mexer em cálculo.** Leia primeiro `docs/DATA-MODEL.md` e o teste do assunto em
 `testes/`. Cálculo sem teste que o cubra não deve ser alterado — escreva o teste

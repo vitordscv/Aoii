@@ -3,6 +3,7 @@
 function defaultData(){
   const Y=new Date().getFullYear();
   return {
+    schemaVersion:SCHEMA_VERSAO,
     saldoAtual:0,
     saldoAtualizadoEm:new Date().toISOString(),
     dinheiroVivo:0,

@@ -55,7 +55,9 @@ async function init(){
       try{
         const remote=await supabaseGet(getSyncCode());
         if(remote && JSON.stringify(remote)!==JSON.stringify(data)){
-          data=migrateData(remote); render();
+          const r=adotarDadosDeFora(remote,'nuvem');
+          if(!r.ok){ setSaveStatus(L('st.syncRecusado')); return; }
+          data=r.data; render();
           setSaveStatus(L('st.outroAparelho'));
         }
       }catch(e){}

@@ -65,43 +65,41 @@ servidor guardando só ciphertext. Formato proposto e plano de migração vão e
 Enquanto isso não existe, a sincronização deve ser tratada como "publicar os
 dados num endereço que só quem tem o código conhece".
 
-### 2. Importação sem validação
+### ~~2. Importação sem validação~~ — resolvido
 
-`src/ui/bindings.js`. Tanto o arquivo JSON quanto o código de backup em base64
-fazem, na prática:
+Toda entrada passa por `adotarDadosDeFora()` (`src/data/validation.js`):
+arquivo JSON, código de backup em base64, resposta do Supabase e o próprio
+`localStorage`. O objeto é reconstruído campo a campo a partir de
+`src/data/schema.js` — o que não está declarado não entra.
 
-```js
-data = migrateData(JSON.parse(entrada));
-```
+Coberto: raiz precisa ser objeto simples; teto de 5 MB; profundidade máxima 12;
+`schemaVersion` do futuro é recusado; `__proto__`, `constructor` e `prototype`
+descartados (inclusive como chave dinâmica em `orcamentos` e `customTheme`);
+`NaN`, `Infinity` e valores fora de escala recusados; texto aparado no limite do
+campo; enum fora da lista cai no padrão; data impossível vira nula; lista acima
+de 20.000 itens é cortada.
 
-Não há: limite de tamanho, verificação de que a raiz é objeto simples, checagem
-de tipo por campo, limite de comprimento de texto, rejeição de `NaN`/`Infinity`,
-proteção contra `__proto__`/`constructor`/`prototype`, descarte de propriedades
-desconhecidas, nem regeneração de ids.
+Dado local recusado não é apagado: vai para
+`localStorage['financas-data-recusado']` com o motivo ao lado.
 
-`migrateData()` normaliza números e completa campos que faltam, mas **preserva
-tudo que não conhece** e **confia nos ids que vieram**.
+Testes em `testes/validacao.test.js`.
 
-O que precisa existir: `validateAndNormalizeData(entrada)` central, aplicada a
-toda entrada — arquivo, código de backup e resposta do Supabase.
+### ~~3. Id de fora indo direto para atributo HTML~~ — parcialmente resolvido
 
-### 3. Id de fora indo direto para atributo HTML
+Todo id agora precisa caber em `[A-Za-z0-9:_-]{1,64}` — sem aspas, sem `<`, sem
+espaço. O que não couber é trocado por um id novo, e `cartaoId`, `viagemId` e
+`parcelamentoId` seguem a troca, então a relação entre fatura e cartão
+sobrevive. É isso que fecha a injeção por atributo.
 
-Ids do backup entram em atributos sem escape:
+Trocar *todos* os ids, e não só os inválidos, seria pior: o app compara o JSON
+local com o da nuvem pra saber se outro aparelho mexeu, e ids novos a cada
+leitura fariam a comparação nunca bater — sincronização em laço.
 
-```js
-`<option value="${c.id}">`          src/ui/months.js
-`data-id="${t.id}"`                 src/ui/diary.js e mais 30 lugares
-```
-
-Um backup com `id` contendo aspas injeta atributo. O texto visível quase sempre
-passa por `esc()` — o problema está nos **atributos**, não no conteúdo.
-
-Duas correções, ambas necessárias: id vindo de fora é descartado e regerado com
-`crypto.randomUUID()`; e atributo é definido por `element.dataset.id = valor`,
-não por concatenação. Hoje `uid()` usa `Math.random()`
-(`src/core/helpers.js`) — serve para chave de lista, não para nada com valor de
-segurança.
+**O que falta:** os ids ainda são gerados por `uid()`
+(`src/core/helpers.js`), que usa `Math.random()`. Serve para chave de lista, não
+para nada com valor de segurança — e hoje nada de segurança depende deles. Vale
+trocar por `crypto.randomUUID()` mesmo assim. A validação já usa
+`crypto.randomUUID()` quando precisa criar um id.
 
 ### 4. `innerHTML` em 94 lugares
 

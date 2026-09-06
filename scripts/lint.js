@@ -120,14 +120,26 @@ function declaracoes(codigo) {
 }
 
 function usos(codigo) {
-  /* nome não precedido de ponto (não é acesso a propriedade) e não seguido de dois-pontos
-     em posição de chave de objeto */
+  /* Um nome só conta como uso se não vier depois de ponto (aí é propriedade) e
+     não estiver em posição de chave de objeto — `{ iaAtiva: … }` declara um
+     campo, não usa a função `iaAtiva`. Sem essa segunda regra, todo arquivo de
+     configuração vira uma enxurrada de dependências que não existem. */
   const achados = new Set();
   const re = /(^|[^.\w$'"])([A-Za-z_$][\w$]*)/g;
   let m;
   while ((m = re.exec(codigo))) {
     const nome = m[2];
     if (PALAVRAS.has(nome) || GLOBAIS.has(nome)) continue;
+    /* espia o que vem depois sem consumir: consumir o ":" comeria o separador
+       do próximo nome e `{id:uid()}` deixaria de registrar o uso de uid */
+    const depois = /^\s*:/.test(codigo.slice(re.lastIndex));
+    if (depois) {
+      /* chave de objeto se o que veio antes abre ou separa um literal.
+         `a ? b : c` e `case x:` também caem aqui — são raros, e o custo é só
+         deixar de enxergar uma aresta. */
+      const antes = m[1].trim();
+      if (antes === '' || antes === '{' || antes === ',') continue;
+    }
     achados.add(nome);
   }
   return achados;

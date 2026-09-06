@@ -32,7 +32,7 @@ const t={
   }
 };
 
-const arquivos=['motor.test.js','entrada.test.js','datas.test.js','listas.test.js','i18n.test.js'];
+const arquivos=['motor.test.js','entrada.test.js','datas.test.js','listas.test.js','i18n.test.js','validacao.test.js'];
 for(const f of arquivos){
   try{ require(path.join(__dirname,f))(t); }
   catch(e){ falhou++; console.log('\n\x1b[31mFALHA AO CARREGAR '+f+':\x1b[0m '+e.message+'\n'+e.stack); }

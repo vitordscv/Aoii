@@ -30,7 +30,11 @@ function bindStatic(){
     if(syncConfigured()){
       try{
         const remote=await supabaseGet(code);
-        if(remote){ data=migrateData(remote); render(); setSaveStatus(L('st.syncDados')); }
+        if(remote){
+          const r=adotarDadosDeFora(remote,'nuvem');
+          if(!r.ok){ setSaveStatus(L('st.syncRecusado')); return; }
+          data=r.data; render(); setSaveStatus(L('st.syncDados'));
+        }
         else{ await supabaseSet(code,data); setSaveStatus(L('st.syncAtivada')); }
       }catch(e){ setSaveStatus(L('st.syncErro')); }
     }
@@ -287,10 +291,12 @@ function bindStatic(){
     const file=e.target.files&&e.target.files[0]; if(!file) return;
     try{
       const text=await file.text();
-      const parsed=JSON.parse(text);
+      const r=adotarDadosDeFora(JSON.parse(text),'arquivo',{bytes:text.length});
+      if(!r.ok){ await alertDialog(L('erro.backupRecusado').replace('{motivo}',r.problemas[0]||'')); return; }
       if(!(await confirmDialog({text:L('confirm.importarCodigo')}))) return;
-      data=migrateData(parsed);
+      data=r.data;
       await persist(); render();
+      if(r.descartados.length) setSaveStatus(L('st.backupAjustado').replace('{n}',r.descartados.length));
     }catch(err){
       await alertDialog(L('erro.arquivoInvalido'));
     }
@@ -300,16 +306,21 @@ function bindStatic(){
     const input=document.getElementById('import-input');
     const raw=input.value.trim();
     if(!raw) return;
-    let parsed;
+    let texto;
     try{
-      parsed=JSON.parse(decodeURIComponent(escape(atob(raw))));
+      texto=decodeURIComponent(escape(atob(raw)));
     }catch(e){
       await alertDialog(L('erro.codigoInvalido'));
       return;
     }
+    let r;
+    try{ r=adotarDadosDeFora(JSON.parse(texto),'codigo',{bytes:texto.length}); }
+    catch(e){ await alertDialog(L('erro.codigoInvalido')); return; }
+    if(!r.ok){ await alertDialog(L('erro.backupRecusado').replace('{motivo}',r.problemas[0]||'')); return; }
     if(!(await confirmDialog({text:L('confirm.importarCodigo')}))) return;
-    data=migrateData(parsed);
+    data=r.data;
     await persist(); render();
+    if(r.descartados.length) setSaveStatus(L('st.backupAjustado').replace('{n}',r.descartados.length));
     input.value='';
   });
   document.getElementById('reset-btn').addEventListener('click',async()=>{

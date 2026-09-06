@@ -3,19 +3,38 @@
 Tudo vive num objeto só, `data`, declarado em `src/data/state.js` e gravado em
 `localStorage` sob a chave `financas-data` como JSON.
 
-## Versão
+## Versão e validação
 
-**Não existe número de versão de schema.** A compatibilidade é mantida por
-`migrateData()` (`src/data/defaults.js`), que roda em todo dado que entra — do
-localStorage, de um backup ou da nuvem — e completa campo a campo o que estiver
-faltando ou com tipo errado.
+O schema atual é **1**, declarado em `src/data/schema.js` e gravado em
+`data.schemaVersion`. Backup salvo por uma versão futura (número maior) é
+recusado inteiro, em vez de lido pela metade.
 
-Isso funciona, mas não permite recusar um formato do futuro nem escrever uma
-migração que dependa de saber de onde o dado veio. Criar `schemaVersion` é a
-primeira tarefa da fase de validação — ver [MIGRATION.md](MIGRATION.md).
+Todo dado que entra passa por `adotarDadosDeFora()`
+(`src/data/validation.js`), nesta ordem:
 
-Enquanto não existe: **campo novo entra em `defaultData()` e em `migrateData()`,
-sempre nos dois.**
+1. **`validateAndNormalizeData()`** — recusa o que não é objeto, o que passa de
+   5 MB, o que aninha fundo demais e o que vem de uma versão futura. Depois
+   reconstrói o objeto campo a campo a partir do esquema: o que não está
+   declarado é descartado, número impossível vira o padrão, texto é aparado no
+   limite, opção fora da lista cai no padrão e id fora do formato aceito é
+   trocado (com as referências seguindo junto).
+2. **`migrateData()`** — a parte histórica: formato antigo virando novo, faturas
+   duplicadas se fundindo, campo que ganhou padrão depois.
+3. **validação de novo**, agora sobre o resultado da migração. Isso deixa a
+   ordem das chaves estável (a sincronização compara JSON como texto) e submete
+   ao esquema também o que a migração escreveu.
+
+Consequência prática para quem programa: **campo novo precisa estar nos três
+lugares** — `schema.js` (senão é descartado ao entrar), `defaultData()` e
+`migrateData()`. Campo que só existe em dois dos três é perdido silenciosamente
+no primeiro backup importado.
+
+Ao mudar a forma de um campo já existente, suba `SCHEMA_VERSAO` e escreva a
+migração para o formato anterior em `migrateData()`.
+
+Quando o dado local não é aceito (formato do futuro, arquivo corrompido), o app
+não apaga: guarda o original em `localStorage['financas-data-recusado']`, com o
+motivo em `financas-data-recusado-motivo`, e começa do zero.
 
 ## Raiz
 

@@ -37,6 +37,28 @@ function recortar(src,nome){
   return src.slice(i+1,k)+'\n';
 }
 
+/* Recorta um trecho inteiro, do começo de `marcaInicio` até o fim da função
+   `ateFimDe`. Serve pra módulos que são mais const do que função — o esquema de
+   validação, por exemplo, onde recortar nome por nome daria uma lista enorme e
+   frágil. */
+function recortarBloco(src,marcaInicio,ateFimDe){
+  const i=src.indexOf(marcaInicio);
+  if(i<0) throw new Error('não achei o início do bloco: '+marcaInicio);
+  const j=src.indexOf('\nfunction '+ateFimDe+'(',i);
+  if(j<0) throw new Error('não achei o fim do bloco: '+ateFimDe);
+  const corpo=recortar(src.slice(j),ateFimDe);
+  return src.slice(i,j)+'\n'+corpo;
+}
+
+/* blocos inteiros: [marca de início, função que fecha o bloco] */
+const BLOCOS=[
+  ['const SCHEMA_VERSAO','adotarDadosDeFora'],   // data/schema.js + data/validation.js
+];
+
+/* `const` no topo de um script vive no escopo léxico do contexto, não vira
+   propriedade dele — então o teste não enxerga. Estas são copiadas na mão. */
+const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA'];
+
 /* funções puras de cálculo — a parte do app que os testes cobrem */
 const FUNCOES=[
   'parseNum','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
@@ -50,6 +72,7 @@ const FUNCOES=[
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
+  'uid','defaultData','migrateData',
   'computeInsights','invalidarTimeline'
 ];
 
@@ -60,10 +83,12 @@ function montarMotor(arquivo){
   const cats=/const CATEGORIAS_DEFAULT\s*=\s*\[[^\]]*\]/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'');
   codigo+='let _tlMemo=new Map();\n';
+  BLOCOS.forEach(([ini,fim])=>{ codigo+=recortarBloco(src,ini,fim)+'\n'; });
   FUNCOES.forEach(n=>{
     if(n==='invalidarTimeline'){ codigo+='function invalidarTimeline(){ _tlMemo.clear(); }\n'; return; }
     codigo+=recortar(src,n)+'\n';
   });
+  EXPORTAR.forEach(n=>{ codigo+='try{ globalThis.'+n+'='+n+'; }catch(e){}\n'; });
   return codigo;
 }
 

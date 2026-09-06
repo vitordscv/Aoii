@@ -16,6 +16,8 @@
     "ui/background-art.js",
     "storage/sync.js",
     "data/state.js",
+    "data/schema.js",
+    "data/validation.js",
     "core/helpers.js",
     "core/money.js",
     "core/dates.js",
