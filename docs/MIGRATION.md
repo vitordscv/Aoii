@@ -92,6 +92,19 @@ Os 230 KB de `src/index.html` são quase todos ícone e manifesto embutidos em
 base64 (favicon 13,7 KB, apple-touch-icon 12,6 KB, manifesto 100 KB). Tirar isso
 para `public/` é tarefa da fase de desempenho.
 
+### Publicação
+
+Dois destinos publicam este repositório:
+
+- **Vercel** (aoiii.vercel.app) — passa a rodar `npm run build` pelo
+  `vercel.json`, servindo `dist/`. O deploy de prévia deste branch já subiu
+  assim, então a configuração está confirmada.
+- **GitHub Pages** (vitordscv.github.io/Aoii) — servia o `index.html` da raiz
+  direto do branch. Como esse arquivo agora é gerado, o Pages precisa rodar o
+  build: `.github/workflows/pages.yml` faz isso, **mas só entra em ação depois
+  de trocar Settings → Pages → Source para "GitHub Actions"**. Sem essa troca,
+  juntar este branch no main deixa o endereço do Pages sem página.
+
 ### Pendências que a rodada deixou de propósito
 
 - `src/data/constants.js` começa com um memorando de 60 linhas sobre

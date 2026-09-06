@@ -1,0 +1,47 @@
+# O repositório também publica em https://vitordscv.github.io/Aoii/.
+#
+# Até a extração, o GitHub Pages servia o index.html da raiz direto do branch —
+# o que funcionava porque o arquivo publicado era versionado. Agora ele é gerado,
+# então o Pages precisa rodar o build.
+#
+# PARA ISTO FUNCIONAR, uma vez: Settings → Pages → Build and deployment →
+# Source = "GitHub Actions". Enquanto a origem for "Deploy from a branch", este
+# workflow não é usado e o Pages fica sem página.
+#
+# A Vercel (aoiii.vercel.app) não depende disto: ela roda `npm run build`
+# sozinha, pelo vercel.json.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: montar
+        run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deploy
+        uses: actions/deploy-pages@v4
