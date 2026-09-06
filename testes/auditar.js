@@ -62,8 +62,13 @@ titulo('Tradução');
     IDIOMAS.forEach(id=>{
       const ini=src.indexOf('const I18N_'+id.toUpperCase()+'={');
       if(ini<0){ ruim('não achei o dicionário de '+id); idiomas[id]=new Set(); return; }
-      const fim=src.indexOf('\n};',ini);
-      idiomas[id]=chaves(src.slice(ini,fim<0?src.length:fim));
+      /* o dicionário fecha com "};" em linha própria; se o corte não achar isso,
+         para no próximo dicionário — nunca engole o idioma seguinte */
+      const fecha=src.indexOf('\n};',ini);
+      const proximo=src.indexOf('\nconst I18N',ini+1);
+      const fim=Math.min(fecha<0?Infinity:fecha, proximo<0?Infinity:proximo);
+      if(!isFinite(fim)){ ruim('não achei o fim do dicionário de '+id); idiomas[id]=new Set(); return; }
+      idiomas[id]=chaves(src.slice(ini,fim));
     });
   }else{
     const ini=src.indexOf('const I18N='), fim=src.indexOf('function localeAtual');
