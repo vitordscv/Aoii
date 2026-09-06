@@ -242,9 +242,15 @@ const ESQUEMA = {
   moeda: { tipo: 'opcao', valores: ['BRL', 'USD', 'EUR', 'GBP'], padrao: 'BRL' },
   fundoIlustrado: { tipo: 'booleano', padrao: false },
   gastoDiario: { tipo: 'booleano', padrao: false },
+  temaAutoNoite: { tipo: 'booleano', padrao: false },
   onboardingCompleto: { tipo: 'booleano', padrao: false },
   tourCompleto: { tipo: 'booleano', padrao: false },
   iaAtiva: { tipo: 'booleano', padrao: false },
+
+  /* marcadores de "já aconteceu" — sem eles o app repete a ação toda vez que
+     abre: um snapshot novo na nuvem, o card de revisão do mês de volta */
+  snapshotsMensais: { tipo: 'listaTexto', max: 80 },
+  revisoesVistas: { tipo: 'listaTexto', max: 20 },
 
   /* formato antigo: viravam gastos fixos. migrateData() consome e apaga. */
   internet: { tipo: 'objeto', legado: true, campos: {

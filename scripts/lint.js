@@ -195,6 +195,33 @@ function acharTextoEmHtml(SRC, modulos) {
   return achados.sort();
 }
 
+/* ═══ campo persistido que o esquema não conhece ═══
+   `data.x` só sobrevive se `x` estiver declarado em src/data/schema.js — a
+   validação reconstrói o objeto a partir de lá e descarta o resto. Um campo
+   novo esquecido no esquema não dá erro: some no primeiro backup importado, e
+   o app volta a fazer o que aquele campo evitava (mandar snapshot de novo,
+   mostrar o card de revisão de novo). Daí a checagem. */
+function acharCamposForaDoEsquema(SRC, modulos) {
+  const usados = new Map();   // campo → onde apareceu primeiro
+  for (const rel of modulos) {
+    if (rel.startsWith('i18n/')) continue;   // dicionário, não código
+    const codigo = fs.readFileSync(path.join(SRC, rel), 'utf8');
+    const linhaDe = pos => codigo.slice(0, pos).split('\n').length;
+    for (const m of codigo.matchAll(/\bdata\.([a-zA-Z_][\w]*)/g)) {
+      if (!usados.has(m[1])) usados.set(m[1], rel + ':' + linhaDe(m.index));
+    }
+  }
+  const esquema = fs.readFileSync(path.join(SRC, 'data', 'schema.js'), 'utf8');
+  const ini = esquema.indexOf('const ESQUEMA = {');
+  if (ini < 0) return ['não achei `const ESQUEMA = {` em src/data/schema.js'];
+  const declarados = new Set(
+    [...esquema.slice(ini).matchAll(/^ {2}([a-zA-Z_][\w]*):/gm)].map(m => m[1]));
+  return [...usados.entries()]
+    .filter(([campo]) => !declarados.has(campo))
+    .map(([campo, onde]) => 'data.' + campo + ' (' + onde + ')')
+    .sort();
+}
+
 function main() {
   const modulos = listarModulos();
   const info = modulos.map(rel => {
@@ -268,11 +295,13 @@ function main() {
   const novas = violacoes.filter(v => !base.has(v));
   const resolvidas = [...base].filter(v => !violacoes.includes(v));
   const emHtml = acharTextoEmHtml(SRC, modulos);
+  const foraDoEsquema = acharCamposForaDoEsquema(SRC, modulos);
 
   console.log(modulos.length + ' módulos, ' + arestas.length + ' dependências entre arquivos');
   console.log('violações de camada: ' + violacoes.length +
     ' (na baseline: ' + base.size + ', novas: ' + novas.length + ')');
   console.log('texto do usuário virando HTML sem esc(): ' + emHtml.length);
+  console.log('campos de data fora do esquema: ' + foraDoEsquema.length);
   const grandes = info.filter(m => m.linhas > 400).sort((a, b) => b.linhas - a.linhas);
   if (grandes.length) {
     console.log('módulos acima de 400 linhas (candidatos a nova divisão):');
@@ -296,6 +325,13 @@ function main() {
     emHtml.forEach(v => console.error('  ' + v));
     console.error('Envolva em esc(), ou use textContent. Se for marcação de propósito,');
     console.error('guarde numa variável com "Html" no nome (ex.: tagHtml).');
+  }
+  if (foraDoEsquema.length) {
+    falhou = true;
+    console.error('\ncampo persistido que src/data/schema.js não declara:');
+    foraDoEsquema.forEach(v => console.error('  ' + v));
+    console.error('Sem a declaração, a validação descarta o campo e o dado do usuário some.');
+    console.error('Declare no esquema, dê o padrão em defaultData() e trate em migrateData().');
   }
   if (higiene.length) {
     falhou = true;

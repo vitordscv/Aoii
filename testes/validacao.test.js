@@ -198,6 +198,18 @@ module.exports=function(t){
   t.valor(ida.data.entradasExtras[0].recebido,850,'quanto já foi recebido intacto');
   t.valor(ida.data.metas[0].valorGuardado,1200,'meta intacta');
 
+  /* Marcadores de "já aconteceu". São fáceis de esquecer no esquema porque
+     nenhuma tela os mostra — e sem eles o app repete a ação toda vez que abre:
+     manda um snapshot novo pra nuvem, traz de volta o card de revisão do mês. */
+  const marcadores=c.adotarDadosDeFora(base({
+    snapshotsMensais:['ABC12345-snap-2026-8','ABC12345-snap-2026-9'],
+    revisoesVistas:['2026-8'],
+    temaAutoNoite:true,
+  }),'local').data;
+  t.igual((marcadores.snapshotsMensais||[]).length,2,'os snapshots já feitos sobrevivem');
+  t.igual((marcadores.revisoesVistas||[]).join(','),'2026-8','as revisões já vistas sobrevivem');
+  t.igual(marcadores.temaAutoNoite,true,'a preferência de tema automático sobrevive');
+
   /* passar duas vezes não muda nada — é o que garante que ler do localStorage
      a cada abertura não corrói os dados aos poucos */
   const volta=c.adotarDadosDeFora(JSON.parse(JSON.stringify(ida.data)),'local');
