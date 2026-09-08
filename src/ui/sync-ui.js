@@ -38,8 +38,13 @@ function renderStatusSync(){
   const codigo=getSyncCode();
   if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ el.textContent=L('sync.naoConfigurada'); return; }
   if(!codigo){ el.textContent=L('sync.gereCodigo'); return; }
+  const pendente=espelhoPendente();
+  if(codigo&&!sincronizacaoDestrancada()&&!_abrindoSync) sync.status='precisa-senha';
   el.textContent=L('sync.ativa').replace('{codigo}',codigo)+' · '+textoDoStatusSync()+
+    (pendente?' · '+L('sync.pendente'):'')+
     (emHomologacao()?'  ⚠️ HOMOLOGAÇÃO':'');
+  if(pendente) setSaveStatus(L('sync.pendente'));
+  else if(sync.status==='sincronizada') setSaveStatus(L('sync.emDia'));
 }
 
 /* ── a caixa de senha ──
@@ -62,13 +67,17 @@ function pedirSenhaSync(opcoes){
     document.getElementById('senha-titulo').textContent=opcoes.titulo||L('senha.titulo');
     document.getElementById('senha-texto').textContent=opcoes.texto||'';
     campo.value=''; campo2.value=''; erroEl.textContent='';
+    campo.setAttribute('aria-invalid','false'); campo2.setAttribute('aria-invalid','false');
+    campo.setAttribute('aria-label',L('senha.campo'));
+    campo2.setAttribute('aria-label',L('senha.repita'));
+    olho.setAttribute('aria-label',L('senha.mostrar'));
     campo.type='password'; campo2.type='password';
     olho.setAttribute('aria-pressed','false');
     linha2.style.display=opcoes.confirmar?'flex':'none';
     campo.setAttribute('autocomplete',opcoes.confirmar?'new-password':'current-password');
     okBtn.textContent=opcoes.okLabel||L('btn.confirmar');
     bd.style.display='block'; dg.style.display='block';
-    setTimeout(()=>campo.focus(),30);
+    const restaurar=ativarDialogo(dg,bd,campo,cancelar);
 
     function fechar(v){
       bd.style.display='none'; dg.style.display='none';
@@ -78,23 +87,25 @@ function pedirSenhaSync(opcoes){
       olho.removeEventListener('click',alternar);
       dg.removeEventListener('keydown',tecla);
       campo.value=''; campo2.value='';   /* não deixa a senha no DOM */
+      restaurar();
       resolve(v);
     }
     function alternar(){
       const mostrando=campo.type==='text';
       campo.type=campo2.type=mostrando?'password':'text';
       olho.setAttribute('aria-pressed',mostrando?'false':'true');
+      olho.setAttribute('aria-label',L(mostrando?'senha.mostrar':'senha.ocultar'));
     }
     function confirmar(){
       const s=campo.value;
-      if(s.length<8){ erroEl.textContent=L('senha.curta'); campo.focus(); return; }
-      if(opcoes.confirmar&&s!==campo2.value){ erroEl.textContent=L('senha.naoBate'); campo2.focus(); return; }
+      campo.setAttribute('aria-invalid','false'); campo2.setAttribute('aria-invalid','false');
+      if(s.length<8){ erroEl.textContent=L('senha.curta'); campo.setAttribute('aria-invalid','true'); campo.focus(); return; }
+      if(opcoes.confirmar&&s!==campo2.value){ erroEl.textContent=L('senha.naoBate'); campo2.setAttribute('aria-invalid','true'); campo2.focus(); return; }
       fechar(s);
     }
     function cancelar(){ fechar(null); }
     function tecla(e){
-      if(e.key==='Enter'){ e.preventDefault(); confirmar(); }
-      if(e.key==='Escape'){ e.preventDefault(); cancelar(); }
+      if(e.key==='Enter'&&(e.target===campo||e.target===campo2)){ e.preventDefault(); confirmar(); }
     }
     okBtn.addEventListener('click',confirmar);
     cancelBtn.addEventListener('click',cancelar);
@@ -145,6 +156,7 @@ function mostrarConflitoSync(daNuvem){
 
     bd.style.display='block'; dg.style.display='block';
     vibrate([10,40,10]);
+    const restaurar=ativarDialogo(dg,bd,bDepois,depois);
 
     function fechar(v){
       bd.style.display='none'; dg.style.display='none';
@@ -152,6 +164,7 @@ function mostrarConflitoSync(daNuvem){
       bManter.removeEventListener('click',manter);
       bUsar.removeEventListener('click',usar);
       bDepois.removeEventListener('click',depois);
+      restaurar();
       resolve(v);
     }
     function baixar(obj,nome){
@@ -185,6 +198,18 @@ function mostrarConflitoSync(daNuvem){
 async function destrancarSincronizacao(codigo){
   codigo=codigo||getSyncCode();
   if(!codigo) return false;
+  if(!prepararSincronizacao()) return false;
+  try{ return await abrirSyncPelaInterface(codigo); }
+  finally{ concluirAberturaSync(); }
+}
+
+async function abrirSyncPelaInterface(codigo){
+  if(codigo!==getSyncCode()&&espelhoPendente()){
+    await alertDialog(L('sync.trocaPendente'));
+    return false;
+  }
+  const anterior=getSyncCode();
+  const revisaoLocal=estadoEspelho(codigo).revisao;
 
   const senha=await pedirSenhaSync({
     titulo:L('senha.destrancarTitulo'),
@@ -201,23 +226,38 @@ async function destrancarSincronizacao(codigo){
     return false;
   }
   if(r.resultado==='erro'){
+    sync.status='erro';
     setSaveStatus(L('st.syncErro'));
     renderStatusSync();
     return false;
   }
+  // A pessoa pode editar depois de fechar a senha, enquanto a rede responde.
+  if(codigo!==anterior&&espelhoPendente()){
+    esquecerSenha();
+    await alertDialog(L('sync.trocaPendente'));
+    return false;
+  }
+  const pendente=codigo===anterior&&espelhoPendente();
+  setSyncCode(codigo);
   if(r.resultado==='migrar'){ return await conduzirMigracao(r.dados); }
   if(r.resultado==='nova'){
-    /* código configurado mas linha inexistente: sobe o que este aparelho tem */
-    const env=await enviarParaNuvem(data);
-    setSaveStatus(env.resultado==='enviado'?L('st.syncAtivada'):L('st.syncErro'));
-    renderStatusSync();
-    return env.resultado==='enviado';
+    confirmarRevisaoLocal(0);
+    agendarEspelho();
+    return true;
+  }
+  if(pendente){
+    // O servidor pode ter mudado durante a ausência. Reusar a revisão local
+    // faz a próxima gravação receber conflito, sem substituir o aparelho.
+    sync.revisao=revisaoLocal;
+    retomarEspelho();
+    return true;
   }
   /* aberta: adota o que veio, passando pela validação como qualquer dado externo */
   const adotado=adotarDadosDeFora(r.dados,'nuvem');
   if(!adotado.ok){ setSaveStatus(L('st.syncRecusado')); renderStatusSync(); return false; }
   data=adotado.data;
-  await persist(); render();
+  await persist({remoto:true}); render();
+  confirmarRevisaoLocal(sync.revisao);
   setSaveStatus(L('st.syncDados'));
   renderStatusSync();
   return true;
@@ -236,7 +276,7 @@ async function conduzirMigracao(dadosDaNuvem){
 
   if(dadosDaNuvem&&JSON.stringify(dadosDaNuvem)!==JSON.stringify(data)){
     const escolha=await mostrarConflitoSync(dadosDaNuvem);
-    if(escolha===null){ sync.status='migrar'; renderStatusSync(); return false; }
+    if(escolha===null){ esquecerSenha(); sync.status='migrar'; renderStatusSync(); return false; }
     escolhidos=escolha==='nuvem'?dadosDaNuvem:data;
   }
 
@@ -245,8 +285,10 @@ async function conduzirMigracao(dadosDaNuvem){
     text:L('migrar.texto'),
     okLabel:L('migrar.okLabel'),
   });
-  if(!ok){ sync.status='migrar'; renderStatusSync(); return false; }
+  if(!ok){ esquecerSenha(); sync.status='migrar'; renderStatusSync(); return false; }
 
+  const geracaoAntes=estadoEspelho().geracao;
+  const revisaoAntes=sync.revisao;
   sync.status='sincronizando'; renderStatusSync();
   const r=await migrarParaCifrado(escolhidos);
   if(r.resultado!=='enviado'){
@@ -255,12 +297,24 @@ async function conduzirMigracao(dadosDaNuvem){
     return false;
   }
 
+  if(estadoEspelho().geracao!==geracaoAntes){
+    // Uma edição feita durante a migração precisa de nova decisão, pois a
+    // cópia cifrada pode ter sido a da nuvem, escolhida antes dessa edição.
+    sync.revisao=revisaoAntes;
+    confirmarRevisaoLocal(revisaoAntes);
+    renderStatusSync();
+    return true;
+  }
+
   /* o lado escolhido também passa a valer aqui — senão o espelho automático
      desfaz a migração no primeiro salvamento */
   if(escolhidos!==data){
     const adotado=adotarDadosDeFora(escolhidos,'nuvem');
-    if(adotado.ok){ data=adotado.data; await persist(); render(); }
+    if(adotado.ok){ data=adotado.data; await persist({remoto:true}); render(); }
   }
+
+  estadoEspelho().pendente=false;
+  confirmarRevisaoLocal(sync.revisao);
 
   setSaveStatus(L('st.migrada'));
   renderStatusSync();
@@ -271,75 +325,71 @@ async function conduzirMigracao(dadosDaNuvem){
    Chamada depois de salvar. Silenciosa quando dá certo; só fala quando algo
    precisa da pessoa. */
 async function empurrarParaNuvem(){
-  if(!getSyncCode()) return;
-  if(!sincronizacaoDestrancada()){ sync.status='precisa-senha'; renderStatusSync(); return; }
+  if(!getSyncCode()||!sincronizacaoDestrancada()){
+    sync.status='precisa-senha'; renderStatusSync(); return {resultado:'precisa-senha'};
+  }
 
   const r=await enviarParaNuvem(data);
-  if(r.resultado==='enviado'){ renderStatusSync(); return; }
+  if(r.resultado==='enviado') return r;
 
   if(r.resultado==='conflito'){
-    let remoto=null;
+    let remoto=null,lido=null;
     try{
-      const lido=await nuvemLer(getSyncCode());
+      lido=await nuvemLer(getSyncCode());
       if(lido&&ehEnvelopeCifrado(lido.envelope)) remoto=await decifrarDaNuvem(lido.envelope,sync.senha);
-    }catch(e){}
-    if(!remoto){ setSaveStatus(L('st.syncErro')); renderStatusSync(); return; }
+    }catch(e){ sync.status='erro'; }
+    if(!remoto){ setSaveStatus(L('st.syncErro')); renderStatusSync(); return {resultado:'erro'}; }
 
     const escolha=await mostrarConflitoSync(remoto);
     if(escolha==='nuvem'){
       const adotado=adotarDadosDeFora(remoto,'nuvem');
       if(adotado.ok){
         data=adotado.data;
-        sync.revisao=(await nuvemLer(getSyncCode())).revision;
-        await persist(); render();
+        sync.revisao=lido.revision;
+        sync.status='sincronizada';
+        await persist({remoto:true}); render();
         setSaveStatus(L('st.syncDados'));
+        return {resultado:'adotado'};
       }
+      return {resultado:'erro'};
     }else if(escolha==='local'){
-      /* alinha a revisão e grava por cima, agora com a pessoa sabendo */
-      const lido=await nuvemLer(getSyncCode());
-      if(lido) sync.revisao=lido.revision;
+      // Só autoriza substituir a revisão que a pessoa realmente viu.
+      sync.revisao=lido.revision;
       const segundaTentativa=await enviarParaNuvem(data);
       setSaveStatus(segundaTentativa.resultado==='enviado'?L('st.syncDados'):L('st.syncErro'));
+      return segundaTentativa;
     }
     renderStatusSync();
-    return;
+    return {resultado:'adiado'};
   }
 
-  if(r.resultado==='sem-conexao'){ setSaveStatus(L('st.semConexao')); renderStatusSync(); return; }
+  if(r.resultado==='sem-conexao'){ setSaveStatus(L('st.semConexao')); renderStatusSync(); return r; }
   setSaveStatus(L('st.syncErro'));
   renderStatusSync();
+  return r;
 }
-
-/* ── o espelho, agendado ──
-   Salvar local é instantâneo; subir cifrado custa uma derivação e uma ida à
-   rede. Então o local vai na hora e o espelho um pouco depois, juntando o que
-   vier no meio. O armazenamento avisa que salvou; a decisão é daqui. */
-let _espelhoAgendado=null;
-let _espelhando=false;
-
-function agendarEspelho(){
-  if(!getSyncCode()) return;
-  if(_espelhoAgendado) clearTimeout(_espelhoAgendado);
-  _espelhoAgendado=setTimeout(async()=>{
-    _espelhoAgendado=null;
-    if(_espelhando) return;   /* resolver conflito chama persist() de novo */
-    _espelhando=true;
-    try{ await empurrarParaNuvem(); }catch(e){}
-    finally{ _espelhando=false; }
-  },1500);
-}
-avisarQuandoSalvar(agendarEspelho);
 
 /* ── puxar ── */
 async function puxarDaNuvem(){
-  if(!sincronizacaoDestrancada()) return;
+  if(!sincronizacaoDestrancada()||_espelhando||_recebendoNuvem||_abrindoSync||espelhoPendente()) return;
+  _recebendoNuvem=true;
+  const revisaoAntes=sync.revisao;
+  try{
   const r=await receberDaNuvem();
+  if(espelhoPendente()){
+    // Houve edição enquanto a leitura estava em voo: não adota nem avança.
+    sync.revisao=revisaoAntes;
+    return;
+  }
   if(r.resultado==='novidade'){
     const adotado=adotarDadosDeFora(r.dados,'nuvem');
-    if(!adotado.ok){ setSaveStatus(L('st.syncRecusado')); renderStatusSync(); return; }
+    if(!adotado.ok){ sync.revisao=revisaoAntes; sync.status='erro'; setSaveStatus(L('st.syncRecusado')); renderStatusSync(); return; }
     data=adotado.data;
+    await persist({remoto:true});
+    confirmarRevisaoLocal(sync.revisao);
     render();
     setSaveStatus(L('st.outroAparelho'));
   }
-  renderStatusSync();
+  }catch(e){ sync.status='erro'; setSaveStatus(L('st.syncErro')); }
+  finally{ _recebendoNuvem=false; retomarEspelho(); renderStatusSync(); }
 }

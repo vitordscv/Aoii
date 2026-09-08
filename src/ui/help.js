@@ -54,12 +54,13 @@ async function init(){
        vez ao abrir; se a pessoa dispensar, o app segue inteiro em modo local e
        o status diz que está trancada. */
     renderStatusSync();
-    destrancarSincronizacao().then(abriu=>{
-      if(!abriu) return;
-      ensureMonthlySnapshot();
-      setInterval(()=>{ puxarDaNuvem(); },20000);
-    });
+    destrancarSincronizacao();
   }
+  // O ciclo também atende quem ativar a sincronização depois de abrir o app.
+  setInterval(async()=>{
+    await puxarDaNuvem();
+    if(sincronizacaoDestrancada()&&!espelhoPendente()&&!_espelhando&&!_abrindoSync) await ensureMonthlySnapshot();
+  },20000);
   setupAutoUpdate();
   if('serviceWorker' in navigator){
     /* o app é montado DEPOIS que o 'load' da página já aconteceu (o
@@ -86,4 +87,3 @@ async function init(){
   setupRRSheet();
   animateBars(document);
 }
-

@@ -37,12 +37,13 @@ function setSaveStatus(t){ const el=document.getElementById('save-status'); if(e
 let _aoSalvar=null;
 function avisarQuandoSalvar(fn){ _aoSalvar=fn; }
 
-async function persist(){
+async function persist(opcoes){
   invalidarTimeline();
   setSaveStatus(L('st.salvando'));
   const ok=await store.set(STORAGE_KEY,JSON.stringify(data));
   setSaveStatus(ok?L('st.salvoAqui'):L('st.erroAoSalvar'));
-  if(_aoSalvar){ try{ _aoSalvar(); }catch(e){} }
+  if(ok&&_aoSalvar&&!(opcoes&&opcoes.remoto)){ _aoSalvar(); }
+  return ok;
 }
 
 /* Antes de começar do zero, guarda o que não deu pra ler.
@@ -79,4 +80,3 @@ async function loadData(){
     data=defaultData(); try{await persist();}catch(e2){}
   }
 }
-

@@ -127,7 +127,7 @@
         <option value="custom">✏️ Personalizar</option>
       </select>
       <button type="button" id="ct-reopen-btn" class="ct-reopen-btn" style="display:none;" title="Editar as cores personalizadas" data-i18n-title="tt.editarCores"><span>🎨 </span><span data-i18n="btn.editarCores">Editar cores</span></button>
-      <span class="save-status" id="save-status">carregando…</span>
+      <span class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true">carregando…</span>
     </div>
 
     <!-- conteúdo dinâmico -->
@@ -478,7 +478,7 @@
         </div>
         <div class="field-group" id="sync-section">
           <label data-i18n="settings.syncTitle">Sincronizar entre aparelhos</label>
-          <div class="help-text" id="sync-status-text" data-i18n="settings.verificando">Verificando…</div>
+          <div class="help-text" id="sync-status-text" role="status" aria-live="polite" aria-atomic="true"></div>
           <div class="share-row">
             <input type="text" id="sync-code-input" placeholder="Código de sincronização" data-i18n-placeholder="ph.codigoSync" style="font-family:'Nunito Sans',sans-serif;letter-spacing:.05em;text-transform:uppercase;">
             <button class="reset-btn" id="sync-gen-btn" data-i18n="btn.gerarCodigoNovo">Gerar código novo</button>
@@ -882,7 +882,7 @@
 
   <!-- janela de confirmação -->
   <div class="modal-backdrop" id="confirm-backdrop" style="display:none;z-index:95;"></div>
-  <div class="confirm-dialog" id="confirm-dialog" style="display:none;" role="alertdialog" aria-labelledby="confirm-title">
+  <div class="confirm-dialog" id="confirm-dialog" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
     <div class="cd-title" id="confirm-title" data-i18n="cd.temCerteza">Tem certeza?</div>
     <div class="cd-text" id="confirm-text"></div>
     <div class="cd-actions">
@@ -893,17 +893,17 @@
 
   <!-- senha da sincronização -->
   <div class="modal-backdrop" id="senha-backdrop" style="display:none;z-index:95;"></div>
-  <div class="confirm-dialog senha-dialog" id="senha-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="senha-titulo">
+  <div class="confirm-dialog senha-dialog" id="senha-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="senha-titulo" aria-describedby="senha-texto">
     <div class="cd-title" id="senha-titulo" data-i18n="senha.titulo">Senha da sincronização</div>
     <div class="cd-text" id="senha-texto"></div>
     <div class="senha-campos">
       <div class="senha-linha">
-        <input type="password" id="senha-input" autocomplete="current-password" spellcheck="false"
+        <input type="password" id="senha-input" autocomplete="current-password" spellcheck="false" aria-label="Senha" aria-describedby="senha-erro"
                placeholder="Senha" data-i18n-placeholder="senha.campo">
         <button type="button" class="senha-olho" id="senha-olho" aria-label="Mostrar senha" data-i18n-title="senha.mostrar" title="Mostrar senha">👁</button>
       </div>
       <div class="senha-linha" id="senha-linha-2" style="display:none;">
-        <input type="password" id="senha-input-2" autocomplete="new-password" spellcheck="false"
+        <input type="password" id="senha-input-2" autocomplete="new-password" spellcheck="false" aria-label="Repita a senha" aria-describedby="senha-erro"
                placeholder="Repita a senha" data-i18n-placeholder="senha.repita">
       </div>
       <div class="senha-erro" id="senha-erro" role="alert" aria-live="polite"></div>
@@ -916,9 +916,9 @@
 
   <!-- conflito entre aparelhos -->
   <div class="modal-backdrop" id="conflito-backdrop" style="display:none;z-index:95;"></div>
-  <div class="confirm-dialog conflito-dialog" id="conflito-dialog" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="conflito-titulo">
+  <div class="confirm-dialog conflito-dialog" id="conflito-dialog" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="conflito-titulo" aria-describedby="conflito-texto">
     <div class="cd-title" id="conflito-titulo" data-i18n="conflito.titulo">Os dois lados mudaram</div>
-    <div class="cd-text" data-i18n="conflito.texto">Este aparelho e a nuvem foram alterados desde a última vez que conversaram. Escolher um lado descarta as mudanças do outro — vale exportar os dois antes.</div>
+    <div class="cd-text" id="conflito-texto" data-i18n="conflito.texto">Este aparelho e a nuvem foram alterados desde a última vez que conversaram. Escolher um lado descarta as mudanças do outro — vale exportar os dois antes.</div>
     <div class="conflito-lados" id="conflito-lados"></div>
     <div class="conflito-acoes">
       <button type="button" class="reset-btn" id="conflito-exportar" data-i18n="conflito.exportarOsDois">⬇️ Exportar os dois</button>

@@ -33,7 +33,7 @@ const t={
 };
 
 const arquivos=['motor.test.js','entrada.test.js','datas.test.js','listas.test.js','i18n.test.js',
-                'validacao.test.js','cripto.test.js','nuvem.test.js','ciclo-sync.test.js'];
+                'validacao.test.js','cripto.test.js','nuvem.test.js','ciclo-sync.test.js','sync-queue.test.js'];
 
 /* O arquivo de teste pode devolver uma promessa — a criptografia é assíncrona
    por natureza (Web Crypto). Esperar por ela é o que impede o resumo de sair

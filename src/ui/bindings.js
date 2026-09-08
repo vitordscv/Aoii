@@ -1,19 +1,10 @@
 /* ── static bindings ── */
 function bindStatic(){
-  const syncStatusEl=document.getElementById('sync-status-text');
   const syncInput=document.getElementById('sync-code-input');
   function refreshSyncUI(){
     const code=getSyncCode();
     if(syncInput) syncInput.value=code;
-    if(syncStatusEl){
-      if(!SUPABASE_URL||!SUPABASE_ANON_KEY){
-        syncStatusEl.textContent=L('sync.naoConfigurada');
-      }else if(code){
-        syncStatusEl.textContent=L('sync.ativa').replace('{codigo}',code);
-      }else{
-        syncStatusEl.textContent=L('sync.gereCodigo');
-      }
-    }
+    renderStatusSync();
   }
   refreshSyncUI();
   /* Ligar a sincronização pela primeira vez. A ordem aqui É a proteção:
@@ -22,6 +13,9 @@ function bindStatic(){
      sobra. Por isso ele vem ANTES, e não como sugestão depois. */
   document.getElementById('sync-gen-btn')?.addEventListener('click',async()=>{
     if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ setSaveStatus(L('st.syncErroAtivar')); return; }
+    if(espelhoPendente()){ await alertDialog(L('sync.trocaPendente')); return; }
+    if(!prepararSincronizacao()) return;
+    try{
 
     const jaTemBackup=await confirmDialog({
       title:L('sync.backupTitulo'),
@@ -45,9 +39,9 @@ function bindStatic(){
 
     const abriu=await abrirSincronizacao(code,senha);
     if(abriu.resultado!=='nova'){ setSaveStatus(L('st.syncErroAtivar')); renderStatusSync(); return; }
-    const env=await enviarParaNuvem(data);
-    setSaveStatus(env.resultado==='enviado'?L('st.syncAtivada'):L('st.syncErroAtivar'));
-    renderStatusSync();
+    confirmarRevisaoLocal(0);
+    agendarEspelho();
+    }finally{ concluirAberturaSync(); }
   });
 
   /* Entrar num código que já existe: pede a senha e deixa o motor descobrir se
@@ -56,9 +50,7 @@ function bindStatic(){
     const code=(syncInput?.value||'').trim().toUpperCase();
     if(!code) return;
     if(!SUPABASE_URL||!SUPABASE_ANON_KEY){ setSaveStatus(L('st.syncErroAtivar')); return; }
-    setSyncCode(code);
-    refreshSyncUI();
-    await destrancarSincronizacao(code);
+    if(await destrancarSincronizacao(code)) refreshSyncUI();
   });
   document.querySelectorAll('#cfg-tipo-renda .segmented-btn').forEach(btn=>{
     btn.addEventListener('click',async()=>{
@@ -393,4 +385,3 @@ function bindStatic(){
   }
   bindAdd('extras','entradasExtras','feito');
   bindAdd('purchases','comprasPlanejadas','feito');
-

@@ -146,6 +146,6 @@ function render(){
   renderInvestimentos();
   renderSettings();
   applyIdioma();
+  renderStatusSync();
   countUpAll();
 }
-

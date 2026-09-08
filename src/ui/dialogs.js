@@ -11,11 +11,13 @@ function confirmDialog(opts){
     okBtn.textContent=opts.okLabel||'Confirmar';
     bd.style.display='block'; dg.style.display='block';
     vibrate(8);
+    const restaurar=ativarDialogo(dg,bd,cancelBtn,no);
     function done(v){
       bd.style.display='none'; dg.style.display='none';
       okBtn.removeEventListener('click',ok);
       cancelBtn.removeEventListener('click',no);
       bd.removeEventListener('click',no);
+      restaurar();
       resolve(v);
     }
     function ok(){ done(true); }
@@ -40,11 +42,13 @@ function alertDialog(text,title){
     cancelBtn.style.display='none';
     bd.style.display='block'; dg.style.display='block';
     vibrate(8);
+    const restaurar=ativarDialogo(dg,bd,okBtn,ok);
     function done(){
       bd.style.display='none'; dg.style.display='none';
       cancelBtn.style.display='';
       okBtn.removeEventListener('click',ok);
       bd.removeEventListener('click',ok);
+      restaurar();
       resolve();
     }
     function ok(){ done(); }
@@ -56,4 +60,3 @@ function alertDialog(text,title){
 /* ── editar transação lançada (reusa o bottom sheet de gasto) ── */
 let _openGastoEdit=null;
 function openGastoEditSheet(id){ if(_openGastoEdit) _openGastoEdit(id); }
-

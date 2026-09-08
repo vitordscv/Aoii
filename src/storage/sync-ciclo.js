@@ -10,17 +10,16 @@
 
    - **Nada sobrescreve em silêncio.** Conflito é desfecho, não erro. Quando o
      servidor recusa, o estado local não muda.
-   - **A senha nunca é guardada.** O que fica em memória é a chave derivada e o
-     token de escrita. Se a pessoa fechar o app, precisa digitar de novo (ou ter
-     escolhido, explicitamente, lembrar a chave neste aparelho).
+   - **A senha não é persistida.** Esta versão mantém senha e token apenas na
+     memória da sessão; fechar o app exige digitar novamente. Migrar para guardar
+     somente CryptoKey em memória ainda é uma etapa separada.
    - **Gravação só conta depois de reler.** Cifrar, gravar, buscar de volta e
      decifrar. Só então a revisão local avança. Sem isso, uma gravação que o
      servidor aceitou mas guardou errado passaria despercebida até o dia em que
      alguém precisasse do backup.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Estado da sincronização nesta sessão. `chave` e `token` são o material
-   derivado da senha — nunca a senha. */
+/* Estado da sincronização nesta sessão; senha e token não vão ao armazenamento. */
 const sync = {
   codigo: null,
   salt: null,          // base64, estável por código de sincronização
@@ -140,17 +139,21 @@ async function abrirSincronizacao(codigo, senha) {
 async function enviarParaNuvem(dados) {
   if (!sincronizacaoDestrancada()) return { resultado: 'precisa-senha' };
 
+  // Congela dados e revisão ANTES da primeira espera de criptografia/rede.
+  const envio={codigo:sync.codigo,senha:sync.senha,token:sync.token,
+    salt:sync.salt,revisao:sync.revisao,dados:JSON.parse(JSON.stringify(dados))};
+
   let envelope;
   try {
-    envelope = await cifrarParaNuvem(dados, sync.senha, {
-      revision: sync.revisao + 1,
+    envelope = await cifrarParaNuvem(envio.dados, envio.senha, {
+      revision: envio.revisao + 1,
       device_id: idDesteAparelho(),
-      salt: sync.salt,
+      salt: envio.salt,
     });
   } catch (e) { return { resultado: 'erro', motivo: e.message }; }
 
   let r;
-  try { r = await nuvemGravar(sync.codigo, envelope, sync.revisao, sync.token); }
+  try { r = await nuvemGravar(envio.codigo, envelope, envio.revisao, envio.token); }
   catch (e) { sync.status = 'sem-conexao'; return { resultado: 'sem-conexao' }; }
 
   if (r.conflito) {
@@ -164,13 +167,17 @@ async function enviarParaNuvem(dados) {
 
   /* releitura: gravou mesmo, e o que está lá decifra? */
   try {
-    const volta = await nuvemLer(sync.codigo);
+    const volta = await nuvemLer(envio.codigo);
     if (!volta || !ehEnvelopeCifrado(volta.envelope)) {
       sync.status = 'erro';
       return { resultado: 'erro', motivo: 'releitura-vazia' };
     }
-    await decifrarDaNuvem(volta.envelope, sync.senha);
-    sync.revisao = volta.revision;
+    await decifrarDaNuvem(volta.envelope, envio.senha);
+    if(volta.revision!==r.revision||volta.envelope.cipher.ciphertext!==envelope.cipher.ciphertext){
+      sync.status='conflito';
+      return {resultado:'conflito',revisao:volta.revision};
+    }
+    sync.revisao = r.revision;
   } catch (e) {
     sync.status = 'erro';
     return { resultado: 'erro', motivo: 'releitura-' + (e.message || 'falhou') };
