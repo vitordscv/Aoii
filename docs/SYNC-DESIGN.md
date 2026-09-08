@@ -1,12 +1,13 @@
 # Sincronização: desenho proposto
 
-**Estado: parte 1 aplicada em 06/09/2026; parte 2 não.**
-As colunas de controle e as funções `aoii_get`/`aoii_put` já existem no projeto
-de produção, e o `DELETE` pela chave anon já está barrado. O que falta é o app
-passar a usar as funções e a criptografia — até lá, `src/storage/sync.js`
-continua gravando em texto puro por REST. Ver "Como sair daqui", no fim.
+**Estado em 08/09/2026: parte 1 aplicada; parte 2 não.**
+O branch `refactor/estrutura-seguranca` usa RPC, criptografia e diálogos de senha
+e conflito. A fila conserva pendências entre sessões e protege edições durante
+a rede. O site publicado ainda é a versão anterior; não houve deploy nesta rodada.
+As seções de desenho abaixo incluem decisões e histórico, não atestam rollout.
+Ver [HOMOLOGACAO-2026-09-08.md](HOMOLOGACAO-2026-09-08.md).
 
-## O problema
+## O problema original, antes da parte 1
 
 **Verificado no projeto de produção em 06/09/2026**, não suposto: a política em
 vigor é `for all using (true) with check (true)` para o papel `public`. Quem tem
@@ -14,7 +15,7 @@ a chave `anon` lista a tabela inteira, altera qualquer linha e apaga qualquer
 linha — de todo mundo. A tabela tinha 14 linhas (10 códigos e 4 snapshots
 mensais), 27 kB, tudo em texto puro.
 
-Hoje, `src/storage/sync.js`:
+Na versão original, `src/storage/sync.js`:
 
 - manda o objeto financeiro inteiro, **sem criptografia**, para a tabela
   `financas` do Supabase;
@@ -202,16 +203,15 @@ branch, antes de qualquer criptografia — é o que torna a migração segura.
 3. ~~Motor do ciclo, com ensaio de dois aparelhos.~~ Feito:
    `src/storage/sync-ciclo.js`, com o roteiro completo em
    `testes/ciclo-sync.test.js`.
-4. **Aplicar `0003_homologacao.sql` e rodar `npm run homolog`** ← aqui.
-   O mesmo roteiro contra o Postgres de verdade. Sem essa passagem, o que existe
-   é ensaio contra uma nuvem de mentira.
-5. **A interface**, que ainda não existe: tela de senha (com backup local
-   obrigatório antes e o aviso de que senha perdida = cópia da nuvem perdida),
-   tela de conflito, os sete estados de status, e a troca das chamadas antigas
-   pelo motor novo. **Enquanto isso não estiver pronto, o app não deve ser
-   publicado** — `src/storage/sync.js` ainda usa `supabaseGet`/`supabaseSet` por
-   REST, em texto puro.
-6. Aplicar `0004_limites_e_abuso.sql` (criação abusiva) e testar em homologação.
+4. Homologação já disponível: **31 verificações reais passaram em 08/09/2026**,
+   incluindo teto de criação, token, revisão, criptografia e limpeza dos próprios IDs.
+5. Interface já implementada no branch. Fila e acessibilidade dos diálogos
+   verificadas; **353 testes locais passam**. Repetir o roteiro em navegadores
+   distintos e revisar backup/migração antes do rollout. A sessão ainda mantém a
+   senha em memória; não há persistência de senha, mas o objetivo de manter apenas
+   a chave derivada ainda não foi implementado.
+6. Revisar e aprovar a aplicação de `0004_limites_e_abuso.sql` em produção.
+   Os limites equivalentes já foram testados em homologação; não houve SQL nesta rodada.
 7. Publicar e abrir o app em cada aparelho pelo menos uma vez, confirmando que a
    migração aconteceu em todos.
 8. Só então aplicar a **parte 2**, que fecha a leitura — e conferir, com a chave

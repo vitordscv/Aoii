@@ -232,12 +232,40 @@ se perde em silêncio), e aconteceu na semana seguinte. Documentar não bastou:
 `npm run lint` agora compara todo `data.x` usado em `src/` com o que o esquema
 declara.
 
+## Retomada em 08/09/2026 — fila e diálogos da sincronização
+
+Continuação do checkpoint `2e2383d` de Claude, no branch
+`refactor/estrutura-seguranca`. A interface de senha, migração e conflito já
+existia nesse checkpoint; as seções anteriores registram rodadas históricas.
+
+- A fila agora registra geração, revisão confirmada e pendência no aparelho.
+  Alterar durante um envio exige outra rodada; fechar antes dos 1,5 segundos
+  não perde a pendência. Reabrir mantém os dados locais até destrancar.
+- Abrir, ler e migrar não substituem uma edição feita durante a espera da rede.
+  A releitura confirma o próprio envelope, sem adotar uma revisão concorrente.
+- Adotar a nuvem não cria um envio de eco. Falhas de rede têm espera crescente;
+  adiar conflito pausa a fila até uma ação explícita.
+- Senha, conflito e confirmação compartilham foco inicial, Tab circular,
+  Escape, bloqueio do fundo por `inert` e restauração do foco. Status e erros
+  têm anúncio acessível; os textos novos existem nos cinco idiomas.
+- O roteiro de homologação limpa somente seus próprios IDs, inclusive no
+  teste de criação abusiva. Não usa mais prefixos amplos de outros ensaios.
+
+Validação: 353 testes locais (35 novos), 31 verificações contra a homologação
+real, lint sem novas violações e auditoria estrutural limpa. A interface foi
+ensaiada em duas origens com armazenamento independente no mesmo navegador.
+O teste em dois navegadores/perfis distintos ainda precisa ser repetido.
+Roteiro, evidências e limites em [HOMOLOGACAO-2026-09-08.md](HOMOLOGACAO-2026-09-08.md).
+
+Nenhuma publicação, push, alteração de política ou migração de banco nesta
+rodada. As proteções deste branch não devem ser confundidas com o site em produção.
+
 ## O que vem, em ordem
 
-1. **Ligar a criptografia à sincronização** — depende da aprovação do desenho e
-   do SQL. Depois: código de 12 caracteres com `crypto.getRandomValues`, tela de
-   senha, migração, tela de conflito, estados de status e o fim do `catch(e){}`
-   vazio da sincronização.
+1. **Concluir a preparação da transição.** Repetir a interface em navegadores
+   distintos, revisar o fluxo de backup/migração e o uso de senha somente como
+   chave derivada em memória; preparar preview e rollout para aprovação.
+   A parte 2 do banco permanece pendente e não pode anteceder clientes compatíveis.
 
 2. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
    `inert` no fundo, nome acessível em botão de emoji, `aria-live` no status de

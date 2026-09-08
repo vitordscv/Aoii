@@ -28,6 +28,7 @@ const CHAVE = (/const SUPABASE_ANON_KEY = '([^']*)'/.exec(cfg) || [])[1];
 
 const CODIGO = 'HOMOLOGA' + Math.random().toString(36).slice(2, 6).toUpperCase();
 const SENHA = 'senha do ensaio de homologacao';
+const idsDoEnsaio=[CODIGO,CODIGO+'BIG',...Array.from({length:21},(_,i)=>CODIGO+'ABUSO'+String(i).padStart(6,'0'))];
 
 let passou = 0, falhou = 0;
 const ok = m => { passou++; console.log('  \x1b[32m✓\x1b[0m ' + m); };
@@ -214,7 +215,7 @@ async function main() {
        propósito, pra dar pra bater nele em segundos. */
     const temLimites = (await rest('rpc/aoii_put_homolog', {
       method: 'POST',
-      body: JSON.stringify({ p_id: 'ABUSO000000', p_data: { x: 1 }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
+      body: JSON.stringify({ p_id: CODIGO+'ABUSO000000', p_data: { x: 1 }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
     }));
     const primeira = await temLimites.json();
     if (primeira && primeira.erro === 'limite-criacao') {
@@ -224,7 +225,7 @@ async function main() {
       for (let i = 1; i <= 20 && recusouEm === null; i++) {
         const r = await (await rest('rpc/aoii_put_homolog', {
           method: 'POST',
-          body: JSON.stringify({ p_id: 'ABUSO' + String(i).padStart(6, '0'), p_data: { x: i }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
+          body: JSON.stringify({ p_id: CODIGO+'ABUSO' + String(i).padStart(6, '0'), p_data: { x: i }, p_expected_revision: 0, p_write_token: 'a'.repeat(64) }),
         })).json();
         if (r && r.erro === 'limite-criacao') recusouEm = i;
       }
@@ -247,14 +248,14 @@ async function main() {
     /* Limpa tudo que este ensaio criou. Depende da política de DELETE que
        0005_homologacao_limites.sql cria — sem ela, o DELETE devolve 204 e não
        apaga nada, e as sobras vão empurrando o teto de criação. */
-    const antes = (await (await rest('financas_homolog?select=id')).json()).length;
-    await rest('financas_homolog?id=like.HOMOLOGA*', { method: 'DELETE' });
-    await rest('financas_homolog?id=like.ABUSO*', { method: 'DELETE' });
-    await rest('financas_homolog?id=like.PROBE*', { method: 'DELETE' });
-    const depois = (await (await rest('financas_homolog?select=id')).json()).length;
-    if (depois === 0) console.log('\n  faxina: ' + antes + ' linha(s) de ensaio removidas');
-    else console.log('\n  \x1b[33mfaxina incompleta: sobraram ' + depois + ' linha(s).' +
-      ' Falta a política de DELETE de 0005_homologacao_limites.sql.\x1b[0m');
+    // IDs exclusivos desta execução: nunca apagar ensaios de outra pessoa.
+    const filtro='id=in.('+idsDoEnsaio.join(',')+')';
+    const apagou=await rest('financas_homolog?'+filtro,{method:'DELETE'});
+    const conferiu=await rest('financas_homolog?select=id&'+filtro);
+    const sobras=await conferiu.json();
+    if(apagou.ok&&conferiu.ok&&Array.isArray(sobras)&&sobras.length===0){
+      console.log('\n  faxina: nenhum registro desta execução ficou no banco');
+    }else nok('limpeza dos registros deste ensaio','Não foi possível confirmar a limpeza dos próprios IDs.');
   }
 
   console.log('\n' + '─'.repeat(58));

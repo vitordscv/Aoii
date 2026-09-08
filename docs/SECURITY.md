@@ -1,8 +1,10 @@
 # Segurança
 
-Estado do commit em que este documento foi escrito. O que está listado como
-pendência **é pendência de verdade** — nada aqui descreve proteção que não
-existe. A ordem de execução está em [MIGRATION.md](MIGRATION.md).
+Estado revisado em 08/09/2026. O branch `refactor/estrutura-seguranca` e o site
+publicado têm proteções diferentes: o branch usa criptografia/RPC e validação;
+a produção ainda precisa do rollout e do fechamento do acesso direto à tabela.
+A ordem está em [MIGRATION.md](MIGRATION.md); os ensaios desta rodada estão em
+[HOMOLOGACAO-2026-09-08.md](HOMOLOGACAO-2026-09-08.md).
 
 ## O que está em jogo
 
@@ -16,8 +18,8 @@ rotina e a situação de alguém.
 | quem | pode | hoje |
 |---|---|---|
 | quem pega o aparelho desbloqueado | ler tudo em `localStorage` | sem proteção — é o mesmo risco de qualquer app local |
-| quem descobre um código de sincronização | ler e **sobrescrever** os dados daquele código | **sem proteção: o dado vai em texto puro para o Supabase** |
-| quem manda um backup/código adulterado | injetar HTML e propriedades no objeto | **sem validação de entrada** |
+| quem descobre um código de sincronização | atacar a cópia na nuvem | branch cifra e exige token via RPC; acesso REST de produção ainda aberto até a parte 2 |
+| quem manda um backup/código adulterado | tentar injetar HTML e propriedades no objeto | branch valida as entradas e verifica escapes por lint |
 | o Google (Gemini) | ler o resumo financeiro enviado | recebe nomes de pessoas, cartões e contas |
 | a Vercel | pageviews | script de analytics padrão |
 | a BrasilAPI | saber que alguém consultou CDI/Selic | consulta sem dado pessoal |
@@ -29,12 +31,14 @@ rotina e a situação de alguém.
 | chave | conteúdo |
 |---|---|
 | `financas-data` | o objeto `data` inteiro, JSON em texto puro |
-| `financas-sync-code` | código de sincronização de 8 caracteres |
+| `financas-sync-code` | identificador de sincronização (12 caracteres nos códigos novos) |
+| `financas-sync-estado:<ambiente>:<codigo>` | geração, revisão confirmada e pendência; sem senha ou token |
 | `financas-ia-chave` | chave da API do Gemini, **em texto puro** |
 
-**Enviado ao Supabase** (só se a pessoa configurar sincronização): o objeto
-`data` inteiro, **sem criptografia**, na linha identificada pelo código de 8
-caracteres. Mais os snapshots mensais, também em texto puro.
+**Enviado ao Supabase pelo branch**: envelope AES-GCM, inclusive nos snapshots
+novos. A senha não sai do aparelho; o token derivado é enviado à RPC. A sessão
+ainda conserva a senha em memória, mas não em `localStorage`. Registros antigos
+em produção continuam em texto puro até a migração; não foram alterados aqui.
 
 **Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
@@ -48,13 +52,16 @@ dinheiro**, compras planejadas e viagens.
 
 ## Pendências, por gravidade
 
-### 1. Sincronização sem criptografia — desenho pronto, **aguardando aprovação**
+### 1. Criptografia implementada no branch; rollout pendente
 
-`src/storage/sync.js`. O objeto financeiro ainda vai e volta em texto puro. O
-código de 8 caracteres é ao mesmo tempo o identificador da linha e a única
-credencial — não há segredo separado, e ele é gerado com `Math.random()`.
+`src/storage/sync-ciclo.js` e `src/ui/sync-ui.js` já ligam a criptografia à
+sincronização por RPC. O código novo tem 12 caracteres e usa Web Crypto quando
+disponível. Ainda existe fallback para `Math.random()`; removê-lo e guardar
+somente uma `CryptoKey` em memória são pendências antes de considerar o objetivo
+de segurança do roteiro original concluído.
 
-Quem souber o código lê e **escreve**.
+Em produção, a parte 2 ainda não foi aplicada: conhecer a chave pública permite
+acesso direto à tabela. O token da RPC não impede esse caminho alternativo.
 
 O que já existe: `src/storage/encryption.js`, com AES-GCM 256 e chave derivada
 por PBKDF2 (SHA-256, 310.000 voltas, salt de 16 bytes e IV de 12 novos a cada
@@ -62,16 +69,16 @@ gravação), metadados amarrados como dados autenticados, e 31 testes contra a
 Web Crypto de verdade — inclusive adulteração de um byte, do IV, da revisão e do
 `device_id`.
 
-O que falta: ligar isso à sincronização, o que exige mudar o Supabase.
+O que falta: concluir a preparação e a implantação coordenada do app e do banco.
 [SYNC-DESIGN.md](SYNC-DESIGN.md) tem o desenho completo — formato, token de
 escrita, controle de revisão, migração e rollback — e
 [`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql)
-tem o SQL. **Nada foi aplicado.**
+tem o SQL. A parte 1 já está aplicada; nenhuma migração foi aplicada nesta rodada.
 
 Enquanto isso, a sincronização deve ser tratada como "publicar os dados num
 endereço que só quem tem o código conhece".
 
-Uma proteção da migração **já está no ar**: a validação recusa tanto um envelope
+Uma proteção da migração **já está no branch**: a validação recusa tanto um envelope
 cifrado quanto um objeto sem nenhum campo do Aoii. Sem ela, uma versão antiga do
 app leria a cópia cifrada como "backup vazio" e a salvaria por cima.
 
@@ -144,13 +151,14 @@ Não há tela que mostre o que será enviado antes do primeiro envio, nem opçã
 resumo reduzido sem nomes próprios. (A resposta da IA já é renderizada com
 `textContent` — isso está certo.)
 
-### 7. Conflito entre aparelhos — desenhado, aguardando a mesma aprovação
+### 7. Conflito entre aparelhos — implementado e ensaiado no branch
 
-Cada gravação manda o objeto inteiro e a última vence. Dois aparelhos editando
-no mesmo dia perdem trabalho em silêncio, e o `catch(e){}` da sincronização
-engole erro de rede sem nenhum sinal na tela.
+Cada gravação envia a revisão esperada. O servidor recusa uma revisão antiga,
+e a interface oferece manter o aparelho, usar a nuvem, exportar os dois ou adiar.
+A fila persiste pendências e reenvia edições feitas durante a rede; leitura,
+abertura e migração também não substituem essas edições silenciosamente.
 
-`aoii_put(id, data, revisão_esperada, token)` no SQL proposto grava só se a
+`aoii_put(id, data, revisão_esperada, token)` grava só se a
 revisão ainda for a esperada e devolve conflito em vez de sobrescrever. A tela
 de conflito e os estados de status estão descritos em
 [SYNC-DESIGN.md](SYNC-DESIGN.md). Sem merge automático de valor financeiro:
@@ -251,6 +259,7 @@ Apresentar e ter aprovado, nesta ordem: SQL proposto, políticas RLS, formato do
 dado criptografado, plano de migração e plano de recuperação/rollback. O formato
 antigo não é apagado sem estratégia de recuperação.
 
-Isso está pronto e parado esperando revisão: [SYNC-DESIGN.md](SYNC-DESIGN.md) e
+Consulte o estado por etapa em [SYNC-DESIGN.md](SYNC-DESIGN.md) e
 [`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql).
-**Nenhuma alteração foi aplicada em nenhum projeto do Supabase.**
+**Nesta rodada houve apenas dados fictícios de teste em homologação; nenhuma
+migração, política ou linha financeira de produção foi alterada.**
