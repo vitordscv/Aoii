@@ -1,14 +1,10 @@
 {
   "_leiaMe": "Dependências que apontam para uma camada mais alta e já existiam quando as fronteiras foram criadas. Lista só encolhe: nunca acrescente à mão.",
   "violacoes": [
-    "core/interest.js → integrations/brasil-api.js",
-    "core/interest.js → storage/local-storage.js",
-    "core/interest.js → ui/effects.js",
     "data/defaults.js → core/dates.js",
     "data/defaults.js → core/helpers.js",
     "data/defaults.js → core/metrics.js",
     "data/defaults.js → core/money.js",
-    "integrations/brasil-api.js → ui/investments.js",
     "integrations/gemini.js → ui/health.js",
     "integrations/gemini.js → ui/investments.js",
     "integrations/gemini.js → ui/reserve.js"

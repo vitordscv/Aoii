@@ -80,7 +80,7 @@ const FUNCOES=[
   'registrarTransacao','registrarReceita','removerTransacao','gastoFixoAtivoEm',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',
-  'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal',
+  'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData',

@@ -53,6 +53,7 @@
     "ui/sync-ui.js",
     "integrations/brasil-api.js",
     "core/interest.js",
+    "ui/interest.js",
     "ui/investments.js",
     "ui/daily.js",
     "ui/incomes.js",

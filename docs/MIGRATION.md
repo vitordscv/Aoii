@@ -379,3 +379,15 @@ A busca do nome de um cartão foi movida de `ui/effects.js` para
 `core/helpers.js`, pois é uma consulta ao estado usada pelo relatório e pelo
 resumo enviado à IA. Com isso, seis dependências invertidas saíram da baseline:
 ela caiu de 17 para 11, sem criar nenhuma nova.
+
+## Retomada em 09/09/2026 — calculadora e BrasilAPI separadas
+
+`core/interest.js` agora contém somente mediana, consulta da taxa disponível e
+as fórmulas de juros. `integrations/brasil-api.js` apenas consulta e interpreta
+a resposta pública. Estado, persistência, mensagens e campos ficaram em
+`ui/interest.js`.
+
+A mensagem de consulta das taxas deixou de estar fixa em português e ganhou
+tradução nos cinco idiomas. A fórmula passou a ter testes diretos de principal,
+aporte, taxa zero, juros simples e compostos. Quatro dependências saíram da baseline,
+que passou de 11 para 7.

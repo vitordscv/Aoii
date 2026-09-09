@@ -12,7 +12,7 @@ a fonte; agora é gerado a partir de `src/`.
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 73 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os 74 módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 
@@ -52,15 +52,14 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 
 ### Dívida conhecida
 
-11 dependências ainda apontam para cima. Elas estão congeladas em
-`scripts/lint-baseline.json` e caem em três grupos:
+7 dependências ainda apontam para cima. Elas estão congeladas em
+`scripts/lint-baseline.json` e caem em dois grupos:
 
-- **`core` → `ui/effects.js`** — a calculadora de juros ainda chama
-  `vibrate()`. Efeito colateral de interface dentro do cálculo.
-- **`core` → `storage`** — a calculadora de juros ainda chama `persist()` direto.
-- **`integrations` → `ui`** — a integração desenhando o próprio resultado.
+- **`data/defaults.js` → `core`** — defaults e migração ainda chamam cálculos.
+- **`integrations/gemini.js` → `ui`** — o resumo enviado à IA ainda usa três
+  cálculos que estão em módulos de interface.
 
-O caminho para zerar é o mesmo nos três: a camada de baixo devolve valor, a de
+O caminho para zerar é o mesmo nos dois: a camada de baixo devolve valor, a de
 cima decide o que fazer com ele. Cada uma que sai deve sair da baseline no mesmo
 commit.
 
