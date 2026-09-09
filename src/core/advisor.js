@@ -45,7 +45,7 @@ function computeConselhos(){
     if(!(teto>0)) return;
     const gasto=gastoAtual[cat]||0;
     if(gasto>teto){
-      dicas.push({icon:'⚠️',texto:L('cons.orcamentoEstourado').replace('{cat}',cat).replace('{gasto}',formatBRL(gasto)).replace('{teto}',formatBRL(teto)),prioridade:3});
+      dicas.push({icon:'⚠️',texto:L('cons.orcamentoEstourado').replace('{cat}',categoriaLabel(cat)).replace('{gasto}',formatBRL(gasto)).replace('{teto}',formatBRL(teto)),prioridade:3});
     }
   });
   // 4) cartão perto do limite
@@ -76,8 +76,7 @@ function renderConselhos(){
   if(!dicas.length){ el.innerHTML=''; return; }
   el.innerHTML=`
   <div class="conselhos-box">
-    <div class="conselhos-title">💡 Conselhos</div>
+    <div class="conselhos-title">💡 ${esc(L('advisor.title'))}</div>
     ${dicas.map(d=>`<div class="conselho-item"><span class="conselho-icon">${d.icon}</span><span>${esc(d.texto)}</span></div>`).join('')}
   </div>`;
 }
-

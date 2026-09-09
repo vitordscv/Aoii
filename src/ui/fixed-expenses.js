@@ -79,7 +79,7 @@ function renderGastosFixosTab(){
     return `
       <div class="gf-group${gfExpandAll?' open':''}">
         <div class="gf-group-head" data-action="toggle-gf-group">
-          <div class="gf-group-title">${catIcon(cat)} ${esc(cat)}</div>
+          <div class="gf-group-title">${catIcon(cat)} ${esc(categoriaLabel(cat))}</div>
           <div class="gf-group-total">${formatBRL(subtotal)}</div>
         </div>
         <div class="gf-group-items">${itemsHtml}</div>
@@ -127,9 +127,9 @@ function renderMetaWarning(){
   const alertsHtml=alerts.map(a=>{
     const pct=a.alvo>0?Math.round((a.guardado/a.alvo)*100):0;
     let txt;
-    if(a.days<0) txt=`Meta "${a.m.nome}" venceu há ${Math.abs(a.days)} dia${Math.abs(a.days)===1?'':'s'} e está ${pct}% guardada.`;
-    else if(a.days===0) txt=`Meta "${a.m.nome}" vence hoje e está ${pct}% guardada.`;
-    else txt=`Meta "${a.m.nome}" vence em ${a.days} dia${a.days===1?'':'s'} e está ${pct}% guardada.`;
+    if(a.days<0) txt=L('goal.overdueAlert').replace('{name}',a.m.nome).replace('{n}',Math.abs(a.days)).replace('{days}',Math.abs(a.days)===1?L('common.day'):L('common.days')).replace('{pct}',pct);
+    else if(a.days===0) txt=L('goal.dueTodayAlert').replace('{name}',a.m.nome).replace('{pct}',pct);
+    else txt=L('goal.dueInAlert').replace('{name}',a.m.nome).replace('{n}',a.days).replace('{days}',a.days===1?L('common.day'):L('common.days')).replace('{pct}',pct);
     return `<div class="warn-banner">⏳ ${esc(txt)}</div>`;
   }).join('');
 
@@ -149,22 +149,21 @@ function renderMetaWarning(){
     comparadorHtml=`
       <div class="meta-comparador ${ok?'ok':'tight'}">
         <div class="mc-row">
-          <span>Sobra mensal média</span>
+          <span>${L('goal.averageMonthlySurplus')}</span>
           <strong>${formatBRL(sobra)}</strong>
         </div>
         <div class="mc-row">
-          <span>Necessário/mês para todas as metas</span>
+          <span>${L('goal.monthlyNeeded')}</span>
           <strong class="${ok?'':'neg'}">− ${formatBRL(totalNecessario)}</strong>
         </div>
         <div class="mc-divider"></div>
         <div class="mc-row mc-result">
-          <span>${ok?'💚 Livre para gastar com você':'⚠️ Falta cobrir as metas'}</span>
-          <strong class="${ok?'pos':'neg'}">${ok?'':'-'}${formatBRL(Math.abs(livreAposGuardar))}/mês</strong>
+          <span>${ok?'💚 '+L('goal.freeToSpend'):'⚠️ '+L('goal.shortfall')}</span>
+          <strong class="${ok?'pos':'neg'}">${ok?'':'-'}${formatBRL(Math.abs(livreAposGuardar))}/${L('daily.mes')}</strong>
         </div>
-        ${!ok?`<div class="mc-hint">Considere estender os prazos ou reduzir o valor de alguma meta.</div>`:`<div class="mc-hint">Esse é o valor que você pode gastar em lazer, roupas, rolê — sem comprometer as metas.</div>`}
+        ${!ok?`<div class="mc-hint">${L('goal.shortfallHint')}</div>`:`<div class="mc-hint">${L('goal.freeHint')}</div>`}
       </div>`;
   }
 
   el.innerHTML=alertsHtml+comparadorHtml;
 }
-

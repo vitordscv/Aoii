@@ -25,7 +25,7 @@ function renderCategoriasList(){
   const el=document.getElementById('categorias-list'); if(!el) return;
   el.innerHTML=CATS().map(c=>`
     <div class="cat-manage-row">
-      <span>${catIcon(c)} ${esc(c)}</span>
+      <span>${catIcon(c)} ${esc(categoriaLabel(c))}</span>
       <button type="button" class="cat-manage-del" data-cat="${esc(c)}" title="${esc(L('btn.remover'))}">✕</button>
     </div>`).join('');
   el.querySelectorAll('.cat-manage-del').forEach(btn=>btn.addEventListener('click',async()=>{
@@ -105,4 +105,3 @@ function renderLimitCard(){
     </div>`;
   }).join('');
 }
-

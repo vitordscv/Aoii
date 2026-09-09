@@ -91,4 +91,19 @@ module.exports=function(t){
     'chave inexistente devolve a própria chave (fica visível na tela em vez de sumir)');
   ctx.data.idioma='xx';
   t.igual(ctx.R('nav.entradas'),I18N.pt['nav.entradas'],'idioma desconhecido cai no português');
+
+  /* Os identificadores antigos das categorias continuam em português nos
+     dados. Só o rótulo mostrado muda, e categorias pessoais não são tocadas. */
+  const iCat=src.indexOf('const CATEGORIA_I18N_KEYS=');
+  const iCatFn=src.indexOf('function categoriaLabel(c)',iCat);
+  const fimCat=src.indexOf('\n',iCatFn);
+  const ctxCat={I18N,data:{idioma:'en'}};
+  vm.createContext(ctxCat);
+  vm.runInContext(src.slice(iL,fimL)+'\n'+src.slice(iCat,fimCat)+
+    '\nglobalThis.C=categoriaLabel;',ctxCat,{filename:'categoria-label.js'});
+  t.igual(ctxCat.C('Mercado'),'Groceries','categoria padrão é traduzida só na apresentação');
+  ctxCat.data.idioma='pt';
+  t.igual(ctxCat.C('Saúde'),'Saúde','categoria padrão mantém o rótulo em português');
+  ctxCat.data.idioma='fr';
+  t.igual(ctxCat.C('Pets'),'Pets','categoria criada pela pessoa nunca é renomeada');
 };

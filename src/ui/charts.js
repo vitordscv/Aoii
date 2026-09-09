@@ -14,7 +14,7 @@ function renderCatDonut(){
   const legend=entries.map(([cat,val],i)=>{
     const pct=Math.round((val/total)*100);
     const color=CAT_DONUT_PALETTE[i%CAT_DONUT_PALETTE.length];
-    return `<div class="cat-donut-legend-item"><span class="cat-donut-swatch" style="background:${color};"></span><span class="cat-donut-legend-name">${catIcon(cat)} ${esc(cat)}</span><span class="cat-donut-legend-pct">${pct}%</span></div>`;
+    return `<div class="cat-donut-legend-item"><span class="cat-donut-swatch" style="background:${color};"></span><span class="cat-donut-legend-name">${catIcon(cat)} ${esc(categoriaLabel(cat))}</span><span class="cat-donut-legend-pct">${pct}%</span></div>`;
   }).join('');
   el.innerHTML=`<div class="cat-donut" style="background:conic-gradient(${stops});"></div><div class="cat-donut-legend">${legend}</div>`;
 }
@@ -59,8 +59,8 @@ function renderRevisaoMensal(){
       <button type="button" class="revisao-close" data-action="revisao-fechar">✕</button>
     </div>
     <div class="revisao-total">${formatBRL(gastoPassado)} ${L('revisao.gastoNoMes')}${delta!==null?` <span class="${delta>0?'revisao-up':'revisao-down'}">(${delta>0?'+':''}${delta}%)</span>`:''}</div>
-    ${piorCat?`<div class="revisao-line">📈 ${catIcon(piorCat)} <b>${esc(piorCat)}</b> ${L('revisao.foiOndeMaisCresceu')} (+${formatBRL(piorDelta)})</div>`:''}
-    ${melhorCat?`<div class="revisao-line">📉 ${catIcon(melhorCat)} <b>${esc(melhorCat)}</b> ${L('revisao.foiOndeMaisCaiu')} (${formatBRL(melhorDelta)})</div>`:''}
+    ${piorCat?`<div class="revisao-line">📈 ${catIcon(piorCat)} <b>${esc(categoriaLabel(piorCat))}</b> ${L('revisao.foiOndeMaisCresceu')} (+${formatBRL(piorDelta)})</div>`:''}
+    ${melhorCat?`<div class="revisao-line">📉 ${catIcon(melhorCat)} <b>${esc(categoriaLabel(melhorCat))}</b> ${L('revisao.foiOndeMaisCaiu')} (${formatBRL(melhorDelta)})</div>`:''}
   </div>`;
   document.querySelector('[data-action="revisao-fechar"]')?.addEventListener('click',async()=>{
     if(!data.revisoesVistas) data.revisoesVistas=[];
@@ -81,10 +81,9 @@ function renderCategoryCard(){
     const pct=total>0?(val/total)*100:0;
     return `
     <div class="cat-row">
-      <span class="cat-name">${catIcon(cat)} ${esc(cat)}</span>
+      <span class="cat-name">${catIcon(cat)} ${esc(categoriaLabel(cat))}</span>
       <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;"></div></div>
       <span class="cat-value">${formatBRL(val)}</span>
     </div>`;
   }).join('');
 }
-

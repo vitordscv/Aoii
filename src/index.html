@@ -40,37 +40,37 @@
   </div>
   <div class="topbar-title">Aoii</div>
   <div class="topbar-right">
-    <button type="button" id="topbar-settings-btn" class="topbar-settings-btn" title="Configurações" aria-haspopup="dialog">⚙️</button>
+  <button type="button" id="topbar-settings-btn" class="topbar-settings-btn" title="Configurações" data-i18n-title="settings.title" aria-haspopup="dialog">⚙️</button>
   </div>
 </div>
 
 <!-- painel de personalização de cores -->
 <div id="custom-theme-panel" style="display:none;">
   <div class="ct-header">
-    <span class="ct-header-title">Personalizar cores</span>
-    <button type="button" id="ct-close-btn" class="ct-close-btn" title="Fechar (as cores continuam salvas)">✕ Fechar</button>
+    <span class="ct-header-title" data-i18n="theme.customizeColors">Personalizar cores</span>
+    <button type="button" id="ct-close-btn" class="ct-close-btn" title="Fechar (as cores continuam salvas)" data-i18n="theme.closeSaved" data-i18n-title="theme.closeSavedTitle">✕ Fechar</button>
   </div>
   <div class="custom-theme-grid">
-    <label class="ct-item"><span>Fundo</span><input type="color" data-var="--cream"></label>
-    <label class="ct-item"><span>Cartões</span><input type="color" data-var="--white"></label>
-    <label class="ct-item"><span>Azul primário</span><input type="color" data-var="--disney-blue"></label>
-    <label class="ct-item"><span>Azul escuro</span><input type="color" data-var="--disney-blue-deep"></label>
-    <label class="ct-item"><span>Texto</span><input type="color" data-var="--ink-navy"></label>
-    <label class="ct-item"><span>Números</span><input type="color" data-var="--num-color"></label>
-    <label class="ct-item"><span>Hero/cabeçalho</span><input type="color" data-var="--hero-grad1"></label>
-    <label class="ct-item"><span>Texto do hero</span><input type="color" data-var="--hero-text"></label>
-    <label class="ct-item"><span>Positivo</span><input type="color" data-var="--pos"></label>
-    <label class="ct-item"><span>Negativo</span><input type="color" data-var="--neg"></label>
-    <label class="ct-item"><span>Linha divisória</span><input type="color" data-var="--line"></label>
-    <label class="ct-item"><span>Destaque</span><input type="color" data-var="--gold"></label>
+    <label class="ct-item"><span data-i18n="theme.background">Fundo</span><input type="color" data-var="--cream"></label>
+    <label class="ct-item"><span data-i18n="theme.cards">Cartões</span><input type="color" data-var="--white"></label>
+    <label class="ct-item"><span data-i18n="theme.primaryBlue">Azul primário</span><input type="color" data-var="--disney-blue"></label>
+    <label class="ct-item"><span data-i18n="theme.darkBlue">Azul escuro</span><input type="color" data-var="--disney-blue-deep"></label>
+    <label class="ct-item"><span data-i18n="theme.text">Texto</span><input type="color" data-var="--ink-navy"></label>
+    <label class="ct-item"><span data-i18n="theme.numbers">Números</span><input type="color" data-var="--num-color"></label>
+    <label class="ct-item"><span data-i18n="theme.heroHeader">Hero/cabeçalho</span><input type="color" data-var="--hero-grad1"></label>
+    <label class="ct-item"><span data-i18n="theme.heroText">Texto do hero</span><input type="color" data-var="--hero-text"></label>
+    <label class="ct-item"><span data-i18n="theme.positive">Positivo</span><input type="color" data-var="--pos"></label>
+    <label class="ct-item"><span data-i18n="theme.negative">Negativo</span><input type="color" data-var="--neg"></label>
+    <label class="ct-item"><span data-i18n="theme.divider">Linha divisória</span><input type="color" data-var="--line"></label>
+    <label class="ct-item"><span data-i18n="theme.accent">Destaque</span><input type="color" data-var="--gold"></label>
   </div>
   <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
-    <button class="ct-preset" data-preset="onda">↺ Restaurar Onda</button>
-    <button class="ct-preset" data-preset="noite">↺ Restaurar Noite</button>
-    <button class="ct-preset" data-preset="sakura">↺ Restaurar Sakura</button>
-    <button class="ct-preset" data-preset="matcha">↺ Restaurar Matcha</button>
-    <button class="ct-preset" data-preset="poupa">↺ Restaurar Poupa</button>
-    <button class="ct-preset" data-preset="grafite">↺ Restaurar Grafite</button>
+    <button class="ct-preset" data-preset="onda">↺ <span data-i18n="theme.restore">Restaurar</span> Onda</button>
+    <button class="ct-preset" data-preset="noite">↺ <span data-i18n="theme.restore">Restaurar</span> Noite</button>
+    <button class="ct-preset" data-preset="sakura">↺ <span data-i18n="theme.restore">Restaurar</span> Sakura</button>
+    <button class="ct-preset" data-preset="matcha">↺ <span data-i18n="theme.restore">Restaurar</span> Matcha</button>
+    <button class="ct-preset" data-preset="poupa">↺ <span data-i18n="theme.restore">Restaurar</span> Poupa</button>
+    <button class="ct-preset" data-preset="grafite">↺ <span data-i18n="theme.restore">Restaurar</span> Grafite</button>
   </div>
 </div>
 
@@ -105,29 +105,29 @@
       <div class="theme-menu-wrap">
         <button type="button" id="theme-menu-btn" class="theme-menu-btn" title="Mudar tema" data-i18n-title="tt.mudarTema" aria-haspopup="true" aria-expanded="false">🎨</button>
         <div id="theme-menu" class="theme-menu" role="menu">
-          <button type="button" class="theme-menu-item" data-theme="onda" role="menuitem">🌊 Onda</button>
-          <button type="button" class="theme-menu-item" data-theme="noite" role="menuitem">🌙 Noite</button>
-          <button type="button" class="theme-menu-item" data-theme="sakura" role="menuitem">🌸 Sakura</button>
-          <button type="button" class="theme-menu-item" data-theme="matcha" role="menuitem">🍵 Matcha</button>
-          <button type="button" class="theme-menu-item" data-theme="poupa" role="menuitem">🐾 Poupa</button>
-          <button type="button" class="theme-menu-item" data-theme="grafite" role="menuitem">⚫ Grafite</button>
-          <button type="button" class="theme-menu-item" data-theme="roxo" role="menuitem">💜 Roxo</button>
+          <button type="button" class="theme-menu-item" data-theme="onda" role="menuitem">🌊 <span data-i18n="theme.wave">Onda</span></button>
+          <button type="button" class="theme-menu-item" data-theme="noite" role="menuitem">🌙 <span data-i18n="theme.night">Noite</span></button>
+          <button type="button" class="theme-menu-item" data-theme="sakura" role="menuitem">🌸 <span data-i18n="theme.sakura">Sakura</span></button>
+          <button type="button" class="theme-menu-item" data-theme="matcha" role="menuitem">🍵 <span data-i18n="theme.matcha">Matcha</span></button>
+          <button type="button" class="theme-menu-item" data-theme="poupa" role="menuitem">🐾 <span data-i18n="theme.save">Poupa</span></button>
+          <button type="button" class="theme-menu-item" data-theme="grafite" role="menuitem">⚫ <span data-i18n="theme.graphite">Grafite</span></button>
+          <button type="button" class="theme-menu-item" data-theme="roxo" role="menuitem">💜 <span data-i18n="theme.purple">Roxo</span></button>
           <div class="theme-menu-sep"></div>
-          <button type="button" class="theme-menu-item" data-theme="custom" role="menuitem">✏️ Personalizar</button>
+          <button type="button" class="theme-menu-item" data-theme="custom" role="menuitem">✏️ <span data-i18n="theme.customize">Personalizar</span></button>
         </div>
       </div>
-      <select id="theme-select" style="display:none;" title="Tema">
-        <option value="onda">🌊 Onda</option>
-        <option value="noite">🌙 Noite</option>
-        <option value="sakura">🌸 Sakura</option>
-        <option value="matcha">🍵 Matcha</option>
-        <option value="poupa">🐾 Poupa</option>
-        <option value="grafite">⚫ Grafite</option>
-        <option value="roxo">💜 Roxo</option>
-        <option value="custom">✏️ Personalizar</option>
+        <select id="theme-select" style="display:none;" title="Tema" data-i18n-title="tt.mudarTema">
+        <option value="onda" data-i18n="theme.waveOption">🌊 Onda</option>
+        <option value="noite" data-i18n="theme.nightOption">🌙 Noite</option>
+        <option value="sakura" data-i18n="theme.sakuraOption">🌸 Sakura</option>
+        <option value="matcha" data-i18n="theme.matchaOption">🍵 Matcha</option>
+        <option value="poupa" data-i18n="theme.saveOption">🐾 Poupa</option>
+        <option value="grafite" data-i18n="theme.graphiteOption">⚫ Grafite</option>
+        <option value="roxo" data-i18n="theme.purpleOption">💜 Roxo</option>
+        <option value="custom" data-i18n="theme.customizeOption">✏️ Personalizar</option>
       </select>
       <button type="button" id="ct-reopen-btn" class="ct-reopen-btn" style="display:none;" title="Editar as cores personalizadas" data-i18n-title="tt.editarCores"><span>🎨 </span><span data-i18n="btn.editarCores">Editar cores</span></button>
-      <span class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true">carregando…</span>
+      <span class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="common.loading">carregando…</span>
     </div>
 
     <!-- conteúdo dinâmico -->
@@ -150,7 +150,7 @@
     <div class="lists-grid">
       <div>
         <div class="section-head" style="margin-bottom:12px;">
-          <div class="section-title" style="font-size:18px;" data-i18n="main.limiteCartao">Limite do cartão <button type="button" class="info-tip-btn" data-tip="Mostra quanto do limite já está comprometido com faturas em aberto. O valor 'parcial' é a fatura atual antes de fechar — ainda pode crescer até a data de fechamento do cartão.">?</button></div>
+          <div class="section-title" style="font-size:18px;"><span data-i18n="main.limiteCartao">Limite do cartão</span> <button type="button" class="info-tip-btn" data-tip="Mostra quanto do limite já está comprometido com faturas em aberto. O valor 'parcial' é a fatura atual antes de fechar — ainda pode crescer até a data de fechamento do cartão." data-i18n-tip="tip.cardLimit">?</button></div>
         </div>
         <div class="limit-card" id="limit-card"></div>
       </div>
@@ -173,7 +173,7 @@
   <!-- ══════ ORÇAMENTO POR CATEGORIA ══════ -->
   <div class="section">
     <div class="section-head">
-      <div class="section-title" style="font-size:18px;" data-i18n="main.orcamentoPorCategoria">Orçamento por categoria <button type="button" class="info-tip-btn" data-tip="Defina um teto de gasto mensal pra cada categoria. A barra mostra quanto você já gastou dela no mês atual — some transações do dia, gastos no cartão e contas fixas ativas.">?</button></div>
+      <div class="section-title" style="font-size:18px;"><span data-i18n="main.orcamentoPorCategoria">Orçamento por categoria</span> <button type="button" class="info-tip-btn" data-tip="Defina um teto de gasto mensal pra cada categoria. A barra mostra quanto você já gastou dela no mês atual — some transações do dia, gastos no cartão e contas fixas ativas." data-i18n-tip="tip.categoryBudget">?</button></div>
       <div class="section-note" data-i18n="main.orcamentoNote">Defina um teto mensal por categoria e acompanhe o consumo do mês.</div>
     </div>
     <div class="cat-card" id="orcamento-card"></div>
@@ -212,7 +212,7 @@
       <input type="search" id="diario-busca" placeholder="Buscar por nome ou descrição…" data-i18n-placeholder="main.buscarPlaceholder">
       <select id="diario-mes-filtro" title="Filtrar por mês" data-i18n-title="tt.filtrarMes"></select>
       <button type="button" class="csv-btn" id="export-csv-btn" title="Baixar transações em CSV" data-i18n-title="tt.baixarCsv">⬇ CSV</button>
-      <button type="button" class="csv-btn" id="repetir-gasto-btn" title="Repetir o último gasto lançado" data-i18n="main.repetirUltimo">↻ Repetir último</button>
+      <button type="button" class="csv-btn" id="repetir-gasto-btn" title="Repetir o último gasto lançado" data-i18n-title="tt.repeatLast" data-i18n="main.repetirUltimo">↻ Repetir último</button>
     </div>
     <div id="transacoes-filter" class="cat-filter-pills" style="padding-top:2px;"></div>
     <div class="diario-history-card"><div id="transacoes-list"><div class="skeleton sk-line" style="margin:16px 0;"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line" style="width:70%;margin-bottom:16px;"></div></div></div>
@@ -228,7 +228,7 @@
     <div class="chart-card" id="gf-evolucao-card" style="display:none;"></div>
     <div class="gf-groups-head">
       <div class="section-title" style="margin:0;" data-i18n="main.porCategoria">Por categoria</div>
-      <button type="button" class="gf-expand-toggle" id="gf-expand-toggle">Expandir tudo</button>
+      <button type="button" class="gf-expand-toggle" id="gf-expand-toggle" data-i18n="main.expandirTudo">Expandir tudo</button>
     </div>
     <div id="gf-groups-list"></div>
     <div class="gf-empty-state" id="gf-empty-state" style="display:none;">
@@ -311,7 +311,7 @@
           <select id="purchases-cartao-select" title="Em qual cartão" data-i18n-title="tt.emQualCartao"></select>
           <button id="purchases-add" data-i18n="btn.adicionarSimples">Adicionar</button>
         </div>
-        <div class="help-text">Marcando "Cartão", ao dar como comprada essa compra é dividida automaticamente nas faturas dos próximos meses.</div>
+        <div class="help-text" data-i18n="planned.cardHelp">Marcando "Cartão", ao dar como comprada essa compra é dividida automaticamente nas faturas dos próximos meses.</div>
       </div>
     </div>
   </div>
@@ -386,7 +386,7 @@
           <select id="calc-indexador">
             <option value="cdi">CDI</option>
             <option value="selic">Selic</option>
-            <option value="fixa">Taxa fixa (% a.a.)</option>
+            <option value="fixa" data-i18n="calc.fixedRate">Taxa fixa (% a.a.)</option>
           </select>
         </div>
         <div class="sheet-field" id="calc-pct-field">
@@ -394,7 +394,7 @@
           <input type="text" inputmode="decimal" step="0.1" min="0" id="calc-percent" value="100">
         </div>
         <div class="sheet-field" id="calc-fixa-field" style="display:none;">
-          <label>Taxa fixa (% a.a.)</label>
+          <label data-i18n="calc.fixedRate">Taxa fixa (% a.a.)</label>
           <input type="text" inputmode="decimal" step="0.01" min="0" id="calc-taxa-fixa" placeholder="10">
         </div>
         <div class="sheet-field">
@@ -402,8 +402,8 @@
           <div style="display:flex;gap:8px;">
             <input type="text" inputmode="decimal" min="1" id="calc-prazo" value="12" style="width:80px;">
             <select id="calc-prazo-unidade" style="flex:1;">
-              <option value="meses">meses</option>
-              <option value="anos">anos</option>
+              <option value="meses" data-i18n="inv.meses">meses</option>
+              <option value="anos" data-i18n="common.years">anos</option>
             </select>
           </div>
         </div>
@@ -411,7 +411,7 @@
       <div class="inv-taxa-row">
         <button type="button" id="calc-atualizar-taxas" data-i18n="calc.usarDadosAtuais">↻ Usar dados atuais (CDI/Selic)</button>
         <span id="calc-taxas-status" data-i18n="calc.taxasTraco">Taxas: —</span>
-        <span class="inv-taxa-manual">CDI <input type="text" inputmode="decimal" step="0.01" id="taxa-cdi-manual" placeholder="% a.a."> · Selic <input type="text" inputmode="decimal" step="0.01" id="taxa-selic-manual" placeholder="% a.a."></span>
+        <span class="inv-taxa-manual">CDI <input type="text" inputmode="decimal" step="0.01" id="taxa-cdi-manual" placeholder="% a.a." data-i18n-placeholder="ph.annualPercent"> · Selic <input type="text" inputmode="decimal" step="0.01" id="taxa-selic-manual" placeholder="% a.a." data-i18n-placeholder="ph.annualPercent"></span>
       </div>
       <div class="inv-result" id="calc-result"></div>
     </div>
@@ -424,7 +424,7 @@
   <div class="settings-panel settings-modal" id="settings-panel" style="display:none;">
     <div class="settings-modal-head">
       <span data-i18n="settings.title">Configurações</span>
-      <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar">✕</button>
+      <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
       <div>
@@ -493,7 +493,7 @@
             <button class="reset-btn" id="export-btn" data-i18n="btn.gerarCodigo">Gerar código</button>
             <button class="reset-btn" id="copy-code-btn" style="display:none;" data-i18n="btn.copiarCodigo">Copiar código</button>
           </div>
-          <textarea id="export-output" class="code-box" readonly="" placeholder="O código vai aparecer aqui" style="display:none;"></textarea>
+          <textarea id="export-output" class="code-box" readonly="" placeholder="O código vai aparecer aqui" data-i18n-placeholder="ph.generatedCode" style="display:none;"></textarea>
           <div class="help-text" style="margin-top:16px;" data-i18n="settings.receberCodigoHelp">Recebeu um código de alguém? Cole abaixo e carregue — isso substitui os seus dados atuais pelos da outra pessoa.</div>
           <textarea id="import-input" class="code-box" placeholder="Cole aqui o código recebido" data-i18n-placeholder="ph.colaCodigo"></textarea>
           <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
@@ -512,12 +512,12 @@
           </select>
         </div>
         <div class="field-group">
-          <label>Moeda</label>
+          <label data-i18n="settings.moeda">Moeda</label>
           <select id="cfg-moeda">
-            <option value="BRL">R$ Real (BRL)</option>
-            <option value="USD">US$ Dólar americano (USD)</option>
-            <option value="EUR">€ Euro (EUR)</option>
-            <option value="GBP">£ Libra esterlina (GBP)</option>
+        <option value="BRL" data-i18n="currency.brl">R$ Real (BRL)</option>
+        <option value="USD" data-i18n="currency.usd">US$ Dólar americano (USD)</option>
+        <option value="EUR" data-i18n="currency.eur">€ Euro (EUR)</option>
+        <option value="GBP" data-i18n="currency.gbp">£ Libra esterlina (GBP)</option>
           </select>
           <div class="help-text" data-i18n="settings.moedaHelp">Só muda o símbolo e o formato do número exibido — os valores em si não são convertidos.</div>
         </div>
@@ -606,7 +606,7 @@
   <div class="bottom-sheet" id="gasto-sheet" style="display:none;" role="dialog" aria-labelledby="gasto-sheet-title">
     <div class="sheet-grab" data-sheet-grab=""><div class="sheet-handle"></div></div>
     <div class="sheet-title" id="gasto-sheet-title" data-i18n="sheet.novogasto">Novo gasto</div>
-    <div class="sheet-subtitle" id="gasto-sheet-subtitle">Hoje</div>
+    <div class="sheet-subtitle" id="gasto-sheet-subtitle" data-i18n="gasto.hoje">Hoje</div>
 
     <div class="gasto-tipo-toggle" id="gasto-tipo-toggle">
       <button type="button" class="gasto-tipo-btn active" data-tipo="gasto" data-i18n="gasto.tipoGasto">↓ Gasto</button>
@@ -649,7 +649,7 @@
 
     <div class="sheet-field">
       <label data-i18n="gasto.tagsLabel">Tags (opcional, separadas por vírgula)</label>
-      <input type="text" id="gasto-tags" placeholder="Ex: trabalho, reembolsável">
+      <input type="text" id="gasto-tags" placeholder="Ex: trabalho, reembolsável" data-i18n-placeholder="ph.expenseTags">
     </div>
 
     <div class="sheet-field">
@@ -677,7 +677,7 @@
 
     <div class="sheet-field">
       <label data-i18n="gasto.descricaoLabel">Descrição (opcional)</label>
-      <input type="text" id="gasto-descricao" placeholder="Ex: Almoço com a equipe">
+      <input type="text" id="gasto-descricao" placeholder="Ex: Almoço com a equipe" data-i18n-placeholder="ph.expenseDescription">
     </div>
 
     <div class="sheet-actions">
@@ -705,12 +705,12 @@
 
     <div class="sheet-field">
       <label data-i18n="gf.descricao">Descrição</label>
-      <input type="text" id="gf-nome" placeholder="Ex: Aluguel, Plano celular, Academia">
+      <input type="text" id="gf-nome" placeholder="Ex: Aluguel, Plano celular, Academia" data-i18n-placeholder="ph.fixedDescription">
     </div>
 
     <div class="sheet-field">
       <label data-i18n="gf.vencimento">Vencimento (dia do mês)</label>
-      <input type="text" inputmode="decimal" min="1" max="31" id="gf-dia" placeholder="Dia">
+      <input type="text" inputmode="decimal" min="1" max="31" id="gf-dia" placeholder="Dia" data-i18n-placeholder="ph.day">
     </div>
 
     <div class="sheet-section-label" data-i18n="gf.inicioCobranca">Início da cobrança</div>
@@ -747,17 +747,17 @@
 
     <div class="sheet-field">
       <label data-i18n="cartao.nome">Nome do cartão</label>
-      <input type="text" id="cartao-nome" placeholder="Ex: Nubank, Itaú Visa...">
+      <input type="text" id="cartao-nome" placeholder="Ex: Nubank, Itaú Visa..." data-i18n-placeholder="ph.cardName">
     </div>
 
     <div class="sheet-row-2">
       <div class="sheet-field">
         <label data-i18n="cartao.diaFechamento">Dia fechamento</label>
-        <input type="text" inputmode="decimal" min="1" max="31" id="cartao-fechamento" placeholder="Dia">
+        <input type="text" inputmode="decimal" min="1" max="31" id="cartao-fechamento" placeholder="Dia" data-i18n-placeholder="ph.day">
       </div>
       <div class="sheet-field">
         <label data-i18n="cartao.diaVencimento">Dia vencimento</label>
-        <input type="text" inputmode="decimal" min="1" max="31" id="cartao-vencimento" placeholder="Dia">
+        <input type="text" inputmode="decimal" min="1" max="31" id="cartao-vencimento" placeholder="Dia" data-i18n-placeholder="ph.day">
       </div>
     </div>
 
@@ -792,11 +792,11 @@
 
     <div class="sheet-field">
       <label data-i18n="inv.nomeAtivo">Nome do ativo</label>
-      <input type="text" id="inv-nome" placeholder="Ex: BURA39, PETR4, HGLG11">
+      <input type="text" id="inv-nome" placeholder="Ex: BURA39, PETR4, HGLG11" data-i18n-dynamic-placeholder="true">
     </div>
     <div class="sheet-field">
       <label data-i18n="gf.descricaoOpcional">Descrição (opcional)</label>
-      <input type="text" id="inv-descricao" placeholder="Ex: urânio, fundo de galpões logísticos">
+      <input type="text" id="inv-descricao" placeholder="Ex: urânio, fundo de galpões logísticos" data-i18n-placeholder="ph.investmentDescription">
     </div>
     <div class="sheet-field" id="inv-cdi-field" style="display:none;">
       <label data-i18n="inv.pctCdi">% do CDI rendendo</label>
@@ -840,7 +840,7 @@
 
     <div class="sheet-field">
       <label data-i18n="gf.descricao">Descrição</label>
-      <input type="text" id="rr-nome" placeholder="Ex: Salário · TechBrasil">
+      <input type="text" id="rr-nome" placeholder="Ex: Salário · TechBrasil" data-i18n-placeholder="ph.incomeName">
     </div>
     <div class="sheet-field">
       <label data-i18n="rr.diaRecebimento">Dia do recebimento</label>
@@ -856,9 +856,9 @@
     </div>
 
     <div class="sheet-actions">
-      <button type="button" class="sheet-cancel-btn" id="rr-sheet-del" style="display:none;">Excluir</button>
+      <button type="button" class="sheet-cancel-btn" id="rr-sheet-del" style="display:none;" data-i18n="btn.excluir">Excluir</button>
       <button type="button" class="sheet-cancel-btn" id="rr-sheet-cancel" data-i18n="btn.cancelar">Cancelar</button>
-      <button type="button" class="sheet-submit-btn" id="rr-sheet-submit">✓ Salvar renda</button>
+      <button type="button" class="sheet-submit-btn" id="rr-sheet-submit" data-i18n="rr.salvar">✓ Salvar renda</button>
     </div>
   </div>
 
@@ -898,12 +898,12 @@
     <div class="cd-text" id="senha-texto"></div>
     <div class="senha-campos">
       <div class="senha-linha">
-        <input type="password" id="senha-input" autocomplete="current-password" spellcheck="false" aria-label="Senha" aria-describedby="senha-erro"
+        <input type="password" id="senha-input" autocomplete="current-password" spellcheck="false" aria-label="Senha" data-i18n-aria-label="senha.campo" aria-describedby="senha-erro"
                placeholder="Senha" data-i18n-placeholder="senha.campo">
-        <button type="button" class="senha-olho" id="senha-olho" aria-label="Mostrar senha" data-i18n-title="senha.mostrar" title="Mostrar senha">👁</button>
+        <button type="button" class="senha-olho" id="senha-olho" aria-label="Mostrar senha" data-i18n-aria-label="senha.mostrar" data-i18n-title="senha.mostrar" title="Mostrar senha">👁</button>
       </div>
       <div class="senha-linha" id="senha-linha-2" style="display:none;">
-        <input type="password" id="senha-input-2" autocomplete="new-password" spellcheck="false" aria-label="Repita a senha" aria-describedby="senha-erro"
+        <input type="password" id="senha-input-2" autocomplete="new-password" spellcheck="false" aria-label="Repita a senha" data-i18n-aria-label="senha.repita" aria-describedby="senha-erro"
                placeholder="Repita a senha" data-i18n-placeholder="senha.repita">
       </div>
       <div class="senha-erro" id="senha-erro" role="alert" aria-live="polite"></div>
@@ -954,10 +954,10 @@
       <div style="flex:1;">
         <label class="ob-label" data-i18n="settings.moeda">Moeda</label>
         <select id="ob-moeda">
-          <option value="BRL">R$ Real (BRL)</option>
-          <option value="USD">US$ Dólar americano (USD)</option>
-          <option value="EUR">€ Euro (EUR)</option>
-          <option value="GBP">£ Libra esterlina (GBP)</option>
+          <option value="BRL" data-i18n="currency.brl">R$ Real (BRL)</option>
+          <option value="USD" data-i18n="currency.usd">US$ Dólar americano (USD)</option>
+          <option value="EUR" data-i18n="currency.eur">€ Euro (EUR)</option>
+          <option value="GBP" data-i18n="currency.gbp">£ Libra esterlina (GBP)</option>
         </select>
       </div>
     </div>
@@ -976,8 +976,8 @@
 
     <label class="ob-label" data-i18n="ob.cartaoOpcional">Cartão de crédito (opcional)</label>
     <div class="ob-cartao-row">
-      <input type="text" id="ob-cartao-nome" placeholder="Nome (ex: Nubank)">
-      <input type="text" inputmode="decimal" id="ob-cartao-limite" placeholder="Limite">
+      <input type="text" id="ob-cartao-nome" placeholder="Nome (ex: Nubank)" data-i18n-placeholder="ph.cardNameShort">
+      <input type="text" inputmode="decimal" id="ob-cartao-limite" placeholder="Limite" data-i18n-placeholder="ph.limit">
     </div>
     <div class="ob-cartao-row" style="margin-top:8px;">
       <input type="text" inputmode="decimal" id="ob-cartao-fechamento" placeholder="Dia do fechamento" data-i18n-placeholder="ph.diaFechamento">

@@ -27,16 +27,16 @@ function renderOrcamentos(){
     return `
     <div class="orc-row">
       <div class="orc-top">
-        <span class="orc-nome">${catIcon(cat)} ${esc(cat)}</span>
+        <span class="orc-nome">${catIcon(cat)} ${esc(categoriaLabel(cat))}</span>
         <span class="orc-gasto">${formatBRL(gasto)} /</span>
         <input type="text" inputmode="decimal" step="1" min="0" class="orc-teto-input" data-cat="${esc(cat)}" value="${teto||''}" placeholder="${esc(L('ph.semTeto'))}">
       </div>
       ${teto>0?`
       <div class="orc-bar-track"><div class="orc-bar-fill ${barClass}" style="width:${pct}%;"></div></div>
-      <div class="orc-foot"><span>${((gasto/teto)*100).toFixed(0)}% do teto</span><span>${over?'estourou '+formatBRL(gasto-teto):'restam '+formatBRL(teto-gasto)}</span></div>`:''}
+      <div class="orc-foot"><span>${L('budget.percentCap').replace('{pct}',((gasto/teto)*100).toFixed(0))}</span><span>${over?L('budget.exceededBy').replace('{value}',formatBRL(gasto-teto)):L('budget.remaining').replace('{value}',formatBRL(teto-gasto))}</span></div>`:''}
     </div>`;
   }).join('')+
-  estouradas.map(e2=>`<div class="warn-banner">⚠️ Orçamento de ${catIcon(e2.cat)} ${esc(e2.cat)} estourado: ${formatBRL(e2.gasto)} de ${formatBRL(e2.teto)} este mês.</div>`).join('')+
+  estouradas.map(e2=>`<div class="warn-banner">⚠️ ${L('budget.warning').replace('{cat}',catIcon(e2.cat)+' '+esc(categoriaLabel(e2.cat))).replace('{spent}',formatBRL(e2.gasto)).replace('{cap}',formatBRL(e2.teto))}</div>`).join('')+
   `<div class="orc-hint">${L('orc.hint')}</div>`;
   el.querySelectorAll('.orc-teto-input').forEach(inp=>inp.addEventListener('change',async e=>{
     if(!data.orcamentos) data.orcamentos={};
@@ -46,4 +46,3 @@ function renderOrcamentos(){
     await persist(); render();
   }));
 }
-

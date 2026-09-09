@@ -158,12 +158,12 @@ function bindStatic(){
         const pct=Math.round(((v-antes)/antes)*100);
         if(pct!==0) delta=`<span class="${pct>0?'up':'down'}"> ${pct>0?'▲':'▼'} ${Math.abs(pct)}%</span>`;
       }
-      return `<tr><td class="cat-head">${catIcon(cat)} ${esc(cat)}${delta}</td><td class="num cat-head">${formatBRL(v)}</td></tr>${itens}`;
+      return `<tr><td class="cat-head">${catIcon(cat)} ${esc(categoriaLabel(cat))}${delta}</td><td class="num cat-head">${formatBRL(v)}</td></tr>${itens}`;
     }).join('')||`<tr><td colspan="2" class="muted">${L('rp.semDespesa')}</td></tr>`;
 
     const receitaItens=computeReceitasMesDetalhe();
     const totalReceitas=receitaItens.reduce((s,i)=>s+i.val,0);
-    const rowsReceitas=receitaItens.map(i=>`<tr><td>${esc(i.nome)} <span class="muted" style="font-size:10.5px;">${esc(i.tag)}</span></td><td class="num">${formatBRL(i.val)}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">Nenhuma receita registrada neste mês.</td></tr>';
+    const rowsReceitas=receitaItens.map(i=>`<tr><td>${esc(i.nome)} <span class="muted" style="font-size:10.5px;">${esc(i.tag)}</span></td><td class="num">${formatBRL(i.val)}</td></tr>`).join('')||`<tr><td colspan="2" class="muted">${L('rp.semReceita')}</td></tr>`;
 
     const resultado=totalReceitas-total;
 

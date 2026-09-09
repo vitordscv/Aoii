@@ -14,7 +14,7 @@ function computeInsights(){
     const porCat={};
     doMes.forEach(t=>{ porCat[t.categoria]=(porCat[t.categoria]||0)+t.valor; });
     const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1])[0];
-    insights.push({icon:catIcon(top[0]),title:L('insights.maiorCategoria'),value:formatBRL(top[1]),sub:top[0]});
+    insights.push({icon:catIcon(top[0]),title:L('insights.maiorCategoria'),value:formatBRL(top[1]),sub:top[0],categoria:top[0]});
     const maior=doMes.reduce((a,b)=>b.valor>a.valor?b:a);
     insights.push({icon:'💸',title:L('insights.maiorGasto'),value:formatBRL(maior.valor),sub:maior.nome});
   }
@@ -35,8 +35,7 @@ function renderInsights(){
       <div class="insight-icon">${i.icon}</div>
       <div class="insight-title">${esc(i.title)}</div>
       <div class="insight-value">${i.value}</div>
-      <div class="insight-sub">${esc(i.sub)}</div>
+      <div class="insight-sub">${esc(i.categoria?categoriaLabel(i.categoria):i.sub)}</div>
     </div>`).join('');
   if(el._lastHtml!==html){ el._lastHtml=html; el.innerHTML=html; }
 }
-

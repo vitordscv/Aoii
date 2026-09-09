@@ -22,7 +22,7 @@ function setupGastoFixoSheet(){
 
   function renderCatGrid(){
     const grid=document.getElementById('gf-cat-grid');
-    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(c)}</button>`).join('');
+    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>{
       btn.addEventListener('click',()=>{ categoriaAtual=btn.getAttribute('data-cat'); renderCatGrid(); });
     });
@@ -93,4 +93,3 @@ function setupGastoFixoSheet(){
     renderGastosFixosTab();
   });
 }
-

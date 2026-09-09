@@ -69,7 +69,7 @@ function renderWeekSummary(){
     ${w.livreAteFimDoMes!==null?`
     <div class="week-summary-item">
       <span class="lbl" data-i18n="week.livreAteFim">Livre até o fim do mês</span>
-      <span class="val ${w.livreAteFimDoMes<=0?'neg':''}">${formatBRL(w.livreAteFimDoMes)} <small>· ${w.diasRestantes} dia${w.diasRestantes===1?'':'s'}</small></span>
+      <span class="val ${w.livreAteFimDoMes<=0?'neg':''}">${formatBRL(w.livreAteFimDoMes)} <small>· ${w.diasRestantes} ${w.diasRestantes===1?L('common.day'):L('common.days')}</small></span>
     </div>`:''}
   </div>`;
 }
@@ -129,4 +129,3 @@ function renderMonthComparison(){
   const up=pct>0;
   el.innerHTML=`<span class="${up?'mes-comp-up':'mes-comp-down'}">${up?'📈':'📉'} ${L(up?'comp.aMais':'comp.aMenos').replace('{pct}',Math.abs(pct)+'%')}</span>`;
 }
-

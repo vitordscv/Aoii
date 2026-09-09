@@ -269,6 +269,27 @@ do limite de manutenção de 400 linhas.
 Nenhuma publicação, push, alteração de política ou migração de banco nesta
 rodada. As proteções deste branch não devem ser confundidas com o site em produção.
 
+## Retomada em 09/09/2026 — cobertura das traduções
+
+A interface estática e os principais textos montados durante o uso foram
+revisados nos cinco idiomas. Temas, moedas, campos, dicas, simuladores,
+orçamentos, evolução mensal, onboarding, consultor e alertas de metas agora usam
+o mesmo dicionário, com 697 chaves por idioma.
+
+As seis categorias históricas continuam gravadas em português para preservar
+backups e cálculos; somente o nome apresentado é traduzido. Categorias criadas
+pela pessoa continuam exatamente como foram cadastradas. A moeda escolhida
+também atualiza os símbolos dos campos de valor.
+
+A auditoria passou a impedir texto estático, placeholder, título e nome
+acessível sem chave de tradução. Ela também recusa `data-i18n` em um elemento
+que contenha botões ou outros filhos, pois a substituição do texto apagaria
+esses controles. A suíte inclui a tradução das categorias sem mudança nos
+dados. A interface foi conferida localmente em português, inglês, espanhol,
+francês e italiano, inclusive troca de tema, moeda e preservação das dicas.
+
+Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.
+
 ## O que vem, em ordem
 
 1. **Concluir a preparação da transição.** Repetir a interface em navegadores

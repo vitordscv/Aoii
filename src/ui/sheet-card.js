@@ -20,7 +20,7 @@ function setupCartaoSheet(){
     document.getElementById('cartao-fechamento').value=c&&c.diaFechamento?c.diaFechamento:'';
     document.getElementById('cartao-vencimento').value=c&&c.diaVencimento?c.diaVencimento:'';
     document.getElementById('cartao-limite').value=c&&c.limite?c.limite:'';
-    submitBtn.textContent=c?'✓ Salvar cartão':'✓ Adicionar';
+    submitBtn.textContent=c?L('card.save'):L('cartao.adicionar');
     delBtn.style.display=c?'block':'none';
   }
 
@@ -60,7 +60,11 @@ function setupCartaoSheet(){
     if(isNaN(alvo)||alvo<=0||isNaN(aporte)||aporte<=0){ resEl.textContent=''; return; }
     const meses=Math.ceil(alvo/aporte);
     const dataFinal=new Date(); dataFinal.setMonth(dataFinal.getMonth()+meses);
-    resEl.textContent=`Em ${meses} ${meses===1?'mês':'meses'} (~${MONTH_NAMES[dataFinal.getMonth()]} ${dataFinal.getFullYear()}) você chega lá.`;
+    resEl.textContent=L('goal.simulationResult')
+      .replace('{n}',meses)
+      .replace('{period}',meses===1?L('inv.mes'):L('inv.meses'))
+      .replace('{month}',MONTH_NAMES[dataFinal.getMonth()])
+      .replace('{year}',dataFinal.getFullYear());
   }
   document.getElementById('sim-valor-alvo')?.addEventListener('input',atualizarSimulador);
   document.getElementById('sim-aporte-mensal')?.addEventListener('input',atualizarSimulador);
@@ -110,4 +114,3 @@ function setupCartaoSheet(){
     close();
   });
 }
-

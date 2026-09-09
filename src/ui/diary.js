@@ -9,7 +9,7 @@
     if(t){ t.tags=last.tags||[]; t.viagemId=last.viagemId||null; }
     vibrate([10,30,10]);
     await persist(); render();
-    showUndoToast(`"${last.nome}" repetido`,()=>{ removerTransacao(t.id); });
+    showUndoToast(L('diary.repeated').replace('{name}',`"${last.nome}"`),()=>{ removerTransacao(t.id); });
   });
   const mesFiltroEl=document.getElementById('diario-mes-filtro');
   if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; vibrate(6); renderTransacoesList(); });
@@ -49,7 +49,7 @@ function renderDiarioSummaryCard(){
 function renderTransacoesFiltro(){
   const el=document.getElementById('transacoes-filter'); if(!el) return;
   const cats=['Todos',...CATS(),'__credito'];
-  el.innerHTML=cats.map(c=>c==='__credito'?`<button type="button" class="cat-pill${transacoesFiltro==='__credito'?' active':''}" data-cat="__credito">🧾 ${esc(L('pay.credito'))}</button>`:`<button type="button" class="cat-pill${c===transacoesFiltro?' active':''}" data-cat="${esc(c)}">${c==='Todos'?'✨':catIcon(c)} ${c==='Todos'?esc(L('filtro.todos')):esc(c)}</button>`).join('');
+  el.innerHTML=cats.map(c=>c==='__credito'?`<button type="button" class="cat-pill${transacoesFiltro==='__credito'?' active':''}" data-cat="__credito">🧾 ${esc(L('pay.credito'))}</button>`:`<button type="button" class="cat-pill${c===transacoesFiltro?' active':''}" data-cat="${esc(c)}">${c==='Todos'?'✨':catIcon(c)} ${c==='Todos'?esc(L('filtro.todos')):esc(categoriaLabel(c))}</button>`).join('');
   el.querySelectorAll('.cat-pill').forEach(btn=>{
     btn.addEventListener('click',()=>{
       transacoesFiltro=btn.getAttribute('data-cat');
@@ -67,7 +67,7 @@ function renderDiarioMesOptions(){
   const meses=new Set();
   (data.transacoes||[]).forEach(t=>{ if(t.data) meses.add(String(t.data).slice(0,7)); });
   const sorted=[...meses].sort().reverse();
-  sel.innerHTML=['<option value="todos">Todos os meses</option>'].concat(sorted.map(m=>{
+  sel.innerHTML=[`<option value="todos">${L('diary.allMonths')}</option>`].concat(sorted.map(m=>{
     const parts=m.split('-');
     return `<option value="${m}">${MONTH_NAMES[parseInt(parts[1],10)-1]} ${parts[0]}</option>`;
   })).join('');
@@ -116,7 +116,7 @@ function renderTransacoesList(){
         <div class="item-row">
           <div class="item-texts">
             <span class="item-nome" style="display:block;">${esc(t.nome)}</span>
-            <div class="item-cartao-tag">${t.tipo==='receita'?'⬆️ '+L('diario.entrada'):t.metodo==='dinheiro'?'💵 '+L('pay.dinheiro'):t.metodo==='pix'?'⚡ '+L('pay.pix'):t.metodo==='credito'?'💳 '+L('pay.credito')+(t._cartaoId?' '+esc(nomeCartao(t._cartaoId)):''):'💳 '+L('pay.debito')} · ${catIcon(t.categoria)} ${esc(t.categoria)}${t.percentual&&t.percentual<100?` · ${t.percentual}% de ${formatBRL(t.valorTotal||0)}`:''}${t.viagemId?` · ✈️ ${esc(nomeViagem(t.viagemId))}`:''} · ${new Date(t.data+'T12:00:00').toLocaleDateString('pt-BR')}</div>
+            <div class="item-cartao-tag">${t.tipo==='receita'?'⬆️ '+L('diario.entrada'):t.metodo==='dinheiro'?'💵 '+L('pay.dinheiro'):t.metodo==='pix'?'⚡ '+L('pay.pix'):t.metodo==='credito'?'💳 '+L('pay.credito')+(t._cartaoId?' '+esc(nomeCartao(t._cartaoId)):''):'💳 '+L('pay.debito')} · ${catIcon(t.categoria)} ${esc(categoriaLabel(t.categoria))}${t.percentual&&t.percentual<100?` · ${t.percentual}% ${L('common.of')} ${formatBRL(t.valorTotal||0)}`:''}${t.viagemId?` · ✈️ ${esc(nomeViagem(t.viagemId))}`:''} · ${new Date(t.data+'T12:00:00').toLocaleDateString(localeAtual())}</div>
             ${t.nota?`<div class="item-nota">${esc(t.nota)}</div>`:''}
             ${(t.tags&&t.tags.length)?`<div class="item-tags">${t.tags.map(tg=>`<span class="tag-pill">#${esc(tg)}</span>`).join('')}</div>`:''}
           </div>
@@ -157,5 +157,3 @@ function renderTransacoesList(){
     });
   });
 }
-
-

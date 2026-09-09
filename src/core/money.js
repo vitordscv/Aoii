@@ -54,8 +54,7 @@ window.todayISO = function todayISO(){ const d=new Date(); return d.getFullYear(
 function fmtDate(iso){
   if(!iso) return '—';
   const d=new Date(iso);
-  return d.toLocaleDateString(localeAtual(),{day:'2-digit',month:'2-digit',year:'numeric'})+' às '+
+  return d.toLocaleDateString(localeAtual(),{day:'2-digit',month:'2-digit',year:'numeric'})+' '+L('rp.as')+' '+
          d.toLocaleTimeString(localeAtual(),{hour:'2-digit',minute:'2-digit'});
 }
 function isoDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-

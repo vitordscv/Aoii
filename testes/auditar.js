@@ -80,7 +80,7 @@ titulo('Tradução');
   }
   const usadas=new Set([
     ...(src.match(/L\('([a-zA-Z0-9_.]+)'\)/g)||[]).map(s=>s.slice(3,-2)),
-    ...(src.match(/data-i18n(?:-placeholder|-title)?="([a-zA-Z0-9_.]+)"/g)||[]).map(s=>s.split('"')[1])]);
+    ...(src.match(/data-i18n(?:-placeholder|-title|-aria-label|-tip)?="([a-zA-Z0-9_.]+)"/g)||[]).map(s=>s.split('"')[1])]);
   const semPt=[...usadas].filter(k=>!idiomas.pt.has(k)).sort();
   semPt.length ? ruim(semPt.length+' chave(s) usadas sem definição',semPt.join(', '))
                : ok(usadas.size+' chaves usadas, todas definidas');
@@ -89,6 +89,47 @@ titulo('Tradução');
     faltam.length ? ruim(id+': faltam '+faltam.length+' tradução(ões)',faltam.slice(0,12).join(', '))
                   : ok(id+': completo');
   });
+
+  /* Uma chave existente em cinco arquivos não ajuda quando a tela ainda traz
+     texto português direto no HTML. Examina nós-folha e atributos de entrada;
+     nomes próprios, siglas financeiras e nomes nativos de idioma são estáveis. */
+  const html=src
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'');
+  const permitidos=new Set(['Aoii','CDI','Selic','Português','English','Español','Français','Italiano','R$','aistudio.google.com/apikey']);
+  const fixos=[];
+  const folha=/<([a-z][a-z0-9-]*)([^>]*)>([^<>]*[A-Za-zÀ-ÿ][^<>]*)<\/\1>/gi;
+  let no;
+  while((no=folha.exec(html))){
+    const tag=no[1].toLowerCase(),attrs=no[2],texto=no[3].replace(/\s+/g,' ').trim();
+    if(tag==='title'||attrs.includes('data-i18n')||permitidos.has(texto)) continue;
+    fixos.push('<'+tag+'> '+texto.slice(0,70));
+  }
+  fixos.length ? ruim(fixos.length+' texto(s) fixo(s) sem tradução no HTML',fixos.slice(0,12).join(', '))
+               : ok('HTML estático sem texto de interface preso a um idioma');
+
+  const placeholders=[];
+  for(const campo of html.matchAll(/<(?:input|textarea)\b[^>]*placeholder="([^"]*[A-Za-zÀ-ÿ][^"]*)"[^>]*>/gi)){
+    if(/data-i18n-placeholder|data-i18n-dynamic-placeholder/.test(campo[0])||campo[1]==='1x') continue;
+    placeholders.push(campo[1]);
+  }
+  placeholders.length ? ruim(placeholders.length+' placeholder(s) sem tradução',placeholders.join(', '))
+                      : ok('placeholders textuais passam pelo sistema de tradução');
+
+  const estruturas=[];
+  const comFilhos=/<([a-z][a-z0-9-]*)\b([^>]*\bdata-i18n="[^"]+"[^>]*)>([\s\S]*?)<\/\1>/gi;
+  while((no=comFilhos.exec(html))) if(/<[a-z][^>]*>/i.test(no[3])) estruturas.push(no[1]);
+  estruturas.length ? ruim('data-i18n apagaria elementos filhos',estruturas.join(', '))
+                    : ok('tradução de texto não apaga botões ou campos filhos');
+
+  const atributos=[];
+  for(const el of html.matchAll(/<[a-z][^>]*(?:title|aria-label)="[^"]*[A-Za-zÀ-ÿ][^"]*"[^>]*>/gi)){
+    const precisaTitulo=/\btitle=/.test(el[0])&&!/data-i18n-title/.test(el[0]);
+    const precisaNome=/\baria-label=/.test(el[0])&&!/data-i18n-aria-label/.test(el[0]);
+    if(precisaTitulo||precisaNome) atributos.push(el[0].slice(0,90));
+  }
+  atributos.length ? ruim(atributos.length+' título(s) ou nome(s) acessível(is) sem tradução',atributos.slice(0,8).join(', '))
+                   : ok('títulos e nomes acessíveis textuais passam pela tradução');
 }
 
 titulo('Contraste dos temas (mínimo WCAG AA 4.5:1)');

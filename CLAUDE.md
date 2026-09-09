@@ -91,10 +91,11 @@ teste está certo.
 - Chave de API não entra em backup nem em sincronização.
 - Dado de fora entra pelo `adotarDadosDeFora()` — nunca direto em `data`.
 
-A sincronização ainda grava **em texto puro**. `src/storage/encryption.js` está
-pronto e testado, mas ligá-lo exige mudar o Supabase — e isso depende de
-aprovação. **Não aplique nada no Supabase**: o desenho e o SQL estão em
-[docs/SYNC-DESIGN.md](docs/SYNC-DESIGN.md) esperando revisão.
+A sincronização deste branch cifra dados e snapshots no aparelho antes do envio.
+A sessão guarda apenas uma `CryptoKey` não exportável e o token de escrita; a
+senha digitada é descartada. A transição de produção e a parte 2 das políticas
+do Supabase ainda dependem de aprovação. **Não aplique nada no Supabase** sem
+revisar [docs/SYNC-DESIGN.md](docs/SYNC-DESIGN.md) e o plano de rollout.
 
 Detalhes e o que ainda falta: [docs/SECURITY.md](docs/SECURITY.md).
 

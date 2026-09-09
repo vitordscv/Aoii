@@ -145,7 +145,7 @@ function setupInvSheet(){
     document.getElementById('inv-div-section').style.display=cons?'none':'';
     const cdiLabel=document.querySelector('#inv-cdi-field label');
     if(cdiLabel) cdiLabel.textContent=tipoAtual==='selic'?L('calc.pctSelicRendendo'):L('calc.pctCdiRendendo');
-    document.getElementById('inv-nome').placeholder=cons?'Ex: CDB Banco X (opcional)':'Ex: BURA39, PETR4, HGLG11';
+    document.getElementById('inv-nome').placeholder=L(cons?'ph.investmentConservative':'ph.investmentMarket');
     if(!cons) renderDivList();
   }
   function renderDivList(){
@@ -170,11 +170,11 @@ function setupInvSheet(){
     const stats=invDividendStats({valorInvestido:valorInv,dividendos:divsDraft});
     if(stats&&valorInv>0){
       statsEl.innerHTML=`<div class="div-stats">
-        Último: <strong>${formatBRL(stats.ultimo?stats.ultimo.valor:0)}</strong> (${stats.yieldUlt.toFixed(2)}% do investido) ·
+        ${L('inv.last')}: <strong>${formatBRL(stats.ultimo?stats.ultimo.valor:0)}</strong> (${stats.yieldUlt.toFixed(2)}% ${L('inv.ofInvested')}) ·
         ${L('inv.medianaDe').replace('{n}',stats.qtd)}: <strong>${formatBRL(stats.med)}</strong> (${stats.yieldMed.toFixed(2)}%)<br>
-        Frequência estimada: <strong>${stats.porAno}×</strong>/ano ·
-        Projeção 12 meses: <strong>${formatBRL(stats.proj12)}</strong> (~${stats.yieldAno.toFixed(1)}% a.a.)
-        ${stats.payback?`<br>Nesse ritmo, os dividendos devolvem o valor investido em ~<strong>${stats.payback}</strong> meses.`:''}
+        ${L('inv.estimatedFrequency')}: <strong>${stats.porAno}×</strong>/${L('inv.year')} ·
+        ${L('inv.projection12')}: <strong>${formatBRL(stats.proj12)}</strong> (~${stats.yieldAno.toFixed(1)}% ${L('inv.aoAno')})
+        ${stats.payback?`<br>${L('inv.dividendPayback').replace('{n}',`<strong>${stats.payback}</strong>`)}`:''}
       </div>`;
     }else if(stats){
       statsEl.innerHTML=`<div class="div-stats">${L('inv.medianaDe').replace('{n}',stats.qtd)}: <strong>${formatBRL(stats.med)}</strong> — ${L('inv.informeValor')}</div>`;
@@ -247,4 +247,3 @@ function setupInvSheet(){
     close();
   });
 }
-

@@ -173,9 +173,9 @@ function renderGfEvolucao(){
   const prevTotal=meses.length>1?meses[meses.length-2].total:atualTotal;
   const delta=atualTotal-prevTotal;
   let deltaHtml;
-  if(Math.abs(delta)<0.005) deltaHtml=`<div class="gfe-delta flat">— estável vs mês anterior</div>`;
-  else if(delta>0) deltaHtml=`<div class="gfe-delta up">▲ +${formatBRL(delta)} vs mês anterior</div>`;
-  else deltaHtml=`<div class="gfe-delta down">▼ −${formatBRL(Math.abs(delta))} vs mês anterior</div>`;
+  if(Math.abs(delta)<0.005) deltaHtml=`<div class="gfe-delta flat">— ${L('evolution.stable')}</div>`;
+  else if(delta>0) deltaHtml=`<div class="gfe-delta up">▲ +${formatBRL(delta)} ${L('evolution.vsPrevious')}</div>`;
+  else deltaHtml=`<div class="gfe-delta down">▼ −${formatBRL(Math.abs(delta))} ${L('evolution.vsPrevious')}</div>`;
   const max=Math.max(1,...meses.map(m=>m.total));
   const W=700,H=168,padL=10,padR=10,padT=24,padB=26;
   const step=(W-padL-padR)/n;
@@ -198,7 +198,7 @@ function renderGfEvolucao(){
   el.innerHTML=`
     <div class="gfe-top">
       <div>
-        <div class="gfe-title">Evolução mensal</div>
+        <div class="gfe-title">${L('evolution.monthly')}</div>
         <div class="gfe-value">${formatBRL(atualTotal)}</div>
         ${deltaHtml}
       </div>
@@ -218,4 +218,3 @@ function renderGfEvolucao(){
     renderGfEvolucao();
   }));
 }
-

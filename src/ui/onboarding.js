@@ -53,7 +53,7 @@ function startTour(){
   const blocker=document.createElement('div'); blocker.className='tour-blocker';
   const spot=document.createElement('div'); spot.className='tour-spotlight';
   const callout=document.createElement('div'); callout.className='tour-callout';
-  callout.innerHTML=`<div class="tour-callout-title"></div><div class="tour-callout-text"></div><div class="tour-callout-foot"><span class="tour-callout-progress"></span><div class="tour-callout-actions"><button type="button" class="tour-skip">${({pt:'Pular',en:'Skip',es:'Omitir',fr:'Passer',it:'Salta'})[idioma]||'Pular'}</button><button type="button" class="tour-next">Próximo</button></div></div>`;
+  callout.innerHTML=`<div class="tour-callout-title"></div><div class="tour-callout-text"></div><div class="tour-callout-foot"><span class="tour-callout-progress"></span><div class="tour-callout-actions"><button type="button" class="tour-skip">${L('tour.skip')}</button><button type="button" class="tour-next">${L('tour.next')}</button></div></div>`;
   document.body.append(blocker,spot,callout);
   async function finish(){
     data.tourCompleto=true; await persist();
@@ -72,8 +72,7 @@ function startTour(){
       callout.querySelector('.tour-callout-title').textContent=step.title;
       callout.querySelector('.tour-callout-text').textContent=step.text;
       callout.querySelector('.tour-callout-progress').textContent=`${i+1}/${steps.length}`;
-      const TXT={pt:{next:'Próximo',done:'Concluir'},en:{next:'Next',done:'Finish'},es:{next:'Siguiente',done:'Terminar'},fr:{next:'Suivant',done:'Terminer'},it:{next:'Avanti',done:'Fine'}}[idioma]||{next:'Próximo',done:'Concluir'};
-      callout.querySelector('.tour-next').textContent=(i===steps.length-1)?TXT.done:TXT.next;
+      callout.querySelector('.tour-next').textContent=L(i===steps.length-1?'tour.done':'tour.next');
       const cw=callout.offsetWidth||300;
       let left=Math.min(window.innerWidth-cw-14,Math.max(14,r.left+r.width/2-cw/2));
       const spaceBelow=window.innerHeight-r.bottom;
@@ -151,4 +150,3 @@ function setupOnboarding(){
   document.getElementById('ob-confirm-btn').addEventListener('click',()=>finalizar(true));
   document.getElementById('ob-skip-btn').addEventListener('click',()=>finalizar(false));
 }
-

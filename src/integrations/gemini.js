@@ -9,7 +9,7 @@ function montarResumoFinanceiroParaIA(){
   const fixos=(data.gastosMensais||[]).filter(g=>gastoFixoAtivoEm(g,today().getFullYear(),today().getMonth()+1)).map(g=>`${g.nome} ${formatBRL(g.valor)} (dia ${g.diaDoMes})`).join('; ')||'nenhum';
   const faturasPendentes=(data.faturas||[]).filter(f=>!f.pago).map(f=>`${MONTH_NAMES[f.mes-1]}/${f.ano}${nomeCartao(f.cartaoId)?` (${nomeCartao(f.cartaoId)})`:''}: ${formatBRL(f.valor+(f.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0))}`).join('; ')||'nenhuma';
   const viagens=(data.viagens||[]).map(v=>{ const g=transacoesGasto().filter(t=>t.viagemId===v.id).reduce((s,t)=>s+t.valor,0); return `${v.nome}: ${formatBRL(g)}${v.orcamento>0?` de ${formatBRL(v.orcamento)}`:''}`; }).join('; ')||'nenhuma';
-  const orcamentos=Object.entries(data.orcamentos||{}).filter(([,v])=>v>0).map(([c,v])=>`${c} teto ${formatBRL(v)} (gasto atual ${formatBRL(cat.entries.find(([cc])=>cc===c)?.[1]||0)})`).join('; ')||'sem tetos definidos';
+  const orcamentos=Object.entries(data.orcamentos||{}).filter(([,v])=>v>0).map(([c,v])=>`${categoriaLabel(c)} teto ${formatBRL(v)} (gasto atual ${formatBRL(cat.entries.find(([cc])=>cc===c)?.[1]||0)})`).join('; ')||'sem tetos definidos';
   const custoEss=custoMensalEssencial();
   const reservaAlvo=custoEss*(data.reservaMeses||3);
   const reservaTxt=custoEss>0
@@ -31,7 +31,7 @@ Patrimônio total: ${formatBRL(patrimonioCalculado())}.
 Renda média mensal: ${formatBRL(rendaMediaMensal())}. Rendas recorrentes ativas: ${rendas}.
 Gasto nos últimos 7 dias: ${formatBRL(w.gastoSemana)}.${w.livreAteFimDoMes!==null?` Livre até o fim do mês: ${formatBRL(w.livreAteFimDoMes)}.`:''}
 Comparação de gasto mês a mês: ${compMes}.
-Gastos por categoria este mês: ${cat.entries.map(([c,v])=>`${c} ${formatBRL(v)}`).join(', ')||'nenhum'}.
+Gastos por categoria este mês: ${cat.entries.map(([c,v])=>`${categoriaLabel(c)} ${formatBRL(v)}`).join(', ')||'nenhum'}.
 Tetos de orçamento por categoria: ${orcamentos}.
 Gastos fixos mensais ativos: ${fixos}.
 Cartões de crédito: ${cartoes}.
@@ -92,9 +92,9 @@ function renderIaPergunta(){
       <button type="button" id="ia-ask-btn" data-i18n="ia.perguntar">Perguntar</button>
     </div>
     <div class="ia-ask-chips">
-      <button type="button" class="ia-ask-chip" data-q="Como está minha saúde financeira esse mês?" data-i18n="ia.chipComoEstou">Como estou indo?</button>
-      <button type="button" class="ia-ask-chip" data-q="Onde eu posso cortar gastos esse mês?" data-i18n="ia.chipCortar">Onde cortar gastos?</button>
-      <button type="button" class="ia-ask-chip" data-q="Estou no caminho certo pra bater minhas metas?" data-i18n="ia.chipMetas">Vou bater minhas metas?</button>
+      <button type="button" class="ia-ask-chip" data-q-key="ia.questionHealth" data-i18n="ia.chipComoEstou">Como estou indo?</button>
+      <button type="button" class="ia-ask-chip" data-q-key="ia.questionCuts" data-i18n="ia.chipCortar">Onde cortar gastos?</button>
+      <button type="button" class="ia-ask-chip" data-q-key="ia.questionGoals" data-i18n="ia.chipMetas">Vou bater minhas metas?</button>
     </div>
     <div id="ia-ask-resposta" class="ia-ask-resposta"></div>
   </div>`;
@@ -108,11 +108,10 @@ function renderIaPergunta(){
       const texto=await perguntarIA(pergunta.trim());
       resp.className='ia-ask-resposta'; resp.textContent=texto;
     }catch(err){
-      resp.className='ia-ask-resposta'; resp.textContent='⚠️ '+(err.message||'Erro ao falar com a IA.');
+      resp.className='ia-ask-resposta'; resp.textContent='⚠️ '+(err.message||L('ia.erroGenerico'));
     }finally{ btn.disabled=false; }
   }
   btn.addEventListener('click',()=>ask(input.value));
   input.addEventListener('keydown',e=>{ if(e.key==='Enter') ask(input.value); });
-  el.querySelectorAll('.ia-ask-chip').forEach(chip=>chip.addEventListener('click',()=>ask(chip.getAttribute('data-q'))));
+  el.querySelectorAll('.ia-ask-chip').forEach(chip=>chip.addEventListener('click',()=>ask(L(chip.getAttribute('data-q-key')))));
 }
-

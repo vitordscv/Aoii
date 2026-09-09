@@ -33,7 +33,7 @@ function setupIaChatSheet(){
       historico.push({role:'bot',texto:resposta});
     }catch(err){
       loadingEl.className='ia-chat-msg bot';
-      loadingEl.textContent='⚠️ '+(err.message||'Erro ao falar com a IA.');
+      loadingEl.textContent='⚠️ '+(err.message||L('ia.erroGenerico'));
     }finally{ sendBtn.disabled=false; input.focus(); }
   }
 
@@ -93,7 +93,7 @@ function setupGastoSheet(){
 
   function renderCatGrid(){
     const grid=document.getElementById('gasto-cat-grid');
-    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(c)}</button>`).join('');
+    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>{
       btn.addEventListener('click',()=>{ categoriaAtual=btn.getAttribute('data-cat'); renderCatGrid(); updateAlertaMedia(); });
     });
@@ -259,4 +259,3 @@ function setupGastoSheet(){
     close();
   });
 }
-
