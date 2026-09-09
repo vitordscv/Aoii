@@ -215,11 +215,12 @@ Preenchido pela BrasilAPI ou à mão.
 
 | chave do localStorage | conteúdo |
 |---|---|
-| `financas-sync-code` | código de sincronização de 8 caracteres |
+| `financas-sync-code` | código de sincronização de 12 caracteres nos códigos novos |
 | `financas-ia-chave` | chave da API do Gemini |
 
-Nenhum dos dois entra em backup nem vai para a nuvem — e a chave da IA **não
-deveria** ficar guardada em texto puro. Ver [SECURITY.md](SECURITY.md).
+Nenhum dos dois entra no backup nem no conteúdo financeiro sincronizado. O
+código identifica a linha no Supabase; a chave da IA não sai do aparelho e
+**não deveria** ficar guardada em texto puro. Ver [SECURITY.md](SECURITY.md).
 
 ## Regras que valem para todo campo numérico
 

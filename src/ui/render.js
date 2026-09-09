@@ -105,47 +105,84 @@ function updateAppBadge(){
   }catch(e){}
 }
 
+const VIEW_RENDERERS={
+  'view-resumo':()=>{
+    renderHero();
+    renderDailyBudget();
+    renderChips();
+    renderNegativeWarning();
+    renderFaturaWarning();
+    renderRendaAtrasadaWarning();
+    renderInsights();
+    renderWeekSummary();
+    renderRevisaoMensal();
+    renderSaudeFinanceira();
+    renderConselhos();
+    renderIaPergunta();
+    renderCalendarioMes();
+    renderLimitCard();
+    renderCategoryCard();
+    renderCatDonut();
+    renderMonthComparison();
+    renderOrcamentos();
+  },
+  'view-diario':()=>{
+    renderDiarioSummaryCard();
+    renderTransacoesFiltro();
+    renderTransacoesList();
+  },
+  'view-fixos':()=>{
+    renderChart();
+    renderGastosFixosTab();
+    renderGfEvolucao();
+    renderMonths();
+  },
+  'view-entradas':()=>{
+    renderRendas();
+    renderList('entradasExtras','extras-list','extras-total','feito','recebido');
+    renderList('comprasPlanejadas','purchases-list','purchases-total','feito','comprado');
+  },
+  'view-economias':()=>{
+    renderMetas();
+    renderReservaCard();
+    renderPatrimonio();
+    renderInvestimentos();
+  },
+};
+const viewsPendentes=new Set(Object.keys(VIEW_RENDERERS));
+
+function marcarViewsPendentes(){
+  Object.keys(VIEW_RENDERERS).forEach(id=>viewsPendentes.add(id));
+}
+
+function viewAtiva(){
+  const atual=document.querySelector('.bn-item[aria-current="page"]');
+  const alvo=atual&&atual.getAttribute('data-target');
+  if(alvo&&VIEW_RENDERERS[alvo]) return alvo;
+  const visivel=[...document.querySelectorAll('.tab-view')].find(v=>v.style.display!=='none');
+  return visivel&&VIEW_RENDERERS[visivel.id]?visivel.id:'view-resumo';
+}
+
+function renderView(id,forcar=false){
+  const desenhar=VIEW_RENDERERS[id];
+  if(!desenhar||(!forcar&&!viewsPendentes.has(id))) return false;
+  desenhar();
+  viewsPendentes.delete(id);
+  countUpAll(document.getElementById(id));
+  return true;
+}
+
 function render(){
   invalidarTimeline();
+  marcarViewsPendentes();
   applyIdiomaMonths();
   applyTheme(data.tema);
   updateAppBadge();
-  renderHero();
-  renderDailyBudget();
-  renderChips();
-  renderNegativeWarning();
-  renderFaturaWarning();
-  renderRendaAtrasadaWarning();
-  renderInsights();
-  renderWeekSummary();
-  renderRevisaoMensal();
-  renderSaudeFinanceira();
-  renderConselhos();
-  renderIaPergunta();
   const iaFab=document.getElementById('ia-chat-fab');
   if(iaFab) iaFab.style.display=iaAtiva()?'flex':'none';
-  renderCalendarioMes();
-  renderLimitCard();
-  renderCategoryCard();
-  renderCatDonut();
-  renderMonthComparison();
-  renderOrcamentos();
-  renderChart();
-  renderGastosFixosTab();
-  renderGfEvolucao();
-  renderMonths();
-  renderRendas();
-  renderList('entradasExtras','extras-list','extras-total','feito','recebido');
-  renderList('comprasPlanejadas','purchases-list','purchases-total','feito','comprado');
-  renderDiarioSummaryCard();
-  renderTransacoesFiltro();
-  renderTransacoesList();
-  renderMetas();
-  renderReservaCard();
-  renderPatrimonio();
-  renderInvestimentos();
-  renderSettings();
+  renderView(viewAtiva(),true);
+  const settings=document.getElementById('settings-panel');
+  if(settings&&settings.style.display==='block') renderSettings();
   applyIdioma();
   renderStatusSync();
-  countUpAll();
 }

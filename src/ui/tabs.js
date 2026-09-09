@@ -17,7 +17,10 @@ function setupBottomNav(){
     positionGastoFab();
     vibrate(6);
     const view=document.getElementById(id);
-    if(view) animateBars(view);
+    if(view){
+      renderView(id);
+      animateBars(view);
+    }
   }
   items.forEach(a=>{
     a.addEventListener('click',()=>showTab(a.getAttribute('data-target')));

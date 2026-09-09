@@ -7,6 +7,7 @@ function setupSettingsModal(){
   if(!fab||!panel||!backdrop) return;
   let restaurar=null;
   function open(){
+    renderSettings();
     panel.classList.remove('closing'); backdrop.classList.remove('closing');
     panel.style.display='block'; backdrop.style.display='block';
     restaurar=ativarDialogo(panel,backdrop,closeBtn,close);

@@ -14,8 +14,8 @@ function nomeCartao(id){ const c=(data.cartoes||[]).find(x=>x.id===id); return c
 
 /* ── count-up animado: anima do valor anterior até o novo ── */
 const _countPrev={};
-function countUpAll(){
-  document.querySelectorAll('[data-countup]').forEach(el=>{
+function countUpAll(scope){
+  (scope||document).querySelectorAll('[data-countup]').forEach(el=>{
     const key=el.getAttribute('data-countkey'); if(!key) return;
     const to=parseFloat(el.getAttribute('data-countup')); if(isNaN(to)) return;
     const fmt=el.getAttribute('data-countfmt')||'moeda';

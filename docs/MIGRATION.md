@@ -349,3 +349,21 @@ cache. Permanecem para o próximo bloco a medição e a redução dos redesenhos
 interface após cada edição.
 
 Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.
+
+## Retomada em 09/09/2026 — atualização por aba
+
+`render()` reconstruía as cinco telas depois de qualquer edição, mesmo com quatro
+delas ocultas. Listas, gráficos e cartões distantes da ação eram recriados e seus
+eventos ligados de novo sem benefício visível.
+
+Os renderizadores agora estão agrupados por `view-*`. Uma alteração marca todas
+as telas como pendentes, atualiza a tela ativa imediatamente e adia as demais até
+que a pessoa abra a aba correspondente. O painel de configurações também é
+preenchido ao abrir, em vez de acompanhar toda alteração feita fora dele.
+
+A regra financeira não mudou: a timeline continua invalidada na persistência e
+no início do desenho, e a primeira abertura de cada aba usa o estado mais recente.
+O teste no navegador confirmou o caso crítico: um lançamento feito no Resumo não
+reconstrói o Diário oculto, mas aparece com valor e descrição corretos assim que o
+Diário é aberto. As cinco abas e o painel de configurações foram percorridos, e os
+370 testes mais a auditoria estrutural continuaram limpos.

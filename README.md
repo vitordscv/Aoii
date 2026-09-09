@@ -49,7 +49,7 @@ public/            service worker e artes de fundo
 
 ## Aviso
 
-A sincronização entre aparelhos ainda envia os dados **sem criptografia**, e o
-código de 8 caracteres é a única credencial: quem souber o código lê e escreve.
-Enquanto isso não mudar, trate a sincronização como opcional e ciente do risco —
-os detalhes e o plano estão em [docs/SECURITY.md](docs/SECURITY.md).
+Este branch já cifra a sincronização, usa senha e detecta conflitos entre
+aparelhos. O site publicado ainda depende de um rollout coordenado com a etapa
+final do banco; até esse rollout, a cópia em produção continua exposta ao risco
+descrito em [docs/SECURITY.md](docs/SECURITY.md).

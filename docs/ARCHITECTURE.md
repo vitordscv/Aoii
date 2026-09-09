@@ -2,16 +2,17 @@
 
 ## O formato
 
-O Aoii é entregue como um arquivo só: `dist/index.html`, com CSS e JavaScript
-embutidos. Isso é proposital — abre offline, instala como PWA e não depende de
-servidor. O que mudou na extração foi de onde esse arquivo vem: antes ele *era*
+O núcleo do Aoii é entregue em `dist/index.html`, com CSS e JavaScript
+embutidos. Ícones, manifesto, service worker e artes ficam em `public/` e são
+copiados para `dist/`; juntos, eles permitem instalar e abrir o app offline sem
+um servidor de aplicação. O que mudou na extração foi de onde esse arquivo vem: antes ele *era*
 a fonte; agora é gerado a partir de `src/`.
 
 ```
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 63 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os 71 módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 
@@ -51,8 +52,8 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 
 ### Dívida conhecida
 
-18 dependências já apontavam para cima quando as fronteiras foram criadas. Elas
-estão congeladas em `scripts/lint-baseline.json` e caem em três grupos:
+17 dependências ainda apontam para cima. Elas estão congeladas em
+`scripts/lint-baseline.json` e caem em três grupos:
 
 - **`core` → `ui/effects.js`** — funções de cálculo chamando `vibrate()`,
   `catIcon()`, `render()`. Efeito colateral de interface dentro do cálculo.
@@ -82,11 +83,14 @@ init()                          src/ui/boot.js
 evento na UI
  → altera `data`
  → persist()            invalida a timeline, grava, marca o status
- → render()             invalida de novo e redesenha tudo
+ → render()             atualiza a aba visível e marca as demais como pendentes
 ```
 
 `persist()` sem `render()` é o erro clássico: os dados mudam, a tela não. Foi
-exatamente o que aconteceu com a data prevista das compras planejadas.
+exatamente o que aconteceu com a data prevista das compras planejadas. Cada
+chamada de `render()` redesenha a aba ativa e deixa as outras pendentes;
+`showTab()` atualiza a aba pendente antes de exibi-la. Configurações são
+preenchidas quando o painel abre.
 
 ### De onde vem cada número
 
@@ -119,10 +123,10 @@ persist() → invalidarTimeline()
           → status "salvo"
 ```
 
-A sincronização é separada e opcional: um código de 8 caracteres identifica a
-linha no Supabase, e o objeto inteiro vai e volta a cada gravação. **Isso ainda
-é o ponto mais frágil do projeto** — sem criptografia e com "última gravação
-vence". Ver [SECURITY.md](SECURITY.md).
+A sincronização é separada e opcional. Códigos novos têm 12 caracteres; o app
+cifra o objeto com AES-GCM antes do envio e usa revisão otimista para detectar
+conflitos. O fechamento do acesso REST direto à tabela ainda depende do rollout
+coordenado descrito em [SECURITY.md](SECURITY.md).
 
 ## O que ainda não existe
 
