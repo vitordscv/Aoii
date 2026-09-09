@@ -77,7 +77,7 @@ const FUNCOES=[
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes','restanteEntrada','fatiasAosPoucos',
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','nextMonth','ensureFatura','lancarParcelamento',
-  'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita',
+  'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',

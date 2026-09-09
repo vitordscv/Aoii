@@ -2,15 +2,11 @@
   const buscaEl=document.getElementById('diario-busca');
   if(buscaEl) buscaEl.addEventListener('input',e=>{ diarioBusca=e.target.value; renderTransacoesList(); });
   document.getElementById('repetir-gasto-btn')?.addEventListener('click',async()=>{
-    const last=(data.transacoes||[])[0];
-    if(!last){ vibrate(15); return; }
-    const t=registrarMovimento({
-      nome:last.nome,valor:last.valor,categoria:last.categoria,metodo:last.metodo,
-      tags:last.tags||[],viagemId:last.viagemId||null,
-    });
+    const t=repetirUltimoGasto();
+    if(!t){ vibrate(15); return; }
     vibrate([10,30,10]);
     await persist(); render();
-    showUndoToast(L('diary.repeated').replace('{name}',`"${last.nome}"`),()=>{ removerTransacao(t.id); });
+    showUndoToast(L('diary.repeated').replace('{name}',`"${t.nome}"`),()=>{ removerTransacao(t.id); });
   });
   const mesFiltroEl=document.getElementById('diario-mes-filtro');
   if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; vibrate(6); renderTransacoesList(); });

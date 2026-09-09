@@ -436,3 +436,10 @@ data, viagem, tags, nota e divisão já na criação. Os testes cobrem troca de 
 por entrada, mudança entre conta e dinheiro vivo, desfazer e recusa sem efeito
 parcial. Este é o primeiro domínio da camada de comandos; os demais serão
 movidos em blocos menores.
+
+## Retomada em 09/09/2026 — repetir gasto
+
+O botão “Repetir último gasto” agora procura o lançamento de despesa mais
+recente. Antes, uma entrada inesperada no topo do Diário podia ser recriada como
+gasto. A repetição também preserva nota, tags, viagem e divisão e usa a data
+atual para o novo lançamento.

@@ -50,6 +50,22 @@ function registrarReceita(nome,valor,categoria,metodo){
   return registrarMovimento({tipo:'receita',nome,valor,categoria,metodo});
 }
 
+function repetirUltimoGasto(){
+  const ultimo=(data.transacoes||[]).find(item=>item.tipo!=='receita');
+  if(!ultimo) return null;
+  return registrarMovimento({
+    nome:ultimo.nome,
+    valor:ultimo.valor,
+    categoria:ultimo.categoria,
+    metodo:ultimo.metodo,
+    tags:ultimo.tags||[],
+    nota:ultimo.nota||'',
+    viagemId:ultimo.viagemId||null,
+    percentual:ultimo.percentual,
+    valorTotal:ultimo.valorTotal,
+  });
+}
+
 function atualizarTransacao(id,campos){
   const atual=(data.transacoes||[]).find(x=>x.id===id);
   if(!atual) return null;

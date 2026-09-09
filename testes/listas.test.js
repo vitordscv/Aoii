@@ -62,6 +62,23 @@ module.exports=function(t){
   t.igual(cc.registrarMovimento({nome:'Inválido',valor:-1,metodo:'pix'}),null,'valor inválido é recusado pelo comando');
   t.valor(dc.saldoAtual,antes,'comando recusado não altera o saldo');
 
+
+  console.log('\n\x1b[1mRepetir último gasto ignora entradas\x1b[0m');
+  const dadosRepetir=base();
+  dadosRepetir.saldoAtual=1000;
+  dadosRepetir.transacoes=[
+    {id:'r1',nome:'Presente',valor:500,categoria:'Outros',metodo:'pix',data:'2026-09-05',tipo:'receita'},
+    {id:'g1',nome:'Almoço',valor:40,categoria:'Outros',metodo:'pix',data:'2026-09-04',tags:['trabalho'],nota:'cliente'},
+  ];
+  const ctxRepetir=criarAmbiente(dadosRepetir,HOJE);
+  const repetido=ctxRepetir.repetirUltimoGasto();
+  t.igual(repetido.nome,'Almoço','uma entrada mais recente não é repetida como gasto');
+  t.igual(repetido.tipo,undefined,'o lançamento repetido continua sendo gasto');
+  t.valor(dadosRepetir.saldoAtual,960,'repetir desconta somente o valor do gasto');
+  t.igual(repetido.data,HOJE,'o gasto repetido recebe a data de hoje');
+  t.igual(repetido.tags[0],'trabalho','as tags são preservadas');
+  t.igual(repetido.nota,'cliente','a nota é preservada');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();
