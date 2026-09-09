@@ -12,6 +12,7 @@
   ],
   "scripts": [
     "data/constants.js",
+    "data/ids.js",
     "storage/supabase-config.js",
     "ui/background-art.js",
     "storage/encryption.js",

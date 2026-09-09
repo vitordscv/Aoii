@@ -54,6 +54,11 @@ module.exports=function(t){
 
   console.log('\n\x1b[1mValidação: ids\x1b[0m');
 
+  const gerados=Array.from({length:200},()=>c.uid());
+  t.igual(new Set(gerados).size,200,'200 ids locais são diferentes entre si');
+  t.verdadeiro(gerados.every(id=>/^[A-Za-z0-9:_-]{1,64}$/.test(id)),
+    'ids locais sempre cabem no formato seguro para atributos');
+
   const comIdSujo=V(base({
     cartoes:[{id:'" onmouseover=alert(1) x="',nome:'Nubank'}],
     faturas:[{id:'f1',ano:2026,mes:9,valor:100,cartaoId:'" onmouseover=alert(1) x="'}],

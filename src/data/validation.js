@@ -23,21 +23,6 @@
    ou `ok` é falso e o app não toca em nada.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* id novo, opaco. crypto.randomUUID exige contexto seguro (https ou
-   localhost); os degraus abaixo existem pro caso raro em que não há. */
-function novoId() {
-  try {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) return 'id-' + crypto.randomUUID();
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      const b = new Uint8Array(16);
-      crypto.getRandomValues(b);
-      return 'id-' + Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
-    }
-  } catch (e) { /* segue pro último degrau */ }
-  novoId._n = (novoId._n || 0) + 1;
-  return 'id-' + Date.now().toString(36) + '-' + novoId._n;
-}
-
 /* chaves que nunca podem virar propriedade de nada que a gente monte */
 const CHAVES_PROIBIDAS = new Set(['__proto__', 'constructor', 'prototype']);
 
@@ -91,7 +76,7 @@ function limparCampo(valor, regra, ctx, caminho) {
       if (mapa && valor != null && mapa.has(String(valor))) return mapa.get(String(valor));
       if (idSeguro(valor)) return String(valor);
       if (valor != null) anota('id em formato não aceito, trocado');
-      return novoId();
+      return uid();
     }
 
     case 'ref': {
@@ -257,7 +242,7 @@ function mapearIds(entrada, ctx) {
   const registrar = (mapa, bruto) => {
     if (bruto == null || typeof bruto === 'object') return;
     const chave = String(bruto);
-    if (!mapa.has(chave)) mapa.set(chave, idSeguro(bruto) ? chave : novoId());
+    if (!mapa.has(chave)) mapa.set(chave, idSeguro(bruto) ? chave : uid());
   };
 
   for (const lista of Object.keys(NAMESPACES_DE_ID)) {

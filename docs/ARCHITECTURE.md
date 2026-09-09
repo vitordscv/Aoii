@@ -12,7 +12,7 @@ a fonte; agora é gerado a partir de `src/`.
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 77 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os 78 módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 

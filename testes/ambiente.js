@@ -2,7 +2,7 @@
    - congela a data de "hoje", pra todo teste ser determinístico
    - injeta o objeto `data` do cenário
    - substitui por versões simples as funções que só servem pra desenhar
-     na tela (L, formatBRL, uid, vibrate...) */
+     na tela (L, formatBRL, vibrate...) */
 const vm=require('vm');
 const {montarMotor,CAMINHO_PADRAO}=require('./extrair-motor');
 
@@ -28,12 +28,10 @@ function criarAmbiente(dados,hojeISO,arquivo){
   DateFalso.parse=RealDate.parse;
   DateFalso.UTC=RealDate.UTC;
 
-  let contador=0;
   const ctx={
     data:dados,
     Date:DateFalso,
     Math,JSON,Number,String,Array,Object,Set,Map,isNaN,isFinite,parseInt,parseFloat,console,
-    uid:()=>'id-teste-'+(++contador),
     /* dublê de tradução: devolve a própria chave, exceto onde o teste
        precisa que o marcador {…} sobreviva pra ser substituído */
     L:k=>({'compra.aPartirDe':'a partir de {mes}',

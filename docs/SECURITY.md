@@ -102,22 +102,20 @@ Dado local recusado não é apagado: vai para
 
 Testes em `testes/validacao.test.js`.
 
-### ~~3. Id de fora indo direto para atributo HTML~~ — parcialmente resolvido
+### ~~3. Id de fora indo direto para atributo HTML~~ — resolvido
 
-Todo id agora precisa caber em `[A-Za-z0-9:_-]{1,64}` — sem aspas, sem `<`, sem
+Todo id precisa caber em `[A-Za-z0-9:_-]{1,64}` — sem aspas, sem `<`, sem
 espaço. O que não couber é trocado por um id novo, e `cartaoId`, `viagemId` e
 `parcelamentoId` seguem a troca, então a relação entre fatura e cartão
 sobrevive. É isso que fecha a injeção por atributo.
 
-Trocar *todos* os ids, e não só os inválidos, seria pior: o app compara o JSON
-local com o da nuvem pra saber se outro aparelho mexeu, e ids novos a cada
-leitura fariam a comparação nunca bater — sincronização em laço.
+A geração foi centralizada em `src/data/ids.js`. Ela usa
+`crypto.randomUUID()` ou `crypto.getRandomValues()`; o último degrau, para um
+navegador antigo sem Web Crypto, combina o instante com um contador monotônico.
+Nenhum identificador de item depende mais de `Math.random()`.
 
-**O que falta:** os ids ainda são gerados por `uid()`
-(`src/core/helpers.js`), que usa `Math.random()`. Serve para chave de lista, não
-para nada com valor de segurança — e hoje nada de segurança depende deles. Vale
-trocar por `crypto.randomUUID()` mesmo assim. A validação já usa
-`crypto.randomUUID()` quando precisa criar um id.
+Ids válidos vindos de backups continuam preservados. Trocar todos a cada leitura
+quebraria a comparação entre cópia local e nuvem e criaria conflitos falsos.
 
 ### ~~4. `innerHTML` em 94 lugares~~ — guardado por lint
 

@@ -414,3 +414,12 @@ As quatro dependências invertidas restantes desapareceram sem copiar funções 
 alterar o formato salvo. A baseline de arquitetura agora está vazia: os 77
 módulos respeitam integralmente o fluxo `data → i18n → core → storage →
 integrations → ui`.
+
+## Retomada em 09/09/2026 — identificadores locais
+
+A geração de ids foi centralizada em `data/ids.js` e compartilhada pela criação
+de itens e pela fronteira de validação. Navegadores atuais usam Web Crypto; o
+degrau de compatibilidade usa instante e contador, sem `Math.random()`.
+
+A suíte agora gera 200 ids reais e confere unicidade, tamanho e caracteres. O
+projeto passa a ter 78 módulos e continua sem nenhuma inversão de camada.
