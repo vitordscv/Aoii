@@ -12,7 +12,7 @@ a fonte; agora é gerado a partir de `src/`.
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 74 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os 77 módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 
@@ -52,16 +52,12 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 
 ### Dívida conhecida
 
-7 dependências ainda apontam para cima. Elas estão congeladas em
-`scripts/lint-baseline.json` e caem em dois grupos:
+4 dependências ainda apontam para cima. Elas estão congeladas em
+`scripts/lint-baseline.json`. Todas partem de `data/defaults.js`: defaults
+e migração ainda chamam utilitários que hoje pertencem a `core`.
 
-- **`data/defaults.js` → `core`** — defaults e migração ainda chamam cálculos.
-- **`integrations/gemini.js` → `ui`** — o resumo enviado à IA ainda usa três
-  cálculos que estão em módulos de interface.
-
-O caminho para zerar é o mesmo nos dois: a camada de baixo devolve valor, a de
-cima decide o que fazer com ele. Cada uma que sai deve sair da baseline no mesmo
-commit.
+Para zerar a lista, esses utilitários básicos precisam descer para `data`, sem
+duplicar regras. Cada dependência removida deve sair da baseline no mesmo commit.
 
 ## Fluxos
 

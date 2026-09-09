@@ -4,9 +4,6 @@
     "data/defaults.js → core/dates.js",
     "data/defaults.js → core/helpers.js",
     "data/defaults.js → core/metrics.js",
-    "data/defaults.js → core/money.js",
-    "integrations/gemini.js → ui/health.js",
-    "integrations/gemini.js → ui/investments.js",
-    "integrations/gemini.js → ui/reserve.js"
+    "data/defaults.js → core/money.js"
   ]
 }

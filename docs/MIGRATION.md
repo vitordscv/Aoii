@@ -389,5 +389,16 @@ a resposta pública. Estado, persistência, mensagens e campos ficaram em
 
 A mensagem de consulta das taxas deixou de estar fixa em português e ganhou
 tradução nos cinco idiomas. A fórmula passou a ter testes diretos de principal,
-aporte, taxa zero, juros simples e compostos. Quatro dependências saíram da baseline,
-que passou de 11 para 7.
+aporte, taxa zero, juros simples e compostos. Quatro dependências saíram da
+baseline, que passou de 11 para 7.
+
+## Retomada em 09/09/2026 — cálculos usados pela IA
+
+O score de saúde financeira, o custo mensal essencial e os tipos de investimento
+saíram dos módulos visuais e passaram para `core/health.js`, `core/reserve.js` e
+`core/investments.js`. Os componentes continuam nos mesmos arquivos de interface
+e chamam as mesmas funções.
+
+O resumo enviado à IA agora depende apenas de dados, internacionalização, núcleo
+e integrações. Três dependências invertidas saíram da baseline, que caiu de 7
+para 4.
