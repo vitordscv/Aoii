@@ -34,13 +34,9 @@ module.exports=function(t){
     const dd=base();
     dd.transacoes=[{id:'x',nome:'t',valor:100,categoria:'Outros',metodo:'pix',data:'2026-09-04',tipo}];
     const c=criarAmbiente(dd,HOJE);
-    const item=dd.transacoes[0];
-    c.removerTransacao('x');
+    const removida=c.removerTransacao('x');
     const depoisDeApagar=dd.saldoAtual;
-    /* desfazer, com o mesmo sinal que removerTransacao usou */
-    const sinal=item.tipo==='receita'?-1:1;
-    dd.transacoes.splice(0,0,item);
-    dd.saldoAtual=dd.saldoAtual-sinal*item.valor;
+    c.restaurarTransacao(removida.item,removida.indice);
     return {depoisDeApagar,depoisDeDesfazer:dd.saldoAtual};
   }
   const gasto=ciclo(undefined);
@@ -49,6 +45,22 @@ module.exports=function(t){
   const receita=ciclo('receita');
   t.valor(receita.depoisDeApagar,900,'apagar uma entrada de 100 tira o dinheiro');
   t.valor(receita.depoisDeDesfazer,1000,'desfazer volta ao saldo original (não desconta de novo)');
+
+  console.log('\n\x1b[1mComandos do Diário mantêm item e saldo juntos\x1b[0m');
+  const dc=base();
+  const cc=criarAmbiente(dc,HOJE);
+  const criado=cc.registrarMovimento({nome:'Mercado',valor:100,categoria:'Mercado',metodo:'pix',data:'2026-09-01',tags:['casa'],nota:'semana'});
+  t.valor(dc.saldoAtual,900,'criar um gasto desconta o saldo');
+  t.igual(criado.data,'2026-09-01','a data escolhida nasce junto com o lançamento');
+  t.igual(criado.tags[0],'casa','metadados nascem no mesmo comando');
+  cc.atualizarTransacao(criado.id,{nome:'Reembolso',valor:150,categoria:'Outros',metodo:'dinheiro',data:'2026-09-02',tipo:'receita',tags:[],nota:''});
+  t.valor(dc.saldoAtual,1000,'editar estorna o efeito antigo na conta');
+  t.valor(dc.dinheiroVivo,150,'e aplica o novo efeito no dinheiro vivo');
+  t.igual(dc.transacoes[0].tipo,'receita','a edição também troca gasto por entrada');
+  t.verdadeiro(Boolean(dc.saldoAtualizadoEm&&dc.dinheiroVivoAtualizadoEm),'as duas origens alteradas recebem data de atualização');
+  const antes=dc.saldoAtual;
+  t.igual(cc.registrarMovimento({nome:'Inválido',valor:-1,metodo:'pix'}),null,'valor inválido é recusado pelo comando');
+  t.valor(dc.saldoAtual,antes,'comando recusado não altera o saldo');
 
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{

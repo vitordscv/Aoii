@@ -4,9 +4,10 @@
   document.getElementById('repetir-gasto-btn')?.addEventListener('click',async()=>{
     const last=(data.transacoes||[])[0];
     if(!last){ vibrate(15); return; }
-    registrarTransacao(last.nome,last.valor,last.categoria,last.metodo);
-    const t=data.transacoes[0];
-    if(t){ t.tags=last.tags||[]; t.viagemId=last.viagemId||null; }
+    const t=registrarMovimento({
+      nome:last.nome,valor:last.valor,categoria:last.categoria,metodo:last.metodo,
+      tags:last.tags||[],viagemId:last.viagemId||null,
+    });
     vibrate([10,30,10]);
     await persist(); render();
     showUndoToast(L('diary.repeated').replace('{name}',`"${last.nome}"`),()=>{ removerTransacao(t.id); });
@@ -128,18 +129,11 @@ function renderTransacoesList(){
       </div>
     </div>`).join('')}`;
   function doDelete(id){
-    const t=(data.transacoes||[]).find(x=>x.id===id); if(!t) return;
-    const idx=data.transacoes.indexOf(t);
-    removerTransacao(id);
+    const removida=removerTransacao(id); if(!removida) return;
     vibrate(15);
     render();
-    showUndoToast(L('undo.removida').replace('{nome}',t.nome),()=>{
-      data.transacoes.splice(Math.min(idx,data.transacoes.length),0,t);
-      // desfaz o estorno feito no saldo/dinheiro vivo — com o MESMO sinal que
-      // removerTransacao() usou, senão uma entrada é descontada duas vezes
-      const sinal=t.tipo==='receita'?-1:1;
-      if(t.metodo==='dinheiro') data.dinheiroVivo=(data.dinheiroVivo||0)-sinal*t.valor;
-      else data.saldoAtual=(data.saldoAtual||0)-sinal*t.valor;
+    showUndoToast(L('undo.removida').replace('{nome}',removida.item.nome),()=>{
+      restaurarTransacao(removida.item,removida.indice);
     });
   }
   el.querySelectorAll('[data-action="del-transacao"]').forEach(btn=>{

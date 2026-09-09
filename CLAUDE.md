@@ -32,9 +32,9 @@ arquivos de 100 a 400 linhas com nome que diz o assunto. Use `src/`.
 ## Onde fica cada coisa
 
 ```
-src/data/          constantes, estado (`data`), defaults e migração
+src/data/          constantes, ids, estado (`data`), esquema e validação
 src/i18n/          um arquivo por idioma + a montagem + L()
-src/core/          cálculo puro: dinheiro, datas, projeção, cartão, métricas
+src/core/          regras, comandos e cálculos; defaults e migração
 src/storage/       localStorage e sincronização Supabase
 src/integrations/  Gemini, BrasilAPI
 src/ui/            tudo que desenha, escuta evento ou mexe no DOM
@@ -51,10 +51,9 @@ mudança de comportamento. Módulo novo entra no manifesto na posição certa.
 data → i18n → core → storage → integrations → ui
 ```
 
-Cada camada só pode usar as anteriores. As 18 dependências que já apontavam
-para cima quando as fronteiras foram criadas estão em
-`scripts/lint-baseline.json`. Essa lista **só encolhe**: nunca acrescente uma
-entrada à mão para fazer o lint passar.
+Cada camada só pode usar as anteriores. A baseline de exceções está vazia.
+Nunca acrescente uma entrada a `scripts/lint-baseline.json` para fazer o lint
+passar; corrija a direção da dependência.
 
 ## Invariantes financeiros
 

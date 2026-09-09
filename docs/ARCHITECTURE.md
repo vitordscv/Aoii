@@ -123,10 +123,10 @@ coordenado descrito em [SECURITY.md](SECURITY.md).
 
 ## O que ainda não existe
 
-A interface altera `data` diretamente em dezenas de handlers. Não há uma camada
-de comandos (`addTransaction()`, `registerIncomePayment()`, `updateGoal()`) por
-onde toda mudança passe. Isso é o que torna difícil garantir que nenhum caminho
-esqueça de validar, invalidar a timeline ou redesenhar.
+Os lançamentos do Diário já passam por comandos em `core/transactions.js`:
+criação, edição, remoção e restauração alteram o item e o saldo correspondente na
+mesma operação. A interface ainda altera diretamente metas, rendas, cartões,
+faturas e configurações.
 
-Criar essa camada é a mudança estrutural seguinte, e ela depende da validação
-central estar pronta — ver [MIGRATION.md](MIGRATION.md).
+Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
+[MIGRATION.md](MIGRATION.md).

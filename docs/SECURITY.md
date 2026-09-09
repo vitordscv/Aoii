@@ -85,7 +85,7 @@ app leria a cópia cifrada como "backup vazio" e a salvaria por cima.
 
 ### ~~2. Importação sem validação~~ — resolvido
 
-Toda entrada passa por `adotarDadosDeFora()` (`src/data/validation.js`):
+Toda entrada passa por `adotarDadosDeFora()` (`src/core/defaults.js`):
 arquivo JSON, código de backup em base64, resposta do Supabase e o próprio
 `localStorage`. O objeto é reconstruído campo a campo a partir de
 `src/data/schema.js` — o que não está declarado não entra.

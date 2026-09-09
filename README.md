@@ -29,9 +29,9 @@ Não é preciso instalar nada: só Node 18 ou mais novo.
 `src/` é a fonte; `dist/` é gerado pelo build e não fica no git.
 
 ```
-src/data/          constantes, estado, defaults e migração
+src/data/          constantes, ids, estado, esquema e validação
 src/i18n/          um arquivo por idioma (pt, en, es, fr, it)
-src/core/          cálculo puro: dinheiro, datas, projeção, cartão
+src/core/          regras, comandos e cálculos financeiros
 src/storage/       localStorage e sincronização
 src/integrations/  Gemini, BrasilAPI
 src/ui/            desenho e eventos

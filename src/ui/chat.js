@@ -216,23 +216,14 @@ function setupGastoSheet(){
     const nota=document.getElementById('gasto-nota').value.trim();
 
     if(editingTransacaoId){
-      const t=(data.transacoes||[]).find(x=>x.id===editingTransacaoId);
-      if(t){
-        const novoMetodo=metodoAtual;
-        const sinalAntigo=t.tipo==='receita'?-1:1;
-        const sinalNovo=tipoAtual==='receita'?-1:1;
-        // estorna o efeito antigo e aplica o novo no saldo/dinheiro vivo
-        if(t.metodo==='dinheiro') data.dinheiroVivo=(data.dinheiroVivo||0)+sinalAntigo*t.valor;
-        else data.saldoAtual=(data.saldoAtual||0)+sinalAntigo*t.valor;
-        if(novoMetodo==='dinheiro') data.dinheiroVivo=(data.dinheiroVivo||0)-sinalNovo*valorEfetivo;
-        else data.saldoAtual=(data.saldoAtual||0)-sinalNovo*valorEfetivo;
-        Object.assign(t,{nome,valor:valorEfetivo,categoria,metodo:novoMetodo,data:dataISO,viagemId,tags,nota,tipo:tipoAtual==='receita'?'receita':undefined});
-        if(tipoAtual!=='receita'&&dividir){ t.percentual=pct; t.valorTotal=valor; } else { delete t.percentual; delete t.valorTotal; }
-      }
+      atualizarTransacao(editingTransacaoId,{
+        nome,valor:valorEfetivo,categoria,metodo:metodoAtual,data:dataISO,
+        viagemId,tags,nota,tipo:tipoAtual==='receita'?'receita':null,
+        percentual:tipoAtual!=='receita'&&dividir?pct:null,
+        valorTotal:tipoAtual!=='receita'&&dividir?valor:null,
+      });
     }else if(tipoAtual==='receita'){
-      registrarReceita(nome,valor,categoria,metodoAtual);
-      const t=data.transacoes[0];
-      if(t){ t.data=dataISO; t.viagemId=viagemId; t.tags=tags; t.nota=nota; }
+      registrarMovimento({tipo:'receita',nome,valor,categoria,metodo:metodoAtual,data:dataISO,viagemId,tags,nota});
     }else if(metodoAtual==='credito'){
       const parcelas=Math.max(1,parseInt(document.getElementById('gasto-parcelas').value,10)||1);
       const cartaoEl=document.getElementById('gasto-cartao');
@@ -246,15 +237,11 @@ function setupGastoSheet(){
       }
       lancarParcelamento(nome,valor,parcelas,anoCompra,mesCompra,categoria,cid,dataISO);
     }else{
-      // dinheiro, débito e pix descontam na hora do saldo (ou dinheiro vivo)
-      registrarTransacao(nome,valorEfetivo,categoria,metodoAtual);
-      const t=data.transacoes[0];
-      if(t){
-        t.data=dataISO; // respeita a data escolhida no sheet
-        t.viagemId=viagemId;
-        t.tags=tags; t.nota=nota;
-        if(dividir){ t.percentual=pct; t.valorTotal=valor; }
-      }
+      // dinheiro, débito e pix passam pelo mesmo comando que atualiza o saldo
+      registrarMovimento({
+        nome,valor:valorEfetivo,categoria,metodo:metodoAtual,data:dataISO,
+        viagemId,tags,nota,percentual:dividir?pct:null,valorTotal:dividir?valor:null,
+      });
     }
     vibrate([10,30,10]);
     await persist(); render();

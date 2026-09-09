@@ -423,3 +423,16 @@ degrau de compatibilidade usa instante e contador, sem `Math.random()`.
 
 A suíte agora gera 200 ids reais e confere unicidade, tamanho e caracteres. O
 projeto passa a ter 78 módulos e continua sem nenhuma inversão de camada.
+
+## Retomada em 09/09/2026 — primeiros comandos de domínio
+
+Criação, edição, remoção e restauração dos lançamentos do Diário passaram a ser
+operações únicas em `core/transactions.js`. Cada comando altera o lançamento e
+seu efeito no saldo em conta ou no dinheiro vivo no mesmo ponto; a interface não
+repete mais a regra de sinais ao editar ou desfazer.
+
+Os comandos recusam valor ou método inválido antes de tocar nos dados e recebem
+data, viagem, tags, nota e divisão já na criação. Os testes cobrem troca de gasto
+por entrada, mudança entre conta e dinheiro vivo, desfazer e recusa sem efeito
+parcial. Este é o primeiro domínio da camada de comandos; os demais serão
+movidos em blocos menores.
