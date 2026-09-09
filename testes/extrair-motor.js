@@ -61,7 +61,7 @@ function recortarBloco(src,marcaInicio,ateFimDe){
 
 /* blocos inteiros: [marca de início, função que fecha o bloco] */
 const BLOCOS=[
-  ['const SCHEMA_VERSAO','adotarDadosDeFora'],   // data/schema.js + data/validation.js
+  ['const SCHEMA_VERSAO','validateAndNormalizeData'], // data/schema.js + data/validation.js
   ['const CRIPTO_FORMATO','decifrarDaNuvem'],     // storage/encryption.js
   ['const sync = {','migrarParaCifrado'],         // storage/sync-ciclo.js
 ];
@@ -83,7 +83,7 @@ const FUNCOES=[
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
-  'uid','defaultData','migrateData',
+  'uid','defaultData','migrateData','adotarDadosDeFora',
   'sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'computeInsights','invalidarTimeline'
 ];

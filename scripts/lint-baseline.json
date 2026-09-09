@@ -1,9 +1,4 @@
 {
   "_leiaMe": "Dependências que apontam para uma camada mais alta e já existiam quando as fronteiras foram criadas. Lista só encolhe: nunca acrescente à mão.",
-  "violacoes": [
-    "data/defaults.js → core/dates.js",
-    "data/defaults.js → core/helpers.js",
-    "data/defaults.js → core/metrics.js",
-    "data/defaults.js → core/money.js"
-  ]
+  "violacoes": []
 }

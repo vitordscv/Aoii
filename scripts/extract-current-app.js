@@ -80,7 +80,7 @@ const CORTES_JS = [
   [2884, 'core/cards.js'],
   [2931, 'core/transactions.js'],
   [2984, 'core/metrics.js'],
-  [3037, 'data/defaults.js'],
+  [3037, 'core/defaults.js'],
   [3227, 'storage/local-storage.js'],
   [3275, 'ui/effects.js'],
   [3486, 'core/advisor.js'],

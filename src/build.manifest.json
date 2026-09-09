@@ -29,7 +29,7 @@
     "core/cards.js",
     "core/transactions.js",
     "core/metrics.js",
-    "data/defaults.js",
+    "core/defaults.js",
     "storage/local-storage.js",
     "ui/effects.js",
     "core/advisor.js",

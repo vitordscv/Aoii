@@ -189,3 +189,36 @@ function migrateData(d){
   return d;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   A única porta por onde dado de fora vira `data`.
+
+   Valida, e só então deixa migrateData() cuidar do que é histórico: formato
+   antigo virando novo, faturas duplicadas se fundindo, campo que ganhou padrão
+   depois. Nessa ordem — migrar antes de validar seria migrar lixo.
+
+   Quem chama decide o que fazer com `ok:false`: em importação, avisar e não
+   mexer em nada; na leitura local ou da nuvem, ignorar o que veio.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function adotarDadosDeFora(bruto, origem, opcoes) {
+  const r = validateAndNormalizeData(bruto, opcoes);
+  if (!r.ok) {
+    console.warn('[aoii] backup recusado (' + (origem || '?') + '): ' + r.problemas.join('; '));
+    return r;
+  }
+  if (r.problemas.length || r.descartados.length) {
+    /* nomes de campo e contagens — nunca o conteúdo financeiro */
+    console.warn('[aoii] backup aceito com ressalvas (' + (origem || '?') + '): ' +
+      r.problemas.length + ' ajuste(s), ' + r.descartados.length + ' campo(s) desconhecido(s) descartado(s)');
+  }
+
+  /* Segunda passada, depois de migrar. Duas razões:
+     - migrateData() acrescenta os campos que faltavam no fim do objeto, então
+       sem isto a ordem das chaves depende de o que veio no backup. A
+       sincronização compara `JSON.stringify(remote)` com `JSON.stringify(data)`
+       pra saber se outro aparelho mexeu — ordem instável faria dois aparelhos
+       com dados idênticos discordarem;
+     - o que a migração escreve passa a obedecer o esquema também. */
+  const depois = validateAndNormalizeData(migrateData(r.data));
+  r.data = depois.ok ? depois.data : r.data;
+  return r;
+}

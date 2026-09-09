@@ -43,21 +43,19 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 
 | camada | o que é | pode usar |
 |---|---|---|
-| `data` | constantes, o objeto `data`, defaults e migração | nada |
+| `data` | constantes, esquema e o objeto `data` | nada |
 | `i18n` | dicionários e `L()` | `data` |
-| `core` | cálculo puro: dinheiro, datas, projeção, cartão, métricas | `data`, `i18n` |
+| `core` | regras e cálculos: defaults, migração, dinheiro, datas, projeção, cartão e métricas | `data`, `i18n` |
 | `storage` | localStorage e sincronização | + `core` |
 | `integrations` | Gemini, BrasilAPI | + `storage` |
 | `ui` | desenho, eventos, DOM | tudo |
 
-### Dívida conhecida
+### Fronteiras sem exceções
 
-4 dependências ainda apontam para cima. Elas estão congeladas em
-`scripts/lint-baseline.json`. Todas partem de `data/defaults.js`: defaults
-e migração ainda chamam utilitários que hoje pertencem a `core`.
-
-Para zerar a lista, esses utilitários básicos precisam descer para `data`, sem
-duplicar regras. Cada dependência removida deve sair da baseline no mesmo commit.
+A verificação de camadas está zerada: `scripts/lint-baseline.json` não contém
+nenhuma dependência invertida. A criação dos dados iniciais e a migração de
+versões antigas ficam em `core/defaults.js`, pois aplicam regras e normalizam o
+estado usando os utilitários do núcleo.
 
 ## Fluxos
 

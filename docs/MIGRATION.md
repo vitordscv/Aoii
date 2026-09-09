@@ -402,3 +402,15 @@ e chamam as mesmas funções.
 O resumo enviado à IA agora depende apenas de dados, internacionalização, núcleo
 e integrações. Três dependências invertidas saíram da baseline, que caiu de 7
 para 4.
+
+## Retomada em 09/09/2026 — fronteiras zeradas
+
+`defaultData()` e `migrateData()` passaram de `data/defaults.js` para
+`core/defaults.js`. Essas rotinas não são dados estáticos: elas criam o estado
+inicial, convertem valores de versões antigas e aplicam regras usando datas,
+categorias, números e identificadores do núcleo.
+
+As quatro dependências invertidas restantes desapareceram sem copiar funções nem
+alterar o formato salvo. A baseline de arquitetura agora está vazia: os 77
+módulos respeitam integralmente o fluxo `data → i18n → core → storage →
+integrations → ui`.
