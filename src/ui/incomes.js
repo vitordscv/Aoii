@@ -36,11 +36,10 @@ function renderRendas(){
     attachSwipe(item,{
       onEdit:()=>openRRSheet(id),
       onDelete:()=>{
-        const idx=(data.rendasRecorrentes||[]).findIndex(r=>r.id===id); if(idx<0) return;
-        const removed=data.rendasRecorrentes.splice(idx,1)[0];
+        const removida=removerRendaRecorrente(id); if(!removida) return;
         vibrate(15); render();
-        showUndoToast(L('undo.removida').replace('{nome}',removed.nome||tipoRenda(removed.tipo).label),()=>{
-          data.rendasRecorrentes.splice(Math.min(idx,data.rendasRecorrentes.length),0,removed);
+        showUndoToast(L('undo.removida').replace('{nome}',removida.item.nome||tipoRenda(removida.item.tipo).label),()=>{
+          restaurarRendaRecorrente(removida.item,removida.indice);
         });
       },
     });
@@ -64,7 +63,7 @@ function setupRRSheet(){
 
   function renderTipoGrid(){
     const grid=document.getElementById('rr-tipo-grid');
-    grid.innerHTML=TIPOS_RENDA.map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" aria-pressed="${t.id===tipoAtual}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
+    grid.innerHTML=TIPOS_RENDA.map(t=>{ const info=tipoRenda(t.id); return `<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" aria-pressed="${t.id===tipoAtual}" data-tipo="${t.id}">${info.icon} ${esc(info.label)}</button>`; }).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo'); vibrate(6); renderTipoGrid();
     }));
@@ -99,11 +98,10 @@ function setupRRSheet(){
     if(!editingId) return;
     const id=editingId;
     close();
-    const idx=(data.rendasRecorrentes||[]).findIndex(r=>r.id===id); if(idx<0) return;
-    const removed=data.rendasRecorrentes.splice(idx,1)[0];
+    const removida=removerRendaRecorrente(id); if(!removida) return;
     vibrate(15); render();
-    showUndoToast(L('undo.removida').replace('{nome}',removed.nome||tipoRenda(removed.tipo).label),()=>{
-      data.rendasRecorrentes.splice(Math.min(idx,data.rendasRecorrentes.length),0,removed);
+    showUndoToast(L('undo.removida').replace('{nome}',removida.item.nome||tipoRenda(removida.item.tipo).label),()=>{
+      restaurarRendaRecorrente(removida.item,removida.indice);
     });
   });
   submitBtn.addEventListener('click',async()=>{
@@ -114,13 +112,9 @@ function setupRRSheet(){
     dia=Math.min(31,dia);
     const nome=document.getElementById('rr-nome').value.trim();
     const ativo=document.getElementById('rr-ativo').checked;
-    if(!data.rendasRecorrentes) data.rendasRecorrentes=[];
-    if(editingId){
-      const r=data.rendasRecorrentes.find(x=>x.id===editingId);
-      if(r) Object.assign(r,{tipo:tipoAtual,nome,valor,diaDoMes:dia,ativo});
-    }else{
-      data.rendasRecorrentes.push({id:uid(),tipo:tipoAtual,nome,valor,diaDoMes:dia,ativo,criadoEm:new Date().toISOString()});
-    }
+    const campos={tipo:tipoAtual,nome,valor,diaDoMes:dia,ativo};
+    const renda=editingId?atualizarRendaRecorrente(editingId,campos):criarRendaRecorrente(campos);
+    if(!renda) return;
     vibrate([10,30,10]);
     await persist(); render();
     close();

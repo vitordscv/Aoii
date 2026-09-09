@@ -43,4 +43,6 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 ,'list.cardDefault':'Cartão','list.alreadyPosted':'já lançada nas faturas','csv.date':'Data','csv.type':'Tipo','csv.name':'Nome','csv.category':'Categoria','csv.method':'Método','csv.value':'Valor','csv.income':'Entrada','csv.expense':'Gasto','time.day':'dia','time.days':'dias','warn.invoiceOverdue':'Fatura de {month} venceu há {count} {days} e ainda não foi marcada como paga.','warn.invoiceToday':'Fatura de {month} vence hoje e ainda não foi marcada como paga.','warn.invoiceIn':'Fatura de {month} vence em {count} {days} e ainda não foi marcada como paga.','warn.billToday':'Conta "{name}" vence hoje.','warn.billIn':'Conta "{name}" vence em {count} {days}.','warn.cardClosesToday':'A fatura do {name} fecha hoje — compras feitas a partir de amanhã já entram na próxima.','warn.cardClosesIn':'A fatura do {name} fecha em {count} {days}.'
 
 ,'meta.removeReturnsBalance':'O valor guardado volta para o saldo da conta.'
+
+,'income.type.clt':'Salário CLT','income.type.pj':'PJ · NF','income.type.passive':'Renda passiva','income.type.freelance':'Freela','income.type.other':'Outros'
 };

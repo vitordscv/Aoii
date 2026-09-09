@@ -456,3 +456,10 @@ Criar, editar, remover e restaurar metas passaram para `core/goals.js`. Alterar
 o valor guardado move somente a diferença no saldo da conta; excluir devolve o
 valor e desfazer o separa novamente. Assim essas ações não criam nem apagam
 patrimônio. Entradas inválidas são recusadas antes de qualquer alteração.
+
+## Retomada em 09/09/2026 — comandos de renda recorrente
+
+Criação, edição, remoção e restauração de rendas recorrentes passaram para
+`core/income.js`. Tipo, valor e dia são validados antes da alteração; uma edição
+inválida não deixa campos parciais. Os nomes dos tipos também passaram a usar os
+cinco dicionários da interface.

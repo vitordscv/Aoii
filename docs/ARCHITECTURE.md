@@ -125,8 +125,9 @@ coordenado descrito em [SECURITY.md](SECURITY.md).
 
 Os lançamentos do Diário já passam por comandos em `core/transactions.js`.
 Metas passam por `core/goals.js`; editar o valor guardado, remover e desfazer
-movem o mesmo valor no saldo da conta e preservam o patrimônio. A interface
-ainda altera diretamente rendas, cartões, faturas e configurações.
+movem o mesmo valor no saldo da conta e preservam o patrimônio. Rendas
+recorrentes passam pelos comandos de `core/income.js`. A interface ainda altera
+diretamente cartões, faturas e configurações.
 
 Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
 [MIGRATION.md](MIGRATION.md).

@@ -43,4 +43,6 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 ,'list.cardDefault':'Carte','list.alreadyPosted':'déjà ajouté aux relevés','csv.date':'Date','csv.type':'Type','csv.name':'Nom','csv.category':'Catégorie','csv.method':'Mode','csv.value':'Montant','csv.income':'Revenu','csv.expense':'Dépense','time.day':'jour','time.days':'jours','warn.invoiceOverdue':'La facture de {month} est échue depuis {count} {days} et n\'a pas encore été marquée payée.','warn.invoiceToday':'La facture de {month} est due aujourd\'hui et n\'a pas encore été marquée payée.','warn.invoiceIn':'La facture de {month} est due dans {count} {days} et n\'a pas encore été marquée payée.','warn.billToday':'« {name} » est due aujourd\'hui.','warn.billIn':'« {name} » est due dans {count} {days}.','warn.cardClosesToday':'La facture de {name} se clôture aujourd\'hui — les achats à partir de demain iront dans la suivante.','warn.cardClosesIn':'La facture de {name} se clôture dans {count} {days}.'
 
 ,'meta.removeReturnsBalance':'Le montant épargné revient dans le solde de votre compte.'
+
+,'income.type.clt':'Salaire','income.type.pj':'Indépendant · facture','income.type.passive':'Revenu passif','income.type.freelance':'Freelance','income.type.other':'Autres'
 };

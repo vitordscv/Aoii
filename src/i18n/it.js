@@ -43,4 +43,6 @@ const I18N_IT={'nav.entradas':'Entrate','nav.fixos':'Bollette','nav.resumo':'Pan
 ,'list.cardDefault':'Carta','list.alreadyPosted':'già aggiunta agli estratti conto','csv.date':'Data','csv.type':'Tipo','csv.name':'Nome','csv.category':'Categoria','csv.method':'Metodo','csv.value':'Importo','csv.income':'Entrata','csv.expense':'Spesa','time.day':'giorno','time.days':'giorni','warn.invoiceOverdue':'L\'estratto conto di {month} è scaduto da {count} {days} e non è ancora stato segnato come pagato.','warn.invoiceToday':'L\'estratto conto di {month} scade oggi e non è ancora stato segnato come pagato.','warn.invoiceIn':'L\'estratto conto di {month} scade tra {count} {days} e non è ancora stato segnato come pagato.','warn.billToday':'"{name}" scade oggi.','warn.billIn':'"{name}" scade tra {count} {days}.','warn.cardClosesToday':'L\'estratto conto di {name} chiude oggi — gli acquisti da domani passeranno al successivo.','warn.cardClosesIn':'L\'estratto conto di {name} chiude tra {count} {days}.'
 
 ,'meta.removeReturnsBalance':'L\'importo risparmiato torna nel saldo del conto.'
+
+,'income.type.clt':'Stipendio','income.type.pj':'Autonomo · fattura','income.type.passive':'Reddito passivo','income.type.freelance':'Freelance','income.type.other':'Altro'
 };

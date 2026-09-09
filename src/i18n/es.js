@@ -43,4 +43,6 @@ const I18N_ES={'nav.entradas':'Ingresos','nav.fixos':'Fijos','nav.resumo':'Resum
 ,'list.cardDefault':'Tarjeta','list.alreadyPosted':'ya añadida a las facturas','csv.date':'Fecha','csv.type':'Tipo','csv.name':'Nombre','csv.category':'Categoría','csv.method':'Método','csv.value':'Importe','csv.income':'Ingreso','csv.expense':'Gasto','time.day':'día','time.days':'días','warn.invoiceOverdue':'La factura de {month} venció hace {count} {days} y aún no se marcó como pagada.','warn.invoiceToday':'La factura de {month} vence hoy y aún no se marcó como pagada.','warn.invoiceIn':'La factura de {month} vence en {count} {days} y aún no se marcó como pagada.','warn.billToday':'"{name}" vence hoy.','warn.billIn':'"{name}" vence en {count} {days}.','warn.cardClosesToday':'La factura de {name} cierra hoy — las compras desde mañana entran en la siguiente.','warn.cardClosesIn':'La factura de {name} cierra en {count} {days}.'
 
 ,'meta.removeReturnsBalance':'El importe ahorrado vuelve al saldo de tu cuenta.'
+
+,'income.type.clt':'Salario','income.type.pj':'Autónomo · factura','income.type.passive':'Ingreso pasivo','income.type.freelance':'Freelance','income.type.other':'Otros'
 };

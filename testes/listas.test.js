@@ -79,6 +79,29 @@ module.exports=function(t){
   t.igual(repetido.tags[0],'trabalho','as tags são preservadas');
   t.igual(repetido.nota,'cliente','a nota é preservada');
 
+  console.log('\n\x1b[1mComandos de renda recorrente são atômicos\x1b[0m');
+  const dadosRenda=base();
+  const ctxRenda=criarAmbiente(dadosRenda,HOJE);
+  t.igual(ctxRenda.criarRendaRecorrente({tipo:'desconhecido',valor:100,diaDoMes:5}),null,'tipo desconhecido é recusado');
+  t.igual(ctxRenda.criarRendaRecorrente({tipo:'clt',valor:-1,diaDoMes:5}),null,'valor inválido é recusado');
+  t.igual(ctxRenda.criarRendaRecorrente({tipo:'clt',valor:100,diaDoMes:32}),null,'dia fora do mês é recusado');
+  t.igual(dadosRenda.rendasRecorrentes.length,0,'comandos recusados não deixam item parcial');
+  const renda=ctxRenda.criarRendaRecorrente({tipo:'clt',nome:'Salário',valor:2500,diaDoMes:5,ativo:true});
+  t.igual(renda.tipo,'clt','tipo nasce junto com a renda');
+  t.valor(ctxRenda.rendasRecorrentesEntre(new Date('2026-09-01T00:00:00'),new Date('2026-09-30T23:59:59')),2500,'renda criada entra na projeção');
+  const valorAntes=renda.valor;
+  t.igual(ctxRenda.atualizarRendaRecorrente(renda.id,{nome:'Alterado',valor:0}),null,'edição inválida é recusada antes de alterar');
+  t.igual(renda.nome,'Salário','edição recusada não altera o nome');
+  t.valor(renda.valor,valorAntes,'edição recusada não altera o valor');
+  ctxRenda.atualizarRendaRecorrente(renda.id,{tipo:'freela',nome:'Projeto',valor:900,diaDoMes:20,ativo:false});
+  t.igual(renda.tipo,'freela','edição válida troca o tipo');
+  t.igual(renda.ativo,false,'renda pausada deixa de ficar ativa');
+  t.valor(ctxRenda.rendasRecorrentesAtivas().length,0,'renda pausada sai dos cálculos');
+  const rendaRemovida=ctxRenda.removerRendaRecorrente(renda.id);
+  t.igual(dadosRenda.rendasRecorrentes.length,0,'renda é removida pelo comando');
+  ctxRenda.restaurarRendaRecorrente(rendaRemovida.item,rendaRemovida.indice);
+  t.igual(dadosRenda.rendasRecorrentes[0].id,renda.id,'desfazer restaura a renda na posição');
+
   console.log('\n\x1b[1mComandos de metas preservam o patrimônio\x1b[0m');
   const dadosMeta=base();
   const ctxMeta=criarAmbiente(dadosMeta,HOJE);

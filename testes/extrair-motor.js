@@ -80,7 +80,8 @@ const FUNCOES=[
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
-  'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',
+  'rendasRecorrentesAtivas','rendasRecorrentesEntre','camposRendaRecorrente','criarRendaRecorrente','atualizarRendaRecorrente',
+  'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
@@ -95,7 +96,9 @@ function montarMotor(arquivo){
   const meses=/const MONTH_NAMES\s*=\s*\[[^\]]*\]/.exec(src);
   const abrev=/const MONTH_ABBR\s*=\s*\[[^\]]*\]/.exec(src);
   const cats=/const CATEGORIAS_DEFAULT\s*=\s*\[[^\]]*\]/.exec(src);
-  let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'');
+  const tiposRenda=/const TIPOS_RENDA\s*=\s*\[[\s\S]*?\n\];/.exec(src);
+  let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
+    (tiposRenda?tiposRenda[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez
