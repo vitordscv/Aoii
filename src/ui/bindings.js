@@ -17,12 +17,7 @@ function bindStatic(){
     if(!prepararSincronizacao()) return;
     try{
 
-    const jaTemBackup=await confirmDialog({
-      title:L('sync.backupTitulo'),
-      text:L('sync.backupTexto'),
-      okLabel:L('sync.backupOk'),
-    });
-    if(!jaTemBackup){ document.getElementById('download-json-btn')?.click(); return; }
+    if(!await exigirBackupAntesDeCifrar()) return;
 
     const senha=await pedirSenhaSync({
       titulo:L('senha.novaTitulo'),
@@ -32,7 +27,9 @@ function bindStatic(){
     });
     if(!senha) return;
 
-    const code=gerarCodigoSync();
+    let code;
+    try{ code=gerarCodigoSync(); }
+    catch(e){ setSaveStatus(L('st.syncErroAtivar')); return; }
     setSyncCode(code);
     refreshSyncUI();
     sync.status='sincronizando'; renderStatusSync();

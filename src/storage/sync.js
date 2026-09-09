@@ -14,7 +14,7 @@ async function ensureMonthlySnapshot(){
     const t=today(); const chave=`${code}-snap-${t.getFullYear()}-${t.getMonth()+1}`;
     if((data.snapshotsMensais||[]).includes(chave)) return;
 
-    const envelope=await cifrarParaNuvem(data,sync.senha,{
+    const envelope=await cifrarParaNuvem(data,sync.chave,{
       revision:1, device_id:idDesteAparelho(), salt:sync.salt,
     });
     /* revisão esperada 0: snapshot nasce e nunca é atualizado. Se já existir,

@@ -7,14 +7,15 @@ const trecho=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b,src.indexOf(a)));
 function adiar(){let resolver;const promessa=new Promise(r=>{resolver=r;});return {promessa,resolver};}
 function aparelho(storage=criarArmazenamentoFalso()){
   const timers=new Map(),eventos={};let id=0;
-  const c={console,JSON,Map,Number,Math,localStorage:storage,
+  const c={console,JSON,Map,Number,Math,localStorage:storage,code:'FILA12345',
     data:{saldoAtual:100},STORAGE_KEY:'dados-teste',sync:{revisao:1,status:'sincronizada'},
-    getSyncCode:()=> 'FILA12345',sufixoDeHomologacao:()=> '_homolog',
-    setSyncCode:()=>{},sincronizacaoDestrancada:()=>true,
+    getSyncCode:()=>c.code,sufixoDeHomologacao:()=> '_homolog',
+    setSyncCode:codigo=>{c.code=codigo;},sincronizacaoDestrancada:()=>true,
     invalidarTimeline:()=>{},L:k=>k,renderStatusSync:()=>{},render:()=>{},
     document:{getElementById:()=>null},setTimeout:(fn,ms)=>{timers.set(++id,{fn,ms});return id;},
     clearTimeout:n=>timers.delete(n),adotarDadosDeFora:d=>({ok:true,data:d}),
     pedirSenhaSync:async()=> 'senha-teste',alertDialog:async()=>{},
+    esquecerSenha:()=>{c.esqueceuSenha=true;},
   };
   c.window={addEventListener:(nome,fn)=>{eventos[nome]=fn;}};
   vm.createContext(c);
@@ -90,6 +91,20 @@ module.exports=async t=>{
   await h.c.puxarDaNuvem();
   t.igual(h.c.sync.revisao,1,'dados recusados não avançam a revisão local');
 
+  const legado=aparelho();let migrou=false;
+  legado.c.abrirSincronizacao=async()=>({resultado:'migrar',dados:{saldoAtual:4321}});
+  legado.c.exigirBackupAntesDeCifrar=async()=>false;
+  legado.c.conduzirMigracao=async()=>{migrou=true;return true;};
+  t.igual(await legado.c.destrancarSincronizacao('LEGADO12345'),false,'migração para quando o backup não foi confirmado');
+  t.igual(migrou,false,'registro antigo não é cifrado antes do backup');
+  t.igual(legado.c.code,'FILA12345','cancelar o backup restaura o código anterior');
+  t.igual(legado.c.sync.revisao,1,'cancelar o backup restaura a sessão anterior');
+
+  const inexistente=aparelho();inexistente.c.abrirSincronizacao=async()=>({resultado:'nova'});
+  inexistente.c.exigirBackupAntesDeCifrar=async()=>false;
+  t.igual(await inexistente.c.destrancarSincronizacao('CODIGONOVO12'),false,'código inexistente também exige backup antes do primeiro envio');
+  t.igual(inexistente.c.code,'FILA12345','cancelar a criação restaura o código anterior');
+
   const m=aparelho(),migracao=adiar(),iniciou=adiar();m.c.confirmarRevisaoLocal(1);
   m.c.mostrarConflitoSync=async()=> 'nuvem';m.c.confirmDialog=async()=>true;
   m.c.migrarParaCifrado=async()=>{iniciou.resolver();await migracao.promessa;m.c.sync.revisao=2;return {resultado:'enviado'};};
@@ -105,7 +120,7 @@ module.exports=async t=>{
 
   console.log('\nConfirmação de envio: captura e releitura concorrente');
   const criptografia=adiar();let recebido,gravado;
-  const motor={JSON,sync:{codigo:'FILA12345',senha:'ficticia',token:'token-teste',salt:'salt-teste',revisao:1},
+  const motor={JSON,sync:{codigo:'FILA12345',chave:{type:'secret'},token:'token-teste',salt:'salt-teste',revisao:1},
     sincronizacaoDestrancada:()=>true,idDesteAparelho:()=> 'aparelho-teste',guardarSalt:()=>{},
     cifrarParaNuvem:async dados=>{await criptografia.promessa;recebido=dados;return {cipher:{ciphertext:'envio-1'}};},
     nuvemGravar:async(codigo,envelope,revisao)=>{gravado={codigo,envelope,revisao};return {ok:true,revision:2};},

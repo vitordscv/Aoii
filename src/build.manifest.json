@@ -46,6 +46,7 @@
     "core/budgets.js",
     "ui/accessibility.js",
     "ui/dialogs.js",
+    "ui/sync-dialogs.js",
     "ui/sync-queue.js",
     "ui/sync-ui.js",
     "integrations/brasil-api.js",

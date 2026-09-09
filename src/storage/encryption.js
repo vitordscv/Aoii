@@ -41,7 +41,7 @@ const CRIPTO_SALT_BYTES = 16;
 const CRIPTO_IV_BYTES = 12;
 
 function cryptoDisponivel() {
-  return typeof crypto !== 'undefined' && crypto.subtle && crypto.getRandomValues;
+  return !!(typeof crypto !== 'undefined' && crypto && crypto.subtle && crypto.getRandomValues);
 }
 
 /* base64 sem depender de Buffer nem de bibliotecas */
@@ -80,6 +80,17 @@ async function derivarChave(senha, salt, voltas) {
     ['encrypt', 'decrypt']);
 }
 
+function ehChaveDeCifra(valor){
+  return !!valor&&typeof valor==='object'&&valor.type==='secret'&&
+    valor.extractable===false&&valor.algorithm&&valor.algorithm.name==='AES-GCM';
+}
+
+async function resolverChaveDeCifra(segredo,salt,voltas){
+  if(ehChaveDeCifra(segredo)) return segredo;
+  if(typeof segredo!=='string'||!segredo) throw new Error('senha-vazia');
+  return derivarChave(segredo,salt,voltas);
+}
+
 /* Token de escrita: prova pro servidor que quem grava conhece a senha, sem que
    a senha nem a chave de cifra saiam do aparelho. Sai do mesmo salt, mas com um
    sufixo de contexto — então nem o token revela a chave, nem o contrário.
@@ -105,9 +116,8 @@ function novoSaltDeSenha() {
 }
 
 /* objeto → envelope pronto pra guardar */
-async function cifrarParaNuvem(objeto, senha, meta) {
+async function cifrarParaNuvem(objeto, segredo, meta) {
   if (!cryptoDisponivel()) throw new Error('cripto-indisponivel');
-  if (!senha) throw new Error('senha-vazia');
   meta = meta || {};
 
   /* `meta.salt` é o salt já em uso por esta sincronização. Sem ele, esta é a
@@ -117,7 +127,7 @@ async function cifrarParaNuvem(objeto, senha, meta) {
                          : crypto.getRandomValues(new Uint8Array(CRIPTO_SALT_BYTES));
   if (salt.length < 8) throw new Error('salt-invalido');
   const iv = crypto.getRandomValues(new Uint8Array(CRIPTO_IV_BYTES));
-  const chave = await derivarChave(senha, salt, CRIPTO_VOLTAS);
+  const chave = await resolverChaveDeCifra(segredo, salt, CRIPTO_VOLTAS);
 
   const env = {
     aoii: 'sync',
@@ -153,7 +163,7 @@ function ehEnvelopeCifrado(v) {
    'senha-errada' cobre tanto senha errada quanto conteúdo adulterado — o
    AES-GCM não distingue os dois, e do ponto de vista do usuário é a mesma
    pergunta: "essa senha é a certa?" */
-async function decifrarDaNuvem(env, senha) {
+async function decifrarDaNuvem(env, segredo) {
   if (!cryptoDisponivel()) throw new Error('cripto-indisponivel');
   if (!ehEnvelopeCifrado(env)) throw new Error('nao-e-envelope');
   if (env.format_version > CRIPTO_FORMATO) throw new Error('formato-mais-novo');
@@ -171,7 +181,7 @@ async function decifrarDaNuvem(env, senha) {
   } catch (e) { throw new Error('envelope-corrompido'); }
   if (salt.length < 8 || iv.length !== CRIPTO_IV_BYTES) throw new Error('envelope-corrompido');
 
-  const chave = await derivarChave(senha, salt, voltas);
+  const chave = await resolverChaveDeCifra(segredo, salt, voltas);
   let claro;
   try {
     claro = await crypto.subtle.decrypt(

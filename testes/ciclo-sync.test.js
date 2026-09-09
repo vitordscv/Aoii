@@ -135,16 +135,33 @@ module.exports=async function(t){
   t.igual(retomou.revisao,4,'revisão 4');
   t.igual(A.sync.status,'sincronizada','e o status volta pra sincronizada');
 
+  const codigoCorrompido='CORROMPIDO123';
+  const linhaCorrompida=JSON.parse(JSON.stringify(nuvem.linhas.get(CODIGO)));
+  linhaCorrompida.data.kdf.salt='@@';
+  nuvem.linhas.set(codigoCorrompido,linhaCorrompida);
+  const E=criarAparelho(nuvem);
+  const abriuCorrompido=await E.abrirSincronizacao(codigoCorrompido,SENHA);
+  t.igual(abriuCorrompido.resultado,'erro','envelope com salt corrompido vira erro nomeado');
+  t.igual(E.sync.codigo,null,'envelope corrompido não deixa código parcial na sessão');
+  t.igual(E.sync.chave,null,'nem deixa chave parcial na sessão');
+  t.igual(E.sync.token,null,'nem deixa token parcial na sessão');
+  nuvem.linhas.delete(codigoCorrompido);
+
   /* ── 11. recarga offline: sessão nova, sem senha em lugar nenhum ── */
   const D=criarAparelho(nuvem);
   t.igual(D.sincronizacaoDestrancada(),false,'sessão nova começa trancada');
   t.igual((await D.enviarParaNuvem(dadosDe(1))).resultado,'precisa-senha',
     'e não grava nada antes de a senha ser digitada');
-  t.igual(D.sync.senha,null,'a senha não ficou guardada em lugar nenhum');
+  t.igual(Object.prototype.hasOwnProperty.call(D.sync,'senha'),false,'a senha não fica no estado da sessão');
+  t.igual(D.sync.chave,null,'sessão nova também não tem a chave derivada');
+  t.verdadeiro(A.sync.chave&&A.sync.chave.extractable===false,'sessão destrancada conserva só uma chave não exportável');
+  let exportou=true;
+  try{ await crypto.subtle.exportKey('raw',A.sync.chave); }catch(e){ exportou=false; }
+  t.igual(exportou,false,'a chave da sessão não pode ser exportada');
 
   /* esquecer a senha no meio da sessão devolve o app pro estado trancado */
   A.esquecerSenha();
-  t.igual(A.sync.senha,null,'esquecer a senha limpa o material derivado');
+  t.igual(A.sync.chave,null,'esquecer a senha limpa a chave derivada');
   t.igual(A.sync.token,null,'inclusive o token de escrita');
   t.igual(A.sync.status,'precisa-senha','e o status avisa');
   t.igual((await A.enviarParaNuvem(dadosDe(7777))).resultado,'precisa-senha',
@@ -158,4 +175,9 @@ module.exports=async function(t){
     'sem caracteres que se confundem lendo em voz alta (0/O, 1/I/L)');
   const muitos=new Set(); for(let i=0;i<200;i++) muitos.add(A.gerarCodigoSync());
   t.igual(muitos.size,200,'e 200 sorteios não repetem');
+
+  const criptoReal=A.crypto;A.crypto=null;let semCripto='';
+  try{ A.gerarCodigoSync(); }catch(e){ semCripto=e.message; }
+  A.crypto=criptoReal;
+  t.igual(semCripto,'cripto-indisponivel','não há fallback inseguro para gerar código');
 };
