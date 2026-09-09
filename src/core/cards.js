@@ -15,6 +15,72 @@ function computeCartao(cartaoId){
   return {comprometido,limite,disponivel,pct,faturaAberta,faturaAbertaMes};
 }
 
+/* ── comandos de cartão: validam antes de alterar cartões e referências ── */
+function camposCartao(entrada,atual){
+  entrada=entrada||{}; atual=atual||{};
+  const ler=(campo)=>Object.prototype.hasOwnProperty.call(entrada,campo)?entrada[campo]:atual[campo];
+  const nome=String(ler('nome')||'').trim();
+  const limite=Number(ler('limite'));
+  function dia(campo){
+    const bruto=ler(campo);
+    if(bruto===null||bruto===undefined||bruto==='') return null;
+    const n=Number(bruto);
+    return Number.isInteger(n)&&n>=1&&n<=31?n:NaN;
+  }
+  const diaFechamento=dia('diaFechamento');
+  const diaVencimento=dia('diaVencimento');
+  if(!nome||!Number.isFinite(limite)||limite<0||Number.isNaN(diaFechamento)||Number.isNaN(diaVencimento)) return null;
+  return {nome,limite,diaFechamento,diaVencimento};
+}
+
+function criarCartao(entrada){
+  const campos=camposCartao(entrada);
+  if(!campos) return null;
+  if(!data.cartoes) data.cartoes=[];
+  const cartao={id:uid(),...campos};
+  data.cartoes.push(cartao);
+  return cartao;
+}
+
+function atualizarCartao(id,alteracoes){
+  const cartao=(data.cartoes||[]).find(c=>c.id===id);
+  if(!cartao) return null;
+  const campos=camposCartao(alteracoes,cartao);
+  if(!campos) return null;
+  Object.assign(cartao,campos);
+  return cartao;
+}
+
+function removerCartao(id){
+  const cartoes=data.cartoes||[];
+  const indice=cartoes.findIndex(c=>c.id===id);
+  if(indice<0) return null;
+  const removido=cartoes[indice];
+  const restantes=cartoes.filter(c=>c.id!==id);
+  const destinoId=restantes.length?restantes[0].id:null;
+  const faturas=data.faturas||[];
+  const preservadas=faturas.filter(f=>f.cartaoId!==id);
+
+  faturas.filter(f=>f.cartaoId===id).forEach(f=>{
+    const destino=destinoId&&preservadas.find(x=>x.cartaoId===destinoId&&x.ano===f.ano&&x.mes===f.mes);
+    if(destino){
+      destino.valor=(Number(destino.valor)||0)+(Number(f.valor)||0);
+      destino.gastos=[...(destino.gastos||[]),...(f.gastos||[])];
+      destino.pago=Boolean(destino.pago)&&Boolean(f.pago);
+    }else{
+      f.cartaoId=destinoId;
+      preservadas.push(f);
+    }
+  });
+
+  (data.comprasPlanejadas||[]).forEach(c=>{
+    if(c.cartaoId===id) c.cartaoId=destinoId;
+  });
+  data.cartoes=restantes;
+  data.faturas=preservadas;
+  return {item:removido,indice,destinoId};
+}
+
 /* ── parcelamento: divide uma compra parcelada nas faturas dos meses seguintes ── */
 function nextMonth(ano,mes){ mes++; if(mes>12){ mes=1; ano++; } return {ano,mes}; }
 
@@ -44,4 +110,3 @@ function lancarParcelamento(nome,valorTotal,parcelas,anoIni,mesIni,categoria,car
   }
   return groupId;
 }
-

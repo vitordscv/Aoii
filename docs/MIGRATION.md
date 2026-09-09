@@ -463,3 +463,12 @@ Criação, edição, remoção e restauração de rendas recorrentes passaram pa
 `core/income.js`. Tipo, valor e dia são validados antes da alteração; uma edição
 inválida não deixa campos parciais. Os nomes dos tipos também passaram a usar os
 cinco dicionários da interface.
+
+## Retomada em 09/09/2026 — comandos de cartões
+
+Criação, edição e remoção de cartões passaram para `core/cards.js`, inclusive o
+cartão opcional do onboarding. Os campos são validados antes da alteração. Ao
+excluir um cartão, suas faturas e compras planejadas migram para o primeiro cartão
+restante; faturas do mesmo mês são fundidas sem perder valores, gastos ou uma
+pendência de pagamento. Se era o último cartão, as referências ficam vazias e os
+registros financeiros são preservados.

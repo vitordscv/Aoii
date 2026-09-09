@@ -76,20 +76,7 @@ function setupCartaoSheet(){
   delBtn.addEventListener('click',async()=>{
     if(!editingId) return;
     if(!(await confirmDialog({text:L('confirm.removerCartao')}))) return;
-    data.cartoes=(data.cartoes||[]).filter(c=>c.id!==editingId);
-    const novoPrimeiro=data.cartoes.length?data.cartoes[0].id:null;
-    // reatribui as faturas do cartão removido; se já existir uma fatura do mesmo mês no cartão de destino, funde os dois em vez de duplicar
-    (data.faturas||[]).filter(f=>f.cartaoId===editingId).forEach(f=>{
-      const destino=data.faturas.find(x=>x!==f&&x.cartaoId===novoPrimeiro&&x.ano===f.ano&&x.mes===f.mes);
-      if(destino){
-        destino.valor=(destino.valor||0)+(f.valor||0);
-        destino.gastos=[...(destino.gastos||[]),...(f.gastos||[])];
-        data.faturas=data.faturas.filter(x=>x!==f);
-      }else{
-        f.cartaoId=novoPrimeiro;
-      }
-    });
-    (data.comprasPlanejadas||[]).forEach(c=>{ if(c.cartaoId===editingId) c.cartaoId=novoPrimeiro; });
+    if(!removerCartao(editingId)) return;
     await persist(); render();
     close();
   });
@@ -98,19 +85,14 @@ function setupCartaoSheet(){
     const nomeEl=document.getElementById('cartao-nome');
     const nome=nomeEl.value.trim();
     if(!nome){ nomeEl.focus(); return; }
-    const fEl=document.getElementById('cartao-fechamento').value;
-    const vEl=document.getElementById('cartao-vencimento').value;
-    const diaFechamento=fEl?Math.min(31,Math.max(1,parseInt(fEl,10)||1)):null;
-    const diaVencimento=vEl?Math.min(31,Math.max(1,parseInt(vEl,10)||1)):null;
-    const limite=parseNum(document.getElementById('cartao-limite').value)||0;
-
-    if(editingId){
-      const c=(data.cartoes||[]).find(x=>x.id===editingId);
-      if(c){ Object.assign(c,{nome,diaFechamento,diaVencimento,limite}); }
-    }else{
-      if(!data.cartoes) data.cartoes=[];
-      data.cartoes.push({id:uid(),nome,diaFechamento,diaVencimento,limite});
-    }
+    const entrada={
+      nome,
+      diaFechamento:document.getElementById('cartao-fechamento').value,
+      diaVencimento:document.getElementById('cartao-vencimento').value,
+      limite:parseNum(document.getElementById('cartao-limite').value),
+    };
+    const salvo=editingId?atualizarCartao(editingId,entrada):criarCartao(entrada);
+    if(!salvo) return;
     await persist(); render();
     close();
   });

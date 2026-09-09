@@ -127,6 +127,53 @@ module.exports=function(t){
   t.valor(dadosMeta.saldoAtual,880,'desfazer recoloca o dinheiro na meta');
   t.igual(dadosMeta.metas[0].id,meta.id,'desfazer restaura a meta na lista');
 
+  console.log('\n\x1b[1mComandos de cartão preservam faturas e referências\x1b[0m');
+  const dadosCartao=base();
+  dadosCartao.cartoes=[
+    {id:'a',nome:'Principal',limite:2000,diaFechamento:10,diaVencimento:17},
+    {id:'b',nome:'Secundário',limite:1000,diaFechamento:5,diaVencimento:12},
+  ];
+  dadosCartao.faturas=[
+    {id:'fa',ano:2026,mes:9,valor:100,pago:true,cartaoId:'a',gastos:[{id:'ga',nome:'A',valor:20,pago:true}]},
+    {id:'fb',ano:2026,mes:9,valor:200,pago:false,cartaoId:'b',gastos:[{id:'gb',nome:'B',valor:30,pago:false}]},
+    {id:'fb2',ano:2026,mes:10,valor:50,pago:false,cartaoId:'b',gastos:[]},
+  ];
+  dadosCartao.comprasPlanejadas=[{id:'cp',nome:'Compra',valor:500,cartao:true,parcelas:1,cartaoId:'b'}];
+  const ctxCartao=criarAmbiente(dadosCartao,HOJE);
+  t.igual(ctxCartao.criarCartao({nome:'',limite:500}),null,'cartão sem nome é recusado');
+  t.igual(ctxCartao.criarCartao({nome:'Inválido',limite:-1}),null,'limite negativo é recusado');
+  t.igual(ctxCartao.criarCartao({nome:'Inválido',limite:500,diaFechamento:32}),null,'dia fora do mês é recusado');
+  t.igual(dadosCartao.cartoes.length,2,'criações recusadas não deixam cartão parcial');
+  const novoCartao=ctxCartao.criarCartao({nome:'  Viagem  ',limite:800,diaFechamento:'8',diaVencimento:''});
+  t.igual(novoCartao.nome,'Viagem','nome do cartão é normalizado');
+  t.igual(novoCartao.diaFechamento,8,'dia válido é convertido em número');
+  t.igual(novoCartao.diaVencimento,null,'dia opcional pode ficar vazio');
+  const nomeAntesCartao=novoCartao.nome;
+  t.igual(ctxCartao.atualizarCartao(novoCartao.id,{nome:'Mudou',limite:900,diaVencimento:0}),null,'edição inválida é recusada inteira');
+  t.igual(novoCartao.nome,nomeAntesCartao,'edição recusada não altera outro campo');
+  ctxCartao.atualizarCartao(novoCartao.id,{nome:'Viagens',limite:900,diaFechamento:9,diaVencimento:18});
+  t.valor(novoCartao.limite,900,'edição válida atualiza o limite');
+
+  const removidoCartao=ctxCartao.removerCartao('b');
+  t.igual(removidoCartao.destinoId,'a','referências migram para o primeiro cartão restante');
+  t.igual(dadosCartao.faturas.length,2,'faturas iguais são fundidas sem duplicar o mês');
+  const setembro=dadosCartao.faturas.find(f=>f.ano===2026&&f.mes===9);
+  t.valor(setembro.valor,300,'valores explícitos das faturas são preservados na fusão');
+  t.igual(setembro.gastos.length,2,'gastos detalhados das duas faturas são preservados');
+  t.igual(setembro.pago,false,'uma fatura pendente mantém a fatura combinada pendente');
+  t.igual(dadosCartao.faturas.find(f=>f.mes===10).cartaoId,'a','fatura sem colisão também é reatribuída');
+  t.igual(dadosCartao.comprasPlanejadas[0].cartaoId,'a','compra planejada é reatribuída');
+  t.igual(ctxCartao.removerCartao('inexistente'),null,'id inexistente não altera os dados');
+
+  const ultimo=base();
+  ultimo.faturas=[{id:'f',ano:2026,mes:9,valor:80,pago:false,cartaoId:'a',gastos:[]}];
+  ultimo.comprasPlanejadas=[{id:'c',nome:'Compra',valor:80,cartao:true,parcelas:1,cartaoId:'a'}];
+  const ctxUltimo=criarAmbiente(ultimo,HOJE);
+  ctxUltimo.removerCartao('a');
+  t.igual(ultimo.cartoes.length,0,'último cartão pode ser removido');
+  t.igual(ultimo.faturas[0].cartaoId,null,'fatura do último cartão é preservada sem referência');
+  t.igual(ultimo.comprasPlanejadas[0].cartaoId,null,'compra planejada também é preservada sem referência');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

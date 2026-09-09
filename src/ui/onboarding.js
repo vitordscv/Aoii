@@ -144,8 +144,7 @@ function setupOnboarding(){
         const cLimite=parseNum(document.getElementById('ob-cartao-limite').value)||0;
         const cFechamento=parseInt(document.getElementById('ob-cartao-fechamento').value,10)||null;
         const cVencimento=parseInt(document.getElementById('ob-cartao-vencimento').value,10)||null;
-        if(!data.cartoes) data.cartoes=[];
-        data.cartoes.push({id:uid(),nome:cNome,limite:cLimite,diaFechamento:cFechamento,diaVencimento:cVencimento});
+        criarCartao({nome:cNome,limite:cLimite,diaFechamento:cFechamento,diaVencimento:cVencimento});
       }
     }
     data.onboardingCompleto=true;

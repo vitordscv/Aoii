@@ -76,7 +76,7 @@ const FUNCOES=[
   'defaultTargetValue','getTargetDate','daysBetweenInclusive','remainingWorkDaysUntil',
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','chaveMes','restanteEntrada','fatiasAosPoucos',
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
-  'computeTotals','computeCartao','nextMonth','ensureFatura','lancarParcelamento',
+  'computeTotals','computeCartao','camposCartao','criarCartao','atualizarCartao','removerCartao','nextMonth','ensureFatura','lancarParcelamento',
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
