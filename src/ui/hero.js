@@ -6,17 +6,17 @@ function renderHero(){
   document.getElementById('hero-content').innerHTML=`
     <div class="hero-eyebrow-row">
       <span class="hero-eyebrow">${L('hero.saldoEstimado')}</span>
-      <input type="date" class="hero-date-input" id="hero-date-input" value="${esc(targetVal)}">
+      <input type="date" class="hero-date-input" id="hero-date-input" value="${esc(targetVal)}" aria-label="${esc(L('hero.saldoEstimado'))}">
     </div>
     <div class="hero-number${neg?' negativo':''}" data-countup="${t.projetado}" data-countkey="hero-projetado">${formatBRL(t.projetado)}</div>
     <div class="hero-sub">${data.tipoRenda==='diaria'?L('hero.subDiaria'):L('hero.subMensal')} ${L('hero.subComum')}</div>
     <div class="saldo-row">
       <div class="saldo-field">
-        <label>${L('hero.saldoAtual')}</label>
+        <label for="saldo-atual-input">${L('hero.saldoAtual')}</label>
         <input type="text" inputmode="decimal" step="0.01" id="saldo-atual-input" value="${data.saldoAtual}">
       </div>
       <div class="saldo-field">
-        <label>${L('hero.dinheiroVivo')}</label>
+        <label for="dinheiro-vivo-input">${L('hero.dinheiroVivo')}</label>
         <input type="text" inputmode="decimal" step="0.01" id="dinheiro-vivo-input" value="${data.dinheiroVivo||0}">
       </div>
       <div class="saldo-field saldo-total-field">

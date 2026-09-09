@@ -53,10 +53,14 @@ function startTour(){
   const blocker=document.createElement('div'); blocker.className='tour-blocker';
   const spot=document.createElement('div'); spot.className='tour-spotlight';
   const callout=document.createElement('div'); callout.className='tour-callout';
-  callout.innerHTML=`<div class="tour-callout-title"></div><div class="tour-callout-text"></div><div class="tour-callout-foot"><span class="tour-callout-progress"></span><div class="tour-callout-actions"><button type="button" class="tour-skip">${L('tour.skip')}</button><button type="button" class="tour-next">${L('tour.next')}</button></div></div>`;
+  callout.setAttribute('role','dialog'); callout.setAttribute('aria-modal','true');
+  callout.setAttribute('aria-labelledby','tour-callout-title'); callout.setAttribute('aria-describedby','tour-callout-text');
+  callout.innerHTML=`<div class="tour-callout-title" id="tour-callout-title"></div><div class="tour-callout-text" id="tour-callout-text"></div><div class="tour-callout-foot"><span class="tour-callout-progress"></span><div class="tour-callout-actions"><button type="button" class="tour-skip">${L('tour.skip')}</button><button type="button" class="tour-next">${L('tour.next')}</button></div></div>`;
   document.body.append(blocker,spot,callout);
+  let restaurar=null;
   async function finish(){
     data.tourCompleto=true; await persist();
+    if(restaurar){ restaurar(); restaurar=null; }
     blocker.remove(); spot.remove(); callout.remove();
     window.removeEventListener('resize',position);
   }
@@ -97,6 +101,7 @@ function startTour(){
   callout.querySelector('.tour-next').addEventListener('click',()=>{ i++; if(i>=steps.length) finish(); else step_next(); });
   callout.querySelector('.tour-skip').addEventListener('click',finish);
   window.addEventListener('resize',position);
+  restaurar=ativarDialogo(callout,blocker,callout.querySelector('.tour-next'),finish);
   step_next();
 }
 
@@ -107,6 +112,7 @@ function setupOnboarding(){
   const dialog=document.getElementById('onboarding-dialog');
   if(!backdrop||!dialog) return;
   backdrop.style.display='block'; dialog.style.display='block';
+  let restaurar=null;
   const idiomaEl=document.getElementById('ob-idioma');
   const moedaEl=document.getElementById('ob-moeda');
   if(idiomaEl) idiomaEl.value=data.idioma||'pt';
@@ -144,9 +150,11 @@ function setupOnboarding(){
     }
     data.onboardingCompleto=true;
     backdrop.style.display='none'; dialog.style.display='none';
+    if(restaurar){ restaurar(); restaurar=null; }
     await persist(); render();
     if(!data.tourCompleto) setTimeout(startTour,350);
   }
   document.getElementById('ob-confirm-btn').addEventListener('click',()=>finalizar(true));
   document.getElementById('ob-skip-btn').addEventListener('click',()=>finalizar(false));
+  restaurar=ativarDialogo(dialog,backdrop,document.getElementById('ob-idioma'),()=>finalizar(false));
 }

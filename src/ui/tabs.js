@@ -4,8 +4,12 @@ function setupBottomNav(){
   if(!items.length) return;
   const views=document.querySelectorAll('.tab-view');
   function showTab(id){
-    views.forEach(v=>{ v.style.display = (v.id===id)?'':'none'; });
-    items.forEach(a=>a.classList.toggle('active', a.getAttribute('data-target')===id));
+    views.forEach(v=>{ const ativa=v.id===id; v.style.display=ativa?'':'none'; v.setAttribute('aria-hidden',ativa?'false':'true'); });
+    items.forEach(a=>{
+      const ativa=a.getAttribute('data-target')===id;
+      a.classList.toggle('active',ativa);
+      if(ativa) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+    });
     try{ localStorage.setItem('financas-last-tab', id); }catch(e){}
     window.scrollTo({top:0,behavior:'instant' in window ? 'instant' : 'auto'});
     const fab=document.getElementById('gasto-fab');
@@ -23,4 +27,3 @@ function setupBottomNav(){
   showTab(start);
   positionGastoFab();
 }
-

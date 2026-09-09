@@ -8,7 +8,7 @@ function renderViagensList(){
     return `
     <div class="cat-manage-row">
       <span>✈️ ${esc(v.nome)} — ${formatBRL(gasto)}${v.orcamento>0?` / ${formatBRL(v.orcamento)}`:''}</span>
-      <button type="button" class="cat-manage-del" data-id="${v.id}" title="${esc(L('btn.remover'))}">✕</button>
+      <button type="button" class="cat-manage-del" data-id="${v.id}" title="${esc(L('btn.remover'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',v.nome))}">✕</button>
     </div>`;
   }).join('');
   el.querySelectorAll('.cat-manage-del').forEach(btn=>btn.addEventListener('click',async()=>{
@@ -26,12 +26,12 @@ function renderCategoriasList(){
   el.innerHTML=CATS().map(c=>`
     <div class="cat-manage-row">
       <span>${catIcon(c)} ${esc(categoriaLabel(c))}</span>
-      <button type="button" class="cat-manage-del" data-cat="${esc(c)}" title="${esc(L('btn.remover'))}">✕</button>
+      <button type="button" class="cat-manage-del" data-cat="${esc(c)}" title="${esc(L('btn.remover'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',categoriaLabel(c)))}">✕</button>
     </div>`).join('');
   el.querySelectorAll('.cat-manage-del').forEach(btn=>btn.addEventListener('click',async()=>{
     const cat=btn.getAttribute('data-cat');
     if(CATS().length<=1) return;
-    if(!(await confirmDialog({text:L('confirm.removerCategoria').replace('{cat}',cat)}))) return;
+    if(!(await confirmDialog({text:L('confirm.removerCategoria').replace('{cat}',categoriaLabel(cat))}))) return;
     data.categorias=CATS().filter(c=>c!==cat);
     await persist(); render();
   }));
@@ -53,7 +53,7 @@ function renderCartoesList(){
       if(c.diaVencimento) subParts.push(`${L('cartao.venceDia')} ${c.diaVencimento}`);
       const sub=subParts.length?subParts.join(' · '):L('cartao.semDiasConfig');
       return `
-      <div class="gf-item-row" data-action="edit-cartao" data-id="${c.id}">
+      <div class="gf-item-row" data-action="edit-cartao" data-id="${c.id}" role="button" tabindex="0" aria-label="${esc(L('a11y.editItem').replace('{name}',c.nome))}">
         <div class="gf-item-main">
           <div class="gf-item-nome">${esc(c.nome)}</div>
           <div class="gf-item-sub">${esc(sub)}</div>
@@ -62,7 +62,7 @@ function renderCartoesList(){
       </div>`;
     }).join('');
     el.querySelectorAll('[data-action="edit-cartao"]').forEach(row=>{
-      row.addEventListener('click',()=>openCartaoSheet(row.getAttribute('data-id')));
+      ativarComoBotao(row,()=>openCartaoSheet(row.getAttribute('data-id')),row.getAttribute('aria-label'));
     });
   }
   refreshCartaoSelects();

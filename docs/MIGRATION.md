@@ -296,14 +296,33 @@ Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.
    distintos e preparar preview e rollout para aprovação.
    A parte 2 do banco permanece pendente e não pode anteceder clientes compatíveis.
 
-2. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
-   `inert` no fundo, nome acessível em botão de emoji, `aria-live` no status de
-   salvamento.
-3. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
+2. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
    shell; fallback offline; redesenho por seção em vez da tela inteira.
-4. **SEO e design.** Landing pública indexável, área do app fora do índice;
+3. **SEO e design.** Landing pública indexável, área do app fora do índice;
    hierarquia do Resumo; estados vazios com ação.
 
 Uma camada de comandos de domínio (`addTransaction()`, `registerIncomePayment()`,
 `updateGoal()`…) atravessa a etapa 1; agora que a validação existe, é o próximo passo
 estrutural — ver o fim de [ARCHITECTURE.md](ARCHITECTURE.md).
+
+
+## Retomada em 09/09/2026 — acessibilidade da interface
+
+Configurações, onboarding, tour e os seis painéis inferiores agora controlam
+foco inicial, Tab circular, Escape, bloqueio do fundo e retorno do foco ao
+controle que abriu a tela. O mesmo mecanismo cobre diálogos aninhados, como a
+edição de cartão aberta por dentro das Configurações.
+
+A navegação informa a tela ativa; seletores de categoria, pagamento, renda e
+investimento informam o estado selecionado. Campos passaram a ter rótulos
+associados, regiões de status anunciam mudanças e ações de editar ou excluir
+dizem qual item será afetado. Os textos dinâmicos acrescentados existem nos
+cinco idiomas, agora com 705 chaves em cada dicionário.
+
+A interface foi conferida com estado vazio e com o backup fornecido para o
+ensaio, sempre em origens locais isoladas. Também foram exercitados abertura
+por Enter, foco inicial no valor, fechamento por Escape e restauração do foco.
+A suíte mantém 370 testes e ganhou verificações estruturais para os diálogos e
+a navegação principal.
+
+Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.

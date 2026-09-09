@@ -115,8 +115,8 @@ function renderMonths(){
   const addCard=`
     <div class="add-month-card">
       <select id="new-month-mes">${MONTH_NAMES.map((n,i)=>`<option value="${i+1}"${(i+1)===(new Date().getMonth()+1)?' selected':''}>${n}</option>`).join('')}</select>
-      <input type="text" inputmode="decimal" class="num" id="new-month-ano" value="${new Date().getFullYear()}" placeholder="${esc(L('ph.ano'))}">
-      <input type="text" inputmode="decimal" class="num" id="new-month-valor" step="0.01" placeholder="${esc(L('ph.valorFatura'))}">
+      <input type="text" inputmode="decimal" class="num" id="new-month-ano" value="${new Date().getFullYear()}" placeholder="${esc(L('ph.ano'))}" aria-label="${esc(L('ph.ano'))}">
+      <input type="text" inputmode="decimal" class="num" id="new-month-valor" step="0.01" placeholder="${esc(L('ph.valorFatura'))}" aria-label="${esc(L('ph.valorFatura'))}">
       ${(data.cartoes||[]).length>1?`<select id="new-month-cartao">${data.cartoes.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select>`:''}
       <button id="add-month-btn">${L('btn.adicionarMes')}</button>
     </div>`;

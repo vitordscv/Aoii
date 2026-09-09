@@ -22,7 +22,7 @@ function setupGastoFixoSheet(){
 
   function renderCatGrid(){
     const grid=document.getElementById('gf-cat-grid');
-    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
+    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" aria-pressed="${c===categoriaAtual}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>{
       btn.addEventListener('click',()=>{ categoriaAtual=btn.getAttribute('data-cat'); renderCatGrid(); });
     });
@@ -48,6 +48,7 @@ function setupGastoFixoSheet(){
     resetForm(g);
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='block';
+    ativarSheet(sheet,backdrop,document.getElementById('gf-valor'),close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));

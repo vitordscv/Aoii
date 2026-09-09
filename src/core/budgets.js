@@ -29,7 +29,7 @@ function renderOrcamentos(){
       <div class="orc-top">
         <span class="orc-nome">${catIcon(cat)} ${esc(categoriaLabel(cat))}</span>
         <span class="orc-gasto">${formatBRL(gasto)} /</span>
-        <input type="text" inputmode="decimal" step="1" min="0" class="orc-teto-input" data-cat="${esc(cat)}" value="${teto||''}" placeholder="${esc(L('ph.semTeto'))}">
+        <input type="text" inputmode="decimal" step="1" min="0" class="orc-teto-input" data-cat="${esc(cat)}" value="${teto||''}" placeholder="${esc(L('ph.semTeto'))}" aria-label="${esc(L('budget.capFor').replace('{cat}',categoriaLabel(cat)))}">
       </div>
       ${teto>0?`
       <div class="orc-bar-track"><div class="orc-bar-fill ${barClass}" style="width:${pct}%;"></div></div>

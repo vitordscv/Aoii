@@ -42,8 +42,8 @@ function renderInvestimentos(){
   const listEl=document.getElementById('inv-list');
   const filterEl=document.getElementById('inv-filter');
   if(!listEl||!filterEl) return;
-  filterEl.innerHTML=[`<button type="button" class="cat-pill${invFiltro==='Todos'?' active':''}" data-f="Todos">✨ ${L('inv.todos')}</button>`]
-    .concat(TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${invFiltro===t.id?' active':''}" data-f="${t.id}">${t.icon} ${esc(t.label)}</button>`)).join('');
+  filterEl.innerHTML=[`<button type="button" class="cat-pill${invFiltro==='Todos'?' active':''}" aria-pressed="${invFiltro==='Todos'}" data-f="Todos">✨ ${L('inv.todos')}</button>`]
+    .concat(TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${invFiltro===t.id?' active':''}" aria-pressed="${invFiltro===t.id}" data-f="${t.id}">${t.icon} ${esc(t.label)}</button>`)).join('');
   filterEl.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
     invFiltro=btn.getAttribute('data-f'); vibrate(6); renderInvestimentos();
   }));
@@ -81,8 +81,8 @@ function renderInvestimentos(){
     return `
     <div class="swipe-item" data-id="${inv.id}">
       <div class="swipe-actions">
-        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}">✏️</button>
-        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}">🗑</button>
+        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',inv.nome||t.label))}">✏️</button>
+        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',inv.nome||t.label))}">🗑</button>
       </div>
       <div class="swipe-content">
         <div class="gf-item-row" data-inv-id="${inv.id}" style="border-top:none;border-bottom:1px solid var(--line);">
@@ -103,7 +103,7 @@ function renderInvestimentos(){
       onDelete:()=>removeInvestimentoComUndo(id),
     });
     const row=item.querySelector('[data-inv-id]');
-    if(row) row.addEventListener('click',()=>openInvSheet(id));
+    if(row) ativarComoBotao(row,()=>openInvSheet(id),L('a11y.editItem').replace('{name}',row.querySelector('.gf-item-nome')?.textContent||''));
   });
 }
 function removeInvestimentoComUndo(id){
@@ -134,7 +134,7 @@ function setupInvSheet(){
 
   function renderTipoGrid(){
     const grid=document.getElementById('inv-tipo-grid');
-    grid.innerHTML=TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
+    grid.innerHTML=TIPOS_INVEST().map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" aria-pressed="${t.id===tipoAtual}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo'); vibrate(6); renderTipoGrid(); refreshFields();
     }));
@@ -212,6 +212,7 @@ function setupInvSheet(){
     resetForm(inv);
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='block';
+    ativarSheet(sheet,backdrop,document.getElementById('inv-valor'),close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));

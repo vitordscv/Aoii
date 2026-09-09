@@ -62,8 +62,8 @@ function renderGastosFixosTab(){
       return `
         <div class="swipe-item" data-id="${g.id}">
           <div class="swipe-actions">
-            <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}">✏️</button>
-            <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}">🗑</button>
+            <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',g.nome))}">✏️</button>
+            <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',g.nome))}">🗑</button>
           </div>
           <div class="swipe-content">
             <div class="gf-item-row${ativo?'':' paused'}" data-action="edit-gasto-fixo" data-id="${g.id}">
@@ -90,10 +90,10 @@ function renderGastosFixosTab(){
     head.addEventListener('click',()=>{ head.closest('.gf-group').classList.toggle('open'); });
   });
   groupsEl.querySelectorAll('[data-action="edit-gasto-fixo"]').forEach(row=>{
-    row.addEventListener('click',e=>{
+    ativarComoBotao(row,e=>{
       e.stopPropagation();
       openGastoFixoSheet(row.getAttribute('data-id'));
-    });
+    },L('a11y.editItem').replace('{name}',row.querySelector('.gf-item-nome')?.textContent||''));
   });
   groupsEl.querySelectorAll('.swipe-item').forEach(item=>{
     const id=item.getAttribute('data-id');

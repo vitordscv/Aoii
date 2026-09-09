@@ -24,7 +24,7 @@ function setupIaChatSheet(){
     input.value='';
     addMsg('user',pergunta);
     historico.push({role:'user',texto:pergunta});
-    const loadingEl=addMsg('bot loading','Analisando suas finanças…');
+    const loadingEl=addMsg('bot loading',L('ia.analisando'));
     sendBtn.disabled=true;
     try{
       const resposta=await perguntarIAComHistorico(historico);
@@ -43,7 +43,7 @@ function setupIaChatSheet(){
     }
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='flex';
-    setTimeout(()=>input.focus(),200);
+    ativarSheet(sheet,backdrop,input,close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));
@@ -69,7 +69,8 @@ function setupGastoSheet(){
 
   function renderPayGrid(){
     sheet.querySelectorAll('.pay-method-btn').forEach(btn=>{
-      btn.classList.toggle('active', btn.getAttribute('data-metodo')===metodoAtual);
+      const ativo=btn.getAttribute('data-metodo')===metodoAtual;
+      btn.classList.toggle('active',ativo); btn.setAttribute('aria-pressed',ativo?'true':'false');
     });
     document.getElementById('gasto-credito-fields').style.display = metodoAtual==='credito' ? 'block' : 'none';
     document.querySelector('.gasto-dividir-toggle').style.display = metodoAtual==='credito' ? 'none' : 'block';
@@ -77,7 +78,7 @@ function setupGastoSheet(){
   document.getElementById('gasto-tipo-toggle')?.querySelectorAll('.gasto-tipo-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo');
-      document.querySelectorAll('.gasto-tipo-btn').forEach(b=>b.classList.toggle('active',b===btn));
+      document.querySelectorAll('.gasto-tipo-btn').forEach(b=>{ const ativo=b===btn; b.classList.toggle('active',ativo); b.setAttribute('aria-pressed',ativo?'true':'false'); });
       const isReceita=tipoAtual==='receita';
       document.getElementById('gasto-sheet-title').textContent=editingTransacaoId?(isReceita?L('gasto.editarEntrada'):L('gasto.editarGasto')):(isReceita?L('gasto.novaEntrada'):L('sheet.novogasto'));
       const creditoBtn=document.querySelector('.pay-method-btn[data-metodo="credito"]');
@@ -93,7 +94,7 @@ function setupGastoSheet(){
 
   function renderCatGrid(){
     const grid=document.getElementById('gasto-cat-grid');
-    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
+    grid.innerHTML=CATS().map(c=>`<button type="button" class="cat-pill${c===categoriaAtual?' active':''}" aria-pressed="${c===categoriaAtual}" data-cat="${esc(c)}">${catIcon(c)} ${esc(categoriaLabel(c))}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>{
       btn.addEventListener('click',()=>{ categoriaAtual=btn.getAttribute('data-cat'); renderCatGrid(); updateAlertaMedia(); });
     });
@@ -109,7 +110,7 @@ function setupGastoSheet(){
     if(media<=0||valor<media*2){ el.style.display='none'; return; }
     const vezes=(valor/media).toFixed(1).replace(/\.0$/,'');
     el.style.display='block';
-    el.textContent='⚠️ '+L('gasto.acimaDaMedia').replace('{vezes}',vezes).replace('{cat}',categoriaAtual).replace('{media}',formatBRL(media));
+    el.textContent='⚠️ '+L('gasto.acimaDaMedia').replace('{vezes}',vezes).replace('{cat}',categoriaLabel(categoriaAtual)).replace('{media}',formatBRL(media));
   }
   document.getElementById('gasto-valor').addEventListener('input',updateAlertaMedia);
 
@@ -143,7 +144,7 @@ function setupGastoSheet(){
   function resetForm(t){
     editingTransacaoId=t?t.id:null;
     tipoAtual=t?(t.tipo==='receita'?'receita':'gasto'):'gasto';
-    document.getElementById('gasto-tipo-toggle')?.querySelectorAll('.gasto-tipo-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-tipo')===tipoAtual));
+    document.getElementById('gasto-tipo-toggle')?.querySelectorAll('.gasto-tipo-btn').forEach(b=>{ const ativo=b.getAttribute('data-tipo')===tipoAtual; b.classList.toggle('active',ativo); b.setAttribute('aria-pressed',ativo?'true':'false'); });
     const creditoBtn=document.querySelector('.pay-method-btn[data-metodo="credito"]');
     if(creditoBtn) creditoBtn.style.display=tipoAtual==='receita'?'none':'';
     metodoAtual=t?(t.metodo||'debito'):'pix';
@@ -188,6 +189,7 @@ function setupGastoSheet(){
     resetForm(t||null);
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='block';
+    ativarSheet(sheet,backdrop,document.getElementById('gasto-valor'),close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));

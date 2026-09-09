@@ -29,6 +29,7 @@ function setupCartaoSheet(){
     resetForm(c);
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='block';
+    ativarSheet(sheet,backdrop,document.getElementById('cartao-nome'),close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));

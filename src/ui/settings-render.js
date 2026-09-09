@@ -1,6 +1,7 @@
 function renderSettings(){
   document.querySelectorAll('#cfg-tipo-renda .segmented-btn').forEach(btn=>{
-    btn.classList.toggle('active',btn.getAttribute('data-tipo')===data.tipoRenda);
+    const ativo=btn.getAttribute('data-tipo')===data.tipoRenda;
+    btn.classList.toggle('active',ativo); btn.setAttribute('aria-pressed',ativo?'true':'false');
   });
   document.getElementById('renda-diaria-fields').style.display=data.tipoRenda==='diaria'?'':'none';
   document.getElementById('renda-mensal-fields').style.display=data.tipoRenda==='mensal'?'':'none';
@@ -57,4 +58,3 @@ function renderSkipDays(){
     await persist(); render();
   }));
 }
-

@@ -16,15 +16,15 @@ function renderRendas(){
     return `
     <div class="swipe-item" data-id="${r.id}">
       <div class="swipe-actions">
-        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}">✏️</button>
-        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}">🗑</button>
+        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',r.nome||t.label))}">✏️</button>
+        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',r.nome||t.label))}">🗑</button>
       </div>
       <div class="swipe-content">
         <div class="gf-item-row${pausada?' paused':''}" data-rr-id="${r.id}" style="border-top:none;border-bottom:1px solid var(--line);">
           <div class="gf-item-main">
             <div class="gf-item-nome">${t.icon} ${esc(r.nome||t.label)}</div>
-            <div class="inv-item-sub">${esc(t.label)} · cai dia ${r.diaDoMes}</div>
-            <span class="rr-tag${pausada?' pausada':''}">${pausada?'⏸ Pausada':'↻ Recorrente'}</span>
+            <div class="inv-item-sub">${esc(t.label)} · ${L('rr.fallsDay').replace('{day}',r.diaDoMes)}</div>
+            <span class="rr-tag${pausada?' pausada':''}">${pausada?'⏸ '+L('rr.paused'):'↻ '+L('rr.recurring')}</span>
           </div>
           <div class="gf-item-valor">${formatBRL(r.valor)}</div>
         </div>
@@ -45,7 +45,7 @@ function renderRendas(){
       },
     });
     const row=item.querySelector('[data-rr-id]');
-    if(row) row.addEventListener('click',()=>openRRSheet(id));
+    if(row) ativarComoBotao(row,()=>openRRSheet(id),L('a11y.editItem').replace('{name}',row.querySelector('.gf-item-nome')?.textContent||''));
   });
 }
 
@@ -64,7 +64,7 @@ function setupRRSheet(){
 
   function renderTipoGrid(){
     const grid=document.getElementById('rr-tipo-grid');
-    grid.innerHTML=TIPOS_RENDA.map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
+    grid.innerHTML=TIPOS_RENDA.map(t=>`<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" aria-pressed="${t.id===tipoAtual}" data-tipo="${t.id}">${t.icon} ${esc(t.label)}</button>`).join('');
     grid.querySelectorAll('.cat-pill').forEach(btn=>btn.addEventListener('click',()=>{
       tipoAtual=btn.getAttribute('data-tipo'); vibrate(6); renderTipoGrid();
     }));
@@ -85,6 +85,7 @@ function setupRRSheet(){
     resetForm(r);
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
     backdrop.style.display='block'; sheet.style.display='block';
+    ativarSheet(sheet,backdrop,document.getElementById('rr-valor'),close);
   }
   function close(){ closeSheetWithAnim(sheet,backdrop); }
   attachSheetDragToClose(sheet,backdrop,sheet.querySelector('.sheet-handle'));
@@ -125,4 +126,3 @@ function setupRRSheet(){
     close();
   });
 }
-

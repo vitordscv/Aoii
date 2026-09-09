@@ -7,6 +7,7 @@ function closeSheetWithAnim(sheet,backdrop){
       backdrop.style.display='none'; sheet.style.display='none';
       backdrop.classList.remove('closing'); sheet.classList.remove('closing');
       sheet.removeEventListener('animationend',done);
+      desativarSheet(sheet);
     };
     sheet.addEventListener('animationend',done,{once:true});
     setTimeout(done,260);
@@ -41,6 +42,7 @@ function attachSheetDragToClose(sheet,backdrop,handle){
         sheet.style.display='none'; backdrop.style.display='none';
         sheet.style.transform=''; backdrop.style.opacity='';
         sheet.classList.remove('closing'); backdrop.classList.remove('closing');
+        desativarSheet(sheet);
       },260);
     }else{
       sheet.style.transform='';
@@ -61,4 +63,3 @@ function attachSheetDragToClose(sheet,backdrop,handle){
     titleZone.addEventListener('pointercancel',onUp);
   }
 }
-

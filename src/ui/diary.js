@@ -49,7 +49,7 @@ function renderDiarioSummaryCard(){
 function renderTransacoesFiltro(){
   const el=document.getElementById('transacoes-filter'); if(!el) return;
   const cats=['Todos',...CATS(),'__credito'];
-  el.innerHTML=cats.map(c=>c==='__credito'?`<button type="button" class="cat-pill${transacoesFiltro==='__credito'?' active':''}" data-cat="__credito">🧾 ${esc(L('pay.credito'))}</button>`:`<button type="button" class="cat-pill${c===transacoesFiltro?' active':''}" data-cat="${esc(c)}">${c==='Todos'?'✨':catIcon(c)} ${c==='Todos'?esc(L('filtro.todos')):esc(categoriaLabel(c))}</button>`).join('');
+  el.innerHTML=cats.map(c=>c==='__credito'?`<button type="button" class="cat-pill${transacoesFiltro==='__credito'?' active':''}" aria-pressed="${transacoesFiltro==='__credito'}" data-cat="__credito">🧾 ${esc(L('pay.credito'))}</button>`:`<button type="button" class="cat-pill${c===transacoesFiltro?' active':''}" aria-pressed="${c===transacoesFiltro}" data-cat="${esc(c)}">${c==='Todos'?'✨':catIcon(c)} ${c==='Todos'?esc(L('filtro.todos')):esc(categoriaLabel(c))}</button>`).join('');
   el.querySelectorAll('.cat-pill').forEach(btn=>{
     btn.addEventListener('click',()=>{
       transacoesFiltro=btn.getAttribute('data-cat');
@@ -109,8 +109,8 @@ function renderTransacoesList(){
     ${list.map(t=>`
     <div class="swipe-item" data-id="${t.id}">
       <div class="swipe-actions">
-        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}">✏️</button>
-        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}">🗑</button>
+        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',t.nome))}">✏️</button>
+        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',t.nome))}">🗑</button>
       </div>
       <div class="swipe-content">
         <div class="item-row">
@@ -122,8 +122,8 @@ function renderTransacoesList(){
           </div>
           <span class="item-valor" style="border:none;background:none;text-align:right;${t.tipo==='receita'?'color:var(--pos);':''}">${t.tipo==='receita'?'+':''}${formatBRL(t.valor)}</span>
           ${t._readonly?`<span class="item-lock" title="${esc(L('diario.editeNaFatura'))}">🔒</span>`:`
-          <button class="item-del" data-action="edit-transacao" data-id="${t.id}" title="${esc(L('btn.editar'))}">✎</button>
-          <button class="item-del" data-action="del-transacao" data-id="${t.id}" title="${esc(L('tt.removerDevolve'))}">✕</button>`}
+          <button type="button" class="item-del" data-action="edit-transacao" data-id="${t.id}" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',t.nome))}">✎</button>
+          <button type="button" class="item-del" data-action="del-transacao" data-id="${t.id}" title="${esc(L('tt.removerDevolve'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',t.nome))}">✕</button>`}
         </div>
       </div>
     </div>`).join('')}`;

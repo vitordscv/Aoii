@@ -5,6 +5,10 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
   const anterior=document.activeElement;
   const alterados=[];
   const registro={dg};
+  /* Um diálogo aberto por cima de outro era irmão inerte do primeiro. Ele e o
+     próprio backdrop precisam ser liberados enquanto estiverem no topo. */
+  alterados.push([dg,dg.inert],[bd,bd.inert]);
+  dg.inert=false; bd.inert=false;
   dg.setAttribute('aria-modal','true');
   dg.setAttribute('tabindex','-1');
   // Percorre os ancestrais para funcionar também com diálogos aninhados.
@@ -52,4 +56,28 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
     alterados.reverse().forEach(([el,inert])=>{ el.inert=inert; });
     if(anterior&&anterior.isConnected&&!anterior.closest('[inert]')) anterior.focus();
   };
+}
+
+/* Painéis inferiores também são modais para teclado e leitor de tela. */
+const restauradoresSheet=new WeakMap();
+function ativarSheet(sheet,backdrop,inicial,aoCancelar){
+  desativarSheet(sheet);
+  restauradoresSheet.set(sheet,ativarDialogo(sheet,backdrop,inicial,aoCancelar));
+}
+function desativarSheet(sheet){
+  const restaurar=restauradoresSheet.get(sheet);
+  if(!restaurar) return;
+  restauradoresSheet.delete(sheet);
+  restaurar();
+}
+
+/* Linhas visualmente clicáveis precisam oferecer a mesma ação ao teclado. */
+function ativarComoBotao(el,acao,rotulo){
+  el.setAttribute('role','button'); el.setAttribute('tabindex','0');
+  if(rotulo) el.setAttribute('aria-label',rotulo);
+  el.addEventListener('click',acao);
+  el.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    e.preventDefault(); acao(e);
+  });
 }

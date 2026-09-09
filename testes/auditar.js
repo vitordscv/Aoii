@@ -132,6 +132,22 @@ titulo('Tradução');
                    : ok('títulos e nomes acessíveis textuais passam pela tradução');
 }
 
+titulo('Acessibilidade estrutural');
+{
+  const aberturas=[...src.matchAll(/<[^>]+\brole="(?:dialog|alertdialog)"[^>]*>/g)].map(m=>m[0]);
+  const modaisInvalidos=aberturas.filter(tag=>!tag.includes('aria-modal="true"')||!/(?:aria-labelledby|aria-label)=/.test(tag));
+  modaisInvalidos.length ? ruim('diálogo sem modalidade ou nome acessível',modaisInvalidos.join('\n'))
+                         : ok(aberturas.length+' diálogos com modalidade e nome acessível');
+
+  const nav=/<[^>]+id="bottom-nav"[^>]*>/.exec(src)?.[0]||'';
+  if(/data-i18n-aria-label="nav\.principal"/.test(nav)) ok('navegação principal tem nome traduzível');
+  else ruim('navegação principal sem nome traduzível');
+  const botoesNav=[...src.matchAll(/<button[^>]+class="bn-item[^>]*>/g)].map(m=>m[0]);
+  const navSemDestino=botoesNav.filter(tag=>!tag.includes('aria-controls='));
+  navSemDestino.length ? ruim('botão da navegação sem aria-controls',navSemDestino.join('\n'))
+                       : ok(botoesNav.length+' botões da navegação ligados às suas telas');
+}
+
 titulo('Contraste dos temas (mínimo WCAG AA 4.5:1)');
 {
   const temas={};let m;
