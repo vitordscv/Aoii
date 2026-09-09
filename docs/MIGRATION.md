@@ -326,3 +326,26 @@ A suíte mantém 370 testes e ganhou verificações estruturais para os diálogo
 a navegação principal.
 
 Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.
+
+
+## Retomada em 09/09/2026 — instalação e uso offline
+
+O manifesto, o favicon, o ícone do iPhone e o logotipo deixaram de ser blocos
+base64 dentro da página. Agora são arquivos próprios em `public/`, com caminhos
+estáveis para o navegador e para o sistema operacional. O HTML gerado caiu de
+1.164.087 para 992.568 bytes, uma redução de aproximadamente 15% na resposta
+principal.
+
+O service worker guarda o shell de instalação na primeira abertura e mantém a
+navegação em rede primeiro, usando a cópia local quando a rede falha. A versão
+do cache passa a ser calculada pelo build a partir do conteúdo; uma publicação
+nova não depende mais de incrementar um número manual. O próprio build também
+confere se todos os arquivos de `public/` chegaram atualizados a `dist/`.
+
+A auditoria recusa manifesto ou ícones embutidos, caminhos quebrados e service
+worker sem versão de conteúdo. A prova no navegador abriu uma origem nova,
+instalou o shell, desligou o servidor e recarregou o Aoii completo a partir do
+cache. Permanecem para o próximo bloco a medição e a redução dos redesenhos da
+interface após cada edição.
+
+Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.

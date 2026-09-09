@@ -67,7 +67,7 @@ async function init(){
        empacotador desempacota o HTML e troca o documento), então um ouvinte
        de 'load' registrado aqui nunca seria chamado — o service worker
        nunca subia. Registra na hora quando a página já terminou. */
-    const registrarSW=()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); };
+    const registrarSW=()=>{ navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).catch(()=>{}); };
     if(document.readyState==='complete') registrarSW();
     else window.addEventListener('load',registrarSW);
   }

@@ -148,6 +148,34 @@ titulo('Acessibilidade estrutural');
                        : ok(botoesNav.length+' botões da navegação ligados às suas telas');
 }
 
+titulo('PWA e funcionamento offline');
+{
+  if (/href="data:(?:image|application\/manifest)/.test(src)) ruim('ícone ou manifesto ainda está embutido no HTML');
+  else ok('ícones e manifesto saem do HTML e podem ser cacheados separadamente');
+
+  const dir=path.dirname(ARQUIVO);
+  const manifestPath=path.join(dir,'manifest.webmanifest');
+  if(!fs.existsSync(manifestPath)) ruim('manifest.webmanifest não foi publicado');
+  else{
+    try{
+      const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+      const faltam=(manifest.icons||[]).filter(icon=>!fs.existsSync(path.join(dir,icon.src.replace(/^\//,''))));
+      if(manifest.start_url==='/'&&manifest.display==='standalone'&&!faltam.length) ok((manifest.icons||[]).length+' ícones do manifesto existem no pacote');
+      else ruim('manifesto incompleto ou apontando para ícone ausente',faltam.map(i=>i.src).join(', '));
+    }catch(e){ ruim('manifest.webmanifest inválido',e.message); }
+  }
+
+  const swPath=path.join(dir,'sw.js');
+  if(!fs.existsSync(swPath)) ruim('service worker não foi publicado');
+  else{
+    const sw=fs.readFileSync(swPath,'utf8');
+    if(/const VERSAO='aoii-[a-f0-9]{12}'/.test(sw)&&!sw.includes('__AOII_BUILD_VERSION__')) ok('cache offline recebe versão automática do build');
+    else ruim('service worker saiu sem versão automática');
+    if(sw.includes("'/manifest.webmanifest'")&&sw.includes("'/assets/icons/icon-512.png'")) ok('shell offline inclui manifesto e ícones');
+    else ruim('shell offline não inclui os arquivos de instalação');
+  }
+}
+
 titulo('Contraste dos temas (mínimo WCAG AA 4.5:1)');
 {
   const temas={};let m;

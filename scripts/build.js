@@ -18,6 +18,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const RAIZ = path.join(__dirname, '..');
 const SRC = path.join(RAIZ, 'src');
@@ -61,28 +62,60 @@ function montar() {
   return saida;
 }
 
-/* copia public/ para dist/, preservando a árvore */
-function copiarPublic(destino) {
+/* Lista e prepara public/. O service worker recebe uma versão derivada do
+   conteúdo do app: cada build novo troca de cache sem depender de alguém
+   lembrar de incrementar um número manual. */
+function listarPublic() {
   if (!fs.existsSync(PUBLIC)) return [];
-  const copiados = [];
+  const itens = [];
   (function anda(dir, rel) {
     for (const nome of fs.readdirSync(dir).sort()) {
       const cheio = path.join(dir, nome);
       const relNovo = rel ? rel + '/' + nome : nome;
       if (fs.statSync(cheio).isDirectory()) { anda(cheio, relNovo); continue; }
-      const alvo = path.join(destino, relNovo);
-      fs.mkdirSync(path.dirname(alvo), { recursive: true });
-      fs.copyFileSync(cheio, alvo);
-      copiados.push(relNovo);
+      itens.push({ cheio, rel: relNovo });
     }
   })(PUBLIC, '');
-  return copiados;
+  return itens;
+}
+
+function versaoBuild(html, itens) {
+  const hash = crypto.createHash('sha256').update(html);
+  itens.filter(i => i.rel !== 'sw.js').forEach(i => hash.update(i.rel).update(fs.readFileSync(i.cheio)));
+  return 'aoii-' + hash.digest('hex').slice(0, 12);
+}
+
+function conteudoPublic(item, versao) {
+  const bruto = fs.readFileSync(item.cheio);
+  if (item.rel !== 'sw.js') return bruto;
+  const texto = bruto.toString('utf8');
+  const token = '__AOII_BUILD_VERSION__';
+  if ((texto.split(token).length - 1) !== 1) throw new Error('public/sw.js precisa conter uma marca de versão');
+  return Buffer.from(texto.replace(token, versao));
+}
+
+function copiarPublic(destino, itens, versao) {
+  for (const item of itens) {
+    const alvo = path.join(destino, item.rel);
+    fs.mkdirSync(path.dirname(alvo), { recursive: true });
+    fs.writeFileSync(alvo, conteudoPublic(item, versao));
+  }
+  return itens.map(i => i.rel);
+}
+
+function publicDivergente(destino, itens, versao) {
+  return itens.filter(item => {
+    const alvo = path.join(destino, item.rel);
+    return !fs.existsSync(alvo) || !fs.readFileSync(alvo).equals(conteudoPublic(item, versao));
+  }).map(i => i.rel);
 }
 
 function main() {
   const html = montar();
   const alvo = path.join(DIST, 'index.html');
   const checando = process.argv.includes('--check');
+  const publicos = listarPublic();
+  const versao = versaoBuild(html, publicos);
 
   if (checando) {
     const atual = fs.existsSync(alvo) ? fs.readFileSync(alvo, 'utf8') : null;
@@ -90,13 +123,18 @@ function main() {
       console.error('dist/index.html está diferente do que src/ produz. Rode: npm run build');
       process.exit(1);
     }
-    console.log('dist/ está em dia com src/ (' + Buffer.byteLength(html).toLocaleString('pt-BR') + ' bytes)');
+    const divergentes = publicDivergente(DIST, publicos, versao);
+    if (divergentes.length) {
+      console.error('dist/ contém asset(s) desatualizado(s): ' + divergentes.join(', '));
+      process.exit(1);
+    }
+    console.log('dist/ está em dia com src/ e public/ (' + Buffer.byteLength(html).toLocaleString('pt-BR') + ' bytes, ' + versao + ')');
     return;
   }
 
   fs.mkdirSync(DIST, { recursive: true });
   fs.writeFileSync(alvo, html);
-  const copiados = copiarPublic(DIST);
+  const copiados = copiarPublic(DIST, publicos, versao);
   console.log('dist/index.html  ' + Buffer.byteLength(html).toLocaleString('pt-BR') + ' bytes');
   console.log('public/ → dist/  ' + copiados.length + ' arquivos');
 }

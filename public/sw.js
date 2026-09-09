@@ -1,85 +1,66 @@
-/* Service worker do Aoii.
-   O index.html já registrava 'sw.js', mas o arquivo não existia — a
-   chamada falhava calada e o app nunca funcionou de verdade offline.
-
-   Estratégia:
-   - navegação (o próprio index.html): REDE PRIMEIRO, cache como reserva.
-     Isso é importante: o app tem um verificador de atualização que compara
-     o ETag do arquivo publicado. Se o service worker servisse o cache
-     primeiro, o verificador veria versão nova, recarregaria, receberia o
-     cache velho de novo e entraria em laço.
-   - fontes do Google e as ilustrações de fundo em /assets/: CACHE
-     PRIMEIRO, porque não mudam e são pesadas.
-   - qualquer outra coisa: passa direto, sem interferir. */
-
-const VERSAO='aoii-v2';
-const CACHE_PAGINA=VERSAO+'-pagina';
+/* Shell offline do Aoii. A versão é inserida pelo build a partir do conteúdo. */
+const VERSAO='__AOII_BUILD_VERSION__';
+const CACHE_SHELL=VERSAO+'-shell';
 const CACHE_FONTES=VERSAO+'-fontes';
-const CACHE_ARTE=VERSAO+'-arte';
+const SHELL=[
+  '/',
+  '/manifest.webmanifest',
+  '/assets/icons/icon-192.png',
+  '/assets/icons/icon-512.png',
+  '/assets/icons/apple-touch-icon.png',
+  '/assets/icons/logo-128.png',
+];
 
-self.addEventListener('install',e=>{ self.skipWaiting(); });
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE_SHELL).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
+});
 
-self.addEventListener('activate',e=>{
-  e.waitUntil((async()=>{
+self.addEventListener('activate',event=>{
+  event.waitUntil((async()=>{
     const nomes=await caches.keys();
-    await Promise.all(nomes.filter(n=>!n.startsWith(VERSAO)).map(n=>caches.delete(n)));
+    await Promise.all(nomes.filter(nome=>nome.startsWith('aoii-')&&!nome.startsWith(VERSAO)).map(nome=>caches.delete(nome)));
     await self.clients.claim();
   })());
 });
 
-self.addEventListener('fetch',e=>{
-  const req=e.request;
-  if(req.method!=='GET') return;
-  const url=new URL(req.url);
+async function redePrimeiro(request){
+  try{
+    const response=await fetch(request);
+    if(response&&response.ok){
+      const cache=await caches.open(CACHE_SHELL);
+      await cache.put('/',response.clone());
+    }
+    return response;
+  }catch(error){
+    const salvo=await caches.match('/');
+    if(salvo) return salvo;
+    throw error;
+  }
+}
 
-  /* a página em si */
-  if(req.mode==='navigate'||(req.destination==='document')){
-    e.respondWith((async()=>{
-      try{
-        const res=await fetch(req);
-        if(res&&res.ok){
-          const c=await caches.open(CACHE_PAGINA);
-          c.put('/', res.clone());          // guarda uma cópia pra quando faltar rede
-        }
-        return res;
-      }catch(err){
-        const c=await caches.open(CACHE_PAGINA);
-        const guardado=await c.match('/');
-        if(guardado) return guardado;
-        throw err;
-      }
-    })());
+async function cachePrimeiro(request,cacheName){
+  const cache=await caches.open(cacheName);
+  const salvo=await cache.match(request);
+  if(salvo) return salvo;
+  const response=await fetch(request);
+  if(response&&(response.ok||response.type==='opaque')) await cache.put(request,response.clone());
+  return response;
+}
+
+self.addEventListener('fetch',event=>{
+  const request=event.request;
+  if(request.method!=='GET') return;
+  const url=new URL(request.url);
+  if(request.mode==='navigate'||request.destination==='document'){
+    event.respondWith(redePrimeiro(request));
     return;
   }
-
-  /* ilustrações de fundo: pesadas e imutáveis, guarda na primeira vez */
-  if(url.origin===self.location.origin&&url.pathname.startsWith('/assets/')){
-    e.respondWith((async()=>{
-      const c=await caches.open(CACHE_ARTE);
-      const guardado=await c.match(req);
-      if(guardado) return guardado;
-      const res=await fetch(req);
-      if(res&&res.ok) c.put(req,res.clone());
-      return res;
-    })());
+  if(url.origin===self.location.origin&&(url.pathname==='/manifest.webmanifest'||url.pathname.startsWith('/assets/'))){
+    event.respondWith(cachePrimeiro(request,CACHE_SHELL));
     return;
   }
-
-  /* fontes do Google: não mudam, vale guardar */
   if(url.hostname==='fonts.googleapis.com'||url.hostname==='fonts.gstatic.com'){
-    e.respondWith((async()=>{
-      const c=await caches.open(CACHE_FONTES);
-      const guardado=await c.match(req);
-      if(guardado) return guardado;
-      try{
-        const res=await fetch(req);
-        if(res&&(res.ok||res.type==='opaque')) c.put(req,res.clone());
-        return res;
-      }catch(err){
-        if(guardado) return guardado;
-        throw err;
-      }
-    })());
+    event.respondWith(cachePrimeiro(request,CACHE_FONTES));
   }
-  /* o resto (Supabase, Gemini, BrasilAPI) passa direto, sem cache */
+  /* Supabase, Gemini e BrasilAPI continuam fora do cache. */
 });
