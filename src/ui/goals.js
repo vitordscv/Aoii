@@ -75,25 +75,27 @@ function renderMetas(){
   renderMetaWarning();
 
   el.querySelectorAll('[data-action="meta-nome"]').forEach(x=>x.addEventListener('change',async e=>{
-    const m=(data.metas||[]).find(x=>x.id===e.target.getAttribute('data-id'));
-    if(m){ m.nome=e.target.value; await persist(); }
+    const m=atualizarMeta(e.target.getAttribute('data-id'),{nome:e.target.value});
+    if(m){ await persist(); } else render();
   }));
   el.querySelectorAll('[data-action="meta-guardado"]').forEach(x=>x.addEventListener('change',async e=>{
-    const m=(data.metas||[]).find(x=>x.id===e.target.getAttribute('data-id'));
-    if(m){ m.valorGuardado=parseNum(e.target.value)||0; await persist(); render(); }
+    const valor=parseNum(e.target.value);
+    const m=atualizarMeta(e.target.getAttribute('data-id'),{valorGuardado:valor});
+    if(m){ await persist(); render(); } else render();
   }));
   el.querySelectorAll('[data-action="meta-alvo"]').forEach(x=>x.addEventListener('change',async e=>{
-    const m=(data.metas||[]).find(x=>x.id===e.target.getAttribute('data-id'));
-    if(m){ m.valorAlvo=parseNum(e.target.value)||0; await persist(); render(); }
+    const valor=parseNum(e.target.value);
+    const m=atualizarMeta(e.target.getAttribute('data-id'),{valorAlvo:valor});
+    if(m){ await persist(); render(); } else render();
   }));
   el.querySelectorAll('[data-action="meta-del"]').forEach(x=>x.addEventListener('click',async e=>{
     const id=e.target.closest('[data-id]').getAttribute('data-id');
-    const idx=(data.metas||[]).findIndex(m=>m.id===id); if(idx<0) return;
-    const removedNome=data.metas[idx].nome;
-    if(!(await confirmDialog({text:L('confirm.removerMeta').replace('{nome}',removedNome)}))) return;
-    const removed=data.metas.splice(idx,1)[0];
+    const atual=(data.metas||[]).find(m=>m.id===id); if(!atual) return;
+    const pergunta=L('confirm.removerMeta').replace('{nome}',atual.nome)+' '+L('meta.removeReturnsBalance');
+    if(!(await confirmDialog({text:pergunta}))) return;
+    const removida=removerMeta(id); if(!removida) return;
     vibrate(15); render();
-    showUndoToast(L('undo.removida').replace('{nome}',removed.nome),()=>{ data.metas.splice(Math.min(idx,data.metas.length),0,removed); });
+    showUndoToast(L('undo.removida').replace('{nome}',removida.item.nome),()=>{ restaurarMeta(removida.item,removida.indice); });
   }));
 }
 

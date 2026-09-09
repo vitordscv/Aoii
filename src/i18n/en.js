@@ -41,4 +41,6 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 ,'nav.principal':'Main navigation','ia.analisando':'Analyzing your finances…','a11y.editItem':'Edit {name}','a11y.deleteItem':'Delete {name}','rr.fallsDay':'paid on day {day}','rr.paused':'Paused','rr.recurring':'Recurring','budget.capFor':'Monthly cap for {cat}'
 
 ,'list.cardDefault':'Card','list.alreadyPosted':'already added to invoices','csv.date':'Date','csv.type':'Type','csv.name':'Name','csv.category':'Category','csv.method':'Method','csv.value':'Amount','csv.income':'Income','csv.expense':'Expense','time.day':'day','time.days':'days','warn.invoiceOverdue':'The {month} invoice was due {count} {days} ago and hasn\'t been marked as paid.','warn.invoiceToday':'The {month} invoice is due today and hasn\'t been marked as paid.','warn.invoiceIn':'The {month} invoice is due in {count} {days} and hasn\'t been marked as paid.','warn.billToday':'"{name}" is due today.','warn.billIn':'"{name}" is due in {count} {days}.','warn.cardClosesToday':'{name}\'s invoice closes today — purchases from tomorrow go to the next one.','warn.cardClosesIn':'{name}\'s invoice closes in {count} {days}.'
+
+,'meta.removeReturnsBalance':'The saved amount returns to your account balance.'
 };

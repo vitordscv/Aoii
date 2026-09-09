@@ -123,10 +123,10 @@ coordenado descrito em [SECURITY.md](SECURITY.md).
 
 ## O que ainda não existe
 
-Os lançamentos do Diário já passam por comandos em `core/transactions.js`:
-criação, edição, remoção e restauração alteram o item e o saldo correspondente na
-mesma operação. A interface ainda altera diretamente metas, rendas, cartões,
-faturas e configurações.
+Os lançamentos do Diário já passam por comandos em `core/transactions.js`.
+Metas passam por `core/goals.js`; editar o valor guardado, remover e desfazer
+movem o mesmo valor no saldo da conta e preservam o patrimônio. A interface
+ainda altera diretamente rendas, cartões, faturas e configurações.
 
 Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
 [MIGRATION.md](MIGRATION.md).

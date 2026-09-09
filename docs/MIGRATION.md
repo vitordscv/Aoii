@@ -449,3 +449,10 @@ atual para o novo lançamento.
 Avisos de vencimento e fechamento passaram a usar o dicionário central nos
 cinco idiomas. Etiquetas de compras parceladas e cabeçalhos, tipos, categorias,
 métodos e números do CSV também respeitam o idioma escolhido.
+
+## Retomada em 09/09/2026 — comandos de metas
+
+Criar, editar, remover e restaurar metas passaram para `core/goals.js`. Alterar
+o valor guardado move somente a diferença no saldo da conta; excluir devolve o
+valor e desfazer o separa novamente. Assim essas ações não criam nem apagam
+patrimônio. Entradas inválidas são recusadas antes de qualquer alteração.

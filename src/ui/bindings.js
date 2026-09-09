@@ -133,13 +133,9 @@ function bindStatic(){
   document.getElementById('metas-add').addEventListener('click',async()=>{
     const nEl=document.getElementById('metas-nome'), vEl=document.getElementById('metas-valor'), dEl=document.getElementById('metas-data'), aEl=document.getElementById('metas-aporte');
     const nome=nEl.value.trim(), valor=parseNum(vEl.value);
-    if(!nome||isNaN(valor)) return;
-    if(!data.metas) data.metas=[];
-    const meta={id:uid(),nome,valorAlvo:valor,valorGuardado:0};
     const aporte=parseNum(aEl&&aEl.value);
-    if(!isNaN(aporte)&&aporte>0){ meta.aporteMensal=aporte; const t=today(); meta.ultimoAporte=`${t.getFullYear()}-${t.getMonth()+1}`; }
-    if(dEl && dEl.value) meta.dataAlvo=dEl.value;
-    data.metas.push(meta);
+    const meta=criarMeta({nome,valorAlvo:valor,dataAlvo:dEl&&dEl.value,aporteMensal:isNaN(aporte)?0:aporte});
+    if(!meta) return;
     vibrate(10);
     nEl.value=''; vEl.value=''; if(dEl) dEl.value=''; if(aEl) aEl.value='';
     await persist(); render();

@@ -78,6 +78,7 @@ const FUNCOES=[
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','nextMonth','ensureFatura','lancarParcelamento',
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
+  'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',

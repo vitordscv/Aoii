@@ -79,6 +79,31 @@ module.exports=function(t){
   t.igual(repetido.tags[0],'trabalho','as tags são preservadas');
   t.igual(repetido.nota,'cliente','a nota é preservada');
 
+  console.log('\n\x1b[1mComandos de metas preservam o patrimônio\x1b[0m');
+  const dadosMeta=base();
+  const ctxMeta=criarAmbiente(dadosMeta,HOJE);
+  t.igual(ctxMeta.criarMeta({nome:'',valorAlvo:1000}),null,'meta sem nome é recusada');
+  t.igual(dadosMeta.metas.length,0,'criação recusada não deixa item parcial');
+  const meta=ctxMeta.criarMeta({nome:'Viagem',valorAlvo:1000,aporteMensal:100,dataAlvo:'2027-01-31'});
+  t.igual(meta.dataAlvo,'2027-01-31','prazo nasce junto com a meta');
+  t.valor(meta.aporteMensal,100,'aporte mensal nasce junto com a meta');
+  t.igual(meta.ultimoAporte,'2026-9','meta nova não recebe aporte automático duplicado no mesmo mês');
+  const patrimonioMeta=ctxMeta.patrimonioCalculado();
+  ctxMeta.atualizarMeta(meta.id,{valorGuardado:300});
+  t.valor(dadosMeta.saldoAtual,700,'guardar dinheiro na meta retira o mesmo valor da conta');
+  t.valor(ctxMeta.patrimonioCalculado(),patrimonioMeta,'guardar dinheiro não cria patrimônio');
+  ctxMeta.atualizarMeta(meta.id,{valorGuardado:120});
+  t.valor(dadosMeta.saldoAtual,880,'reduzir o guardado devolve a diferença para a conta');
+  const nomeAntes=meta.nome;
+  t.igual(ctxMeta.atualizarMeta(meta.id,{nome:'Mudou',valorGuardado:-1}),null,'edição inválida é recusada antes de alterar a meta');
+  t.igual(meta.nome,nomeAntes,'edição recusada não altera outro campo');
+  const metaRemovida=ctxMeta.removerMeta(meta.id);
+  t.valor(dadosMeta.saldoAtual,1000,'excluir a meta devolve o valor guardado para a conta');
+  t.igual(dadosMeta.metas.length,0,'a meta é removida');
+  ctxMeta.restaurarMeta(metaRemovida.item,metaRemovida.indice);
+  t.valor(dadosMeta.saldoAtual,880,'desfazer recoloca o dinheiro na meta');
+  t.igual(dadosMeta.metas[0].id,meta.id,'desfazer restaura a meta na lista');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

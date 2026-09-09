@@ -26,6 +26,7 @@
     "core/dates.js",
     "core/invoices.js",
     "core/income.js",
+    "core/goals.js",
     "core/timeline.js",
     "core/cards.js",
     "core/transactions.js",
