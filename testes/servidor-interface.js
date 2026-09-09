@@ -13,7 +13,8 @@ const base=/const SUPABASE_URL = '([^']+)'/.exec(cfg)[1];
 const chave=/const SUPABASE_ANON_KEY = '([^']+)'/.exec(cfg)[1];
 const codigo='UI'+require('crypto').randomBytes(5).toString('hex').toUpperCase();
 const permitidas=new Set(['aoii_get_homolog','aoii_put_homolog']);
-const ids=new Set([codigo]),evidencias=[];
+const codigoLegado=codigo+'LEG';
+const ids=new Set([codigo,codigoLegado]),evidencias=[];
 const modos=new Map();
 const headers={apikey:chave,Authorization:'Bearer '+chave,'Content-Type':'application/json'};
 function responder(res,status,tipo,texto){res.writeHead(status,{'Content-Type':tipo,'Cache-Control':'no-store'});res.end(texto);}
@@ -26,6 +27,14 @@ async function atender(req,res){
     return responder(res,200,'text/plain',JSON.stringify({codigo,porta,...modo}));
   }
   if(url.pathname==='/evidencias')return responder(res,200,'application/json',JSON.stringify({codigo,evidencias},null,2));
+  if(url.pathname==='/semear-legado'&&req.method==='POST'){
+    const dados={schemaVersion:1,saldoAtual:4321.99,dinheiroVivo:25,
+      onboardingCompleto:true,tourCompleto:true,cartoes:[{id:'cartao-teste',nome:'Cartão fictício',limite:5000}]};
+    const r=await fetch(base+'/rest/v1/financas_homolog',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates'},
+      body:JSON.stringify({id:codigoLegado,data:dados,revision:0,write_token_hash:null})});
+    evidencias.push({horario:new Date().toISOString(),metodo:'POST',funcao:'financas_homolog',id:codigoLegado,status:r.status});
+    return responder(res,r.status,'application/json',JSON.stringify({codigo:codigoLegado,saldo:dados.saldoAtual}));
+  }
   if(url.pathname==='/limpar'&&req.method==='POST'){
     for(const id of ids){
       const r=await fetch(base+'/rest/v1/financas_homolog?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers});
@@ -37,7 +46,7 @@ async function atender(req,res){
   if(url.pathname.startsWith('/rpc/')&&req.method==='POST'){
     const nome=url.pathname.slice(5);let corpo='';for await(const chunk of req)corpo+=chunk;
     const dados=JSON.parse(corpo);
-    if(!permitidas.has(nome)||!(dados.p_id===codigo||dados.p_id?.startsWith(codigo+'-snap-'))){
+    if(!permitidas.has(nome)||!(ids.has(dados.p_id)||[...ids].some(id=>dados.p_id?.startsWith(id+'-snap-')))){
       evidencias.push({bloqueada:true,funcao:nome});return responder(res,403,'application/json','{}');
     }
     ids.add(dados.p_id);
@@ -66,7 +75,7 @@ async function atender(req,res){
       };
     </script>`;
     html=html.replace('<head>','<head>'+boot);
-    html=html.replace('</body>',`<aside style="position:fixed;bottom:0;left:0;z-index:1;background:#fff;color:#000;font:12px monospace">ENSAIO ${porta} · Código fictício: ${codigo}</aside></body>`);
+    html=html.replace('</body>',`<aside style="position:fixed;bottom:0;left:0;z-index:1;background:#fff;color:#000;font:12px monospace">ENSAIO ${porta} · Novo: ${codigo} · Legado: ${codigoLegado}</aside></body>`);
     res.setHeader('Content-Security-Policy',"connect-src 'self'; worker-src 'none'");
     return responder(res,200,'text/html; charset=utf-8',html);
   }
@@ -75,5 +84,5 @@ async function atender(req,res){
 for(const porta of [4173,4174]){
   modos.set(porta,{lento:false,offline:false});
   http.createServer((req,res)=>atender(req,res).catch(e=>{console.error(e.message);if(!res.headersSent)responder(res,500,'text/plain','Falha no ensaio');else res.end();}))
-    .listen(porta,'127.0.0.1',()=>console.log('http://localhost:'+porta+' · '+codigo));
+    .listen(porta,'127.0.0.1',()=>console.log('http://localhost:'+porta+' · novo '+codigo+' · legado '+codigoLegado));
 }

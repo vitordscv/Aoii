@@ -36,9 +36,10 @@ rotina e a situação de alguém.
 | `financas-ia-chave` | chave da API do Gemini, **em texto puro** |
 
 **Enviado ao Supabase pelo branch**: envelope AES-GCM, inclusive nos snapshots
-novos. A senha não sai do aparelho; o token derivado é enviado à RPC. A sessão
-ainda conserva a senha em memória, mas não em `localStorage`. Registros antigos
-em produção continuam em texto puro até a migração; não foram alterados aqui.
+novos. A senha não sai do aparelho; o token derivado é enviado à RPC. Depois da
+entrada, a string da senha é descartada e a sessão conserva uma `CryptoKey`
+não exportável. Registros antigos em produção continuam em texto puro até a
+migração; não foram alterados aqui.
 
 **Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
@@ -56,9 +57,9 @@ dinheiro**, compras planejadas e viagens.
 
 `src/storage/sync-ciclo.js` e `src/ui/sync-ui.js` já ligam a criptografia à
 sincronização por RPC. O código novo tem 12 caracteres e usa Web Crypto quando
-disponível. Ainda existe fallback para `Math.random()`; removê-lo e guardar
-somente uma `CryptoKey` em memória são pendências antes de considerar o objetivo
-de segurança do roteiro original concluído.
+disponível. Se Web Crypto não existir, a geração falha de forma explícita; não
+há fallback para `Math.random()`. A sessão guarda somente uma `CryptoKey`
+AES-GCM não exportável e o token de escrita.
 
 Em produção, a parte 2 ainda não foi aplicada: conhecer a chave pública permite
 acesso direto à tabela. O token da RPC não impede esse caminho alternativo.

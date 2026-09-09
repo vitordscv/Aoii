@@ -6,7 +6,7 @@ reabrir com pendência e revisar acessibilidade dos diálogos novos.
 
 ## Resultado
 
-353 testes locais passaram (318 anteriores + 35 regressões). O roteiro real
+367 testes locais passaram (318 anteriores + 49 regressões). O roteiro real
 `testes/ciclo-homologacao.js` passou nas 31 verificações, incluindo migração,
 senha errada, token inválido, revisão concorrente, retomada, tamanho máximo e
 teto de criação. A limpeza final verificou que nenhum ID dessa execução ficou.
@@ -39,6 +39,11 @@ Código fictício desta execução: `UIA926192451`; senha exclusivamente de ensa
 | Adiar conflito | Escape manteve pendência; nova tentativa foi iniciada explicitamente nas Configurações |
 | Escolher nuvem | B adotou 666, mostrou em dia, restaurou foco a Usar este código e liberou o fundo |
 | Senha incorreta após recarga | Mostrou alerta e preservou saldo 666 no aparelho |
+| Backup antes de legado | A interface bloqueou a migração até a confirmação; cancelar restaura código e sessão em regressão automatizada |
+| Migração do legado | Comparou local R$ 666,00 com nuvem R$ 4.346,99; após escolher nuvem, adotou saldo R$ 4.321,99 + R$ 25,00 e ficou em dia |
+| Conteúdo após migração | Revisão 2, envelope `aoii: sync`; nome do cartão e saldo fictício não aparecem no JSON armazenado |
+| Material da sessão | A senha não é propriedade do estado; fica somente `CryptoKey` não exportável + token em memória |
+| Código sem Web Crypto | Falha com `cripto-indisponivel`; não usa `Math.random()` como fallback |
 
 A verificação visual confirmou que a identidade do app e os diálogos se mantêm.
 Não foi usado leitor de tela: foram verificados atributos, teclado e foco.
@@ -50,6 +55,11 @@ funções chamadas foram `aoii_get_homolog` e `aoii_put_homolog`; os dois DELETE
 foram restritos aos IDs fictícios na tabela `financas_homolog`. As três respostas
 503 foram provocadas pelo simulador de indisponibilidade. Nenhuma tentativa foi
 bloqueada pela lista permitida; nenhuma chamada à tabela ou RPC de produção.
+
+[Registro da migração completa](homologacao-2026-09-08-migracao-rede.json): 20
+entradas, somente tabela descartável para semear/limpar e as RPCs de homologação.
+Sem resposta HTTP de erro, chamada bloqueada ou acesso à produção. Os códigos
+novo e legado foram relidos como ausentes depois da limpeza.
 
 O servidor de ensaio usa CSP `connect-src 'self'`, bloqueia service workers e
 encaminha somente as duas RPCs de homologação, limitadas ao código desta execução
@@ -76,16 +86,13 @@ afetar os dois registros do ensaio de interface que ainda estavam em uso.
 ## Limites e próximo passo
 
 - Duas origens independentes não equivalem à cobertura de dois navegadores ou
-  perfis distintos. Esse ensaio adicional permanece pendente.
-- Migração de legado foi testada contra o banco e em testes de concorrência;
-  a sequência completa de backup + migração pela interface ainda requer ensaio.
-- A sessão conserva a senha em memória. Não há persistência dela, mas manter
-  somente a chave derivada ainda é trabalho pendente do roteiro original.
+  perfis distintos. Chrome estava em uso e o controle recusou interferir; Edge
+  não estava disponível. Esse ensaio adicional permanece pendente.
 - Acessibilidade desta rodada cobre senha, conflito e confirmação compartilhada;
   não representa auditoria completa de todos os painéis e formulários.
 - Nenhum push, deploy, merge, política RLS ou migração SQL nesta rodada. A parte
   2 e o rollout continuam pendentes; o site público não recebeu estas correções.
 
-Próxima etapa: fechar os ensaios de interface pendentes e revisar backup,
-credenciais em memória e compatibilidade com clientes antigos antes de propor
+Próxima etapa: repetir o ensaio em dois navegadores/perfis quando houver uma
+sessão livre e revisar compatibilidade com clientes antigos antes de propor
 publicação ou alteração de acesso à tabela de produção.

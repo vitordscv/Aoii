@@ -206,10 +206,10 @@ branch, antes de qualquer criptografia — é o que torna a migração segura.
 4. Homologação já disponível: **31 verificações reais passaram em 08/09/2026**,
    incluindo teto de criação, token, revisão, criptografia e limpeza dos próprios IDs.
 5. Interface já implementada no branch. Fila e acessibilidade dos diálogos
-   verificadas; **353 testes locais passam**. Repetir o roteiro em navegadores
-   distintos e revisar backup/migração antes do rollout. A sessão ainda mantém a
-   senha em memória; não há persistência de senha, mas o objetivo de manter apenas
-   a chave derivada ainda não foi implementado.
+   verificadas; **367 testes locais passam**. Backup e migração completa foram
+   exercitados na interface. Depois da derivação, a sessão conserva somente uma
+   `CryptoKey` não exportável e o token de escrita; não há fallback inseguro na
+   geração do código. Falta repetir o roteiro em navegadores distintos.
 6. Revisar e aprovar a aplicação de `0004_limites_e_abuso.sql` em produção.
    Os limites equivalentes já foram testados em homologação; não houve SQL nesta rodada.
 7. Publicar e abrir o app em cada aparelho pelo menos uma vez, confirmando que a

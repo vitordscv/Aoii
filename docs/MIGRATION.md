@@ -251,11 +251,20 @@ existia nesse checkpoint; as seções anteriores registram rodadas históricas.
 - O roteiro de homologação limpa somente seus próprios IDs, inclusive no
   teste de criação abusiva. Não usa mais prefixos amplos de outros ensaios.
 
-Validação: 353 testes locais (35 novos), 31 verificações contra a homologação
+Validação final: 367 testes locais (49 novos), 31 verificações contra a homologação
 real, lint sem novas violações e auditoria estrutural limpa. A interface foi
 ensaiada em duas origens com armazenamento independente no mesmo navegador.
 O teste em dois navegadores/perfis distintos ainda precisa ser repetido.
 Roteiro, evidências e limites em [HOMOLOGACAO-2026-09-08.md](HOMOLOGACAO-2026-09-08.md).
+
+A continuação da rodada removeu a senha do estado da sessão: depois da entrada,
+ficam somente uma `CryptoKey` AES-GCM não exportável e o token de escrita em
+memória. Também removeu o fallback de `Math.random()` para códigos de segurança.
+Código novo ou legado agora exige a etapa de backup; cancelar restaura o código
+e a sessão anteriores. Envelope corrompido também não deixa material parcial na
+sessão. O fluxo completo de migração foi exercitado na interface. Os diálogos de
+senha e conflito foram separados em módulo próprio; nenhum módulo ficou acima
+do limite de manutenção de 400 linhas.
 
 Nenhuma publicação, push, alteração de política ou migração de banco nesta
 rodada. As proteções deste branch não devem ser confundidas com o site em produção.
@@ -263,8 +272,7 @@ rodada. As proteções deste branch não devem ser confundidas com o site em pro
 ## O que vem, em ordem
 
 1. **Concluir a preparação da transição.** Repetir a interface em navegadores
-   distintos, revisar o fluxo de backup/migração e o uso de senha somente como
-   chave derivada em memória; preparar preview e rollout para aprovação.
+   distintos e preparar preview e rollout para aprovação.
    A parte 2 do banco permanece pendente e não pode anteceder clientes compatíveis.
 
 2. **Acessibilidade.** `role="dialog"`, foco inicial, focus trap, Escape,
