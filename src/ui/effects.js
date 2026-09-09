@@ -166,9 +166,11 @@ function attachSwipe(item,handlers){
 
 /* ── export CSV das transações do diário ── */
 function exportTransacoesCSV(){
-  const rows=[['Data','Tipo','Nome','Categoria','Método','Valor']];
+  const rows=[[L('csv.date'),L('csv.type'),L('csv.name'),L('csv.category'),L('csv.method'),L('csv.value')]];
   (data.transacoes||[]).slice().reverse().forEach(t=>{
-    rows.push([t.data||'',t.tipo==='receita'?'Entrada':'Gasto',t.nome||'',t.categoria||'',t.metodo||'',String(t.valor).replace('.',',')]);
+    const metodo=t.metodo?L('pay.'+t.metodo):'';
+    const valor=Number(t.valor||0).toLocaleString(localeAtual(),{useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:2});
+    rows.push([t.data||'',L(t.tipo==='receita'?'csv.income':'csv.expense'),t.nome||'',categoriaLabel(t.categoria||''),metodo,valor]);
   });
   const csv='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});

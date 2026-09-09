@@ -443,3 +443,9 @@ O botão “Repetir último gasto” agora procura o lançamento de despesa mais
 recente. Antes, uma entrada inesperada no topo do Diário podia ser recriada como
 gasto. A repetição também preserva nota, tags, viagem e divisão e usa a data
 atual para o novo lançamento.
+
+## Retomada em 09/09/2026 — textos dinâmicos e CSV
+
+Avisos de vencimento e fechamento passaram a usar o dicionário central nos
+cinco idiomas. Etiquetas de compras parceladas e cabeçalhos, tipos, categorias,
+métodos e números do CSV também respeitam o idioma escolhido.

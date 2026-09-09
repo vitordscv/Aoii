@@ -27,7 +27,7 @@ function renderList(key,listElId,totalElId,doneField,doneLabel){
           const f=fatiasAosPoucos(it);
           return `<div class="item-cartao-tag">🧩 ${f?L('lista.divididoEm').replace('{n}',f.meses).replace('{valor}',formatBRL(f.porMes)):L('lista.escolhaAte')}</div>`;})():''}
         ${(key==='comprasPlanejadas'&&!it[doneField])?`<label class="item-cartao-toggle" title="${esc(L('tt.marqueCartao'))}"><input type="checkbox" data-action="toggle-cartao-item" data-key="${key}" data-id="${it.id}" ${it.cartao?'checked':''}> ${L('gasto.cartaoLabel')}</label>`:''}
-        ${(key==='comprasPlanejadas'&&it.cartao)?`<div class="item-cartao-tag">💳 ${(data.cartoes||[]).length>1?esc((data.cartoes.find(c=>c.id===it.cartaoId)||{}).nome||'Cartão')+' · ':''}${(it.parcelas||1)>1?`${it.parcelas}x`:''}${it.parcelasLancadas?' · já lançada nas faturas':''}</div>`:''}
+        ${(key==='comprasPlanejadas'&&it.cartao)?`<div class="item-cartao-tag">💳 ${(data.cartoes||[]).length>1?esc((data.cartoes.find(c=>c.id===it.cartaoId)||{}).nome||L('list.cardDefault'))+' · ':''}${(it.parcelas||1)>1?`${it.parcelas}x`:''}${it.parcelasLancadas?' · '+L('list.alreadyPosted'):''}</div>`:''}
         ${timing?`<div class="item-timing ${timing.ok?'ok':'wait'}">${timing.ok?'✓':'⏳'} ${esc(timing.when)}</div>`:''}
       </div>
       ${(key==='entradasExtras'&&!it[doneField])?`<select class="item-modo" data-action="edit-modo" data-key="${key}" data-id="${it.id}" title="${esc(L('tt.modoEntrada'))}">

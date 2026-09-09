@@ -61,31 +61,27 @@ function renderFaturaWarning(){
     .filter(a=>a.diff>=0&&a.diff<=3)
     .sort((a,b)=>a.diff-b.diff);
   if(alerts.length===0&&contaAlerts.length===0&&fechamentoAlerts.length===0){ el.innerHTML=''; return; }
-  const idi=data.idioma||'pt';
-  const dia=(n)=>({pt:n===1?'dia':'dias',en:n===1?'day':'days',es:n===1?'día':'días',fr:n===1?'jour':'jours'})[idi];
+  function aviso(chave,campos){
+    let texto=L(chave);
+    Object.entries(campos||{}).forEach(([nome,valor])=>{ texto=texto.replace('{'+nome+'}',String(valor)); });
+    return texto;
+  }
+  const unidadeDias=n=>L(n===1?'time.day':'time.days');
   const faturaHtml=alerts.map(a=>{
     const mesNome=MONTH_NAMES[a.f.mes-1];
-    let txt;
-    if(idi==='en') txt=a.diff<0?`${mesNome} invoice was due ${Math.abs(a.diff)} ${dia(Math.abs(a.diff))} ago and hasn't been marked as paid.`:a.diff===0?`${mesNome} invoice is due today and hasn't been marked as paid.`:`${mesNome} invoice is due in ${a.diff} ${dia(a.diff)} and hasn't been marked as paid.`;
-    else if(idi==='es') txt=a.diff<0?`La factura de ${mesNome} venció hace ${Math.abs(a.diff)} ${dia(Math.abs(a.diff))} y aún no se marcó como pagada.`:a.diff===0?`La factura de ${mesNome} vence hoy y aún no se marcó como pagada.`:`La factura de ${mesNome} vence en ${a.diff} ${dia(a.diff)} y aún no se marcó como pagada.`;
-    else if(idi==='fr') txt=a.diff<0?`La facture de ${mesNome} est échue depuis ${Math.abs(a.diff)} ${dia(Math.abs(a.diff))} et n'a pas encore été marquée payée.`:a.diff===0?`La facture de ${mesNome} est due aujourd'hui et n'a pas encore été marquée payée.`:`La facture de ${mesNome} est due dans ${a.diff} ${dia(a.diff)} et n'a pas encore été marquée payée.`;
-    else txt=a.diff<0?`Fatura de ${mesNome} venceu há ${Math.abs(a.diff)} dia${Math.abs(a.diff)===1?'':'s'} e ainda não foi marcada como paga.`:a.diff===0?`Fatura de ${mesNome} vence hoje e ainda não foi marcada como paga.`:`Fatura de ${mesNome} vence em ${a.diff} dia${a.diff===1?'':'s'} e ainda não foi marcada como paga.`;
+    const quantidade=Math.abs(a.diff);
+    const chave=a.diff<0?'warn.invoiceOverdue':a.diff===0?'warn.invoiceToday':'warn.invoiceIn';
+    const txt=aviso(chave,{month:mesNome,count:quantidade,days:unidadeDias(quantidade)});
     return `<div class="warn-banner">⚠️ ${esc(txt)}</div>`;
   }).join('');
   const contaHtml=contaAlerts.map(a=>{
-    let txt;
-    if(idi==='en') txt=a.diff===0?`"${a.g.nome}" is due today.`:`"${a.g.nome}" is due in ${a.diff} ${dia(a.diff)}.`;
-    else if(idi==='es') txt=a.diff===0?`"${a.g.nome}" vence hoy.`:`"${a.g.nome}" vence en ${a.diff} ${dia(a.diff)}.`;
-    else if(idi==='fr') txt=a.diff===0?`« ${a.g.nome} » est due aujourd'hui.`:`« ${a.g.nome} » est due dans ${a.diff} ${dia(a.diff)}.`;
-    else txt=a.diff===0?`Conta "${a.g.nome}" vence hoje.`:`Conta "${a.g.nome}" vence em ${a.diff} dia${a.diff===1?'':'s'}.`;
+    const chave=a.diff===0?'warn.billToday':'warn.billIn';
+    const txt=aviso(chave,{name:a.g.nome,count:a.diff,days:unidadeDias(a.diff)});
     return `<div class="warn-banner">📅 ${esc(txt)}</div>`;
   }).join('');
   const fechamentoHtml=fechamentoAlerts.map(a=>{
-    let txt;
-    if(idi==='en') txt=a.diff===0?`${a.c.nome}'s invoice closes today — purchases from tomorrow already go to the next one.`:`${a.c.nome}'s invoice closes in ${a.diff} ${dia(a.diff)}.`;
-    else if(idi==='es') txt=a.diff===0?`La factura de ${a.c.nome} cierra hoy — las compras desde mañana ya entran en la siguiente.`:`La factura de ${a.c.nome} cierra en ${a.diff} ${dia(a.diff)}.`;
-    else if(idi==='fr') txt=a.diff===0?`La facture de ${a.c.nome} se clôture aujourd'hui — les achats à partir de demain iront dans la suivante.`:`La facture de ${a.c.nome} se clôture dans ${a.diff} ${dia(a.diff)}.`;
-    else txt=a.diff===0?`A fatura do ${a.c.nome} fecha hoje — compras feitas a partir de amanhã já entram na próxima.`:`A fatura do ${a.c.nome} fecha em ${a.diff} dia${a.diff===1?'':'s'}.`;
+    const chave=a.diff===0?'warn.cardClosesToday':'warn.cardClosesIn';
+    const txt=aviso(chave,{name:a.c.nome,count:a.diff,days:unidadeDias(a.diff)});
     return `<div class="warn-banner">🔒 ${esc(txt)}</div>`;
   }).join('');
   el.innerHTML=faturaHtml+contaHtml+fechamentoHtml;
