@@ -12,7 +12,7 @@ a fonte; agora é gerado a partir de `src/`.
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 71 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os 73 módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 
@@ -52,12 +52,12 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 
 ### Dívida conhecida
 
-17 dependências ainda apontam para cima. Elas estão congeladas em
+11 dependências ainda apontam para cima. Elas estão congeladas em
 `scripts/lint-baseline.json` e caem em três grupos:
 
-- **`core` → `ui/effects.js`** — funções de cálculo chamando `vibrate()`,
-  `catIcon()`, `render()`. Efeito colateral de interface dentro do cálculo.
-- **`core` → `storage`** — cálculo chamando `persist()` direto.
+- **`core` → `ui/effects.js`** — a calculadora de juros ainda chama
+  `vibrate()`. Efeito colateral de interface dentro do cálculo.
+- **`core` → `storage`** — a calculadora de juros ainda chama `persist()` direto.
 - **`integrations` → `ui`** — a integração desenhando o próprio resultado.
 
 O caminho para zerar é o mesmo nos três: a camada de baixo devolve valor, a de

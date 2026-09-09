@@ -367,3 +367,15 @@ O teste no navegador confirmou o caso crítico: um lançamento feito no Resumo n
 reconstrói o Diário oculto, mas aparece com valor e descrição corretos assim que o
 Diário é aberto. As cinco abas e o painel de configurações foram percorridos, e os
 370 testes mais a auditoria estrutural continuaram limpos.
+
+## Retomada em 09/09/2026 — primeiras fronteiras corrigidas
+
+O cálculo de orçamento por categoria continua em `core/budgets.js`, mas a
+montagem dos cartões, os eventos dos campos e a gravação passaram para
+`ui/budgets.js`. Da mesma forma, `core/insights.js` devolve apenas os dados dos
+insights; `ui/insights.js` escolhe o ícone e constrói a interface.
+
+A busca do nome de um cartão foi movida de `ui/effects.js` para
+`core/helpers.js`, pois é uma consulta ao estado usada pelo relatório e pelo
+resumo enviado à IA. Com isso, seis dependências invertidas saíram da baseline:
+ela caiu de 17 para 11, sem criar nenhuma nova.

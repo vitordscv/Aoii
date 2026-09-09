@@ -10,7 +10,6 @@ function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern)
 const CATEGORIA_ICONES={'Mercado':'🛒','Transporte':'🚌','Lazer':'🎮','Saúde':'💊','Casa':'🏠','Outros':'📦'};
 function catIcon(c){ return CATEGORIA_ICONES[c]||'📦'; }
 function nomeViagem(id){ const v=(data.viagens||[]).find(x=>x.id===id); return v?v.nome:''; }
-function nomeCartao(id){ const c=(data.cartoes||[]).find(x=>x.id===id); return c?c.nome:''; }
 
 /* ── count-up animado: anima do valor anterior até o novo ── */
 const _countPrev={};
