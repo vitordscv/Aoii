@@ -127,8 +127,8 @@ Os lançamentos do Diário já passam por comandos em `core/transactions.js`.
 Metas passam por `core/goals.js`; editar o valor guardado, remover e desfazer
 movem o mesmo valor no saldo da conta e preservam o patrimônio. Rendas
 recorrentes passam pelos comandos de `core/income.js`. Cartões e a migração das
-suas referências passam por `core/cards.js`. A interface ainda altera diretamente
-faturas e configurações.
+suas referências passam por `core/cards.js`. Faturas e seus gastos passam por
+`core/invoices.js`. A interface ainda altera diretamente configurações.
 
 Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
 [MIGRATION.md](MIGRATION.md).

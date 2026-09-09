@@ -176,6 +176,7 @@ try{ modoCompactoAtivo=localStorage.getItem('financas-modo-compacto')==='1'; }ca
 
 function bindMonthEvents(){
   const grid=document.getElementById('month-grid');
+  const numeroOuZeroSeVazio=el=>el.value.trim()===''?0:parseNum(el.value);
   grid.querySelectorAll('[data-action="toggle-gastos-card"]').forEach(el=>el.addEventListener('click',()=>{
     const wrap=document.getElementById('gw-'+el.getAttribute('data-key'));
     if(!wrap) return;
@@ -187,47 +188,40 @@ function bindMonthEvents(){
 
   function onFatura(sel,fn){
     grid.querySelectorAll(sel).forEach(el=>el.addEventListener('change',async e=>{
-      const f=data.faturas.find(x=>x.id===e.target.getAttribute('data-id'));
-      if(f){ fn(f,e); await persist(); render(); }
+      const mudou=fn(e.target.getAttribute('data-id'),e);
+      if(mudou){ await persist(); render(); }
     }));
   }
-  onFatura('[data-action="fatura-valor"]',(f,e)=>{ f.valor=parseNum(e.target.value)||0; });
-  onFatura('[data-action="fatura-pago"]', (f,e)=>{
-    f.pago=e.target.checked;
-    if(f.pago){ (f.gastos||[]).forEach(g=>{ g.pago=true; }); }
-  });
+  onFatura('[data-action="fatura-valor"]',(id,e)=>atualizarValorFatura(id,numeroOuZeroSeVazio(e.target)));
+  onFatura('[data-action="fatura-pago"]',(id,e)=>definirFaturaPaga(id,e.target.checked));
 
   grid.querySelectorAll('[data-action="del-month"]').forEach(el=>el.addEventListener('click',async e=>{
     const ids=(e.target.getAttribute('data-id')||'').split(',');
-    data.faturas=data.faturas.filter(x=>!ids.includes(x.id));
+    removerFaturas(ids);
     await persist(); render();
   }));
 
   /* gastos */
-  function findGasto(fid,gid){ const f=data.faturas.find(x=>x.id===fid); return f?(f.gastos||[]).find(x=>x.id===gid):null; }
-
   grid.querySelectorAll('[data-action="gasto-pago"]').forEach(el=>el.addEventListener('change',async e=>{
-    const g=findGasto(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'));
-    if(g){ g.pago=e.target.checked; await persist(); render(); }
+    const g=atualizarGastoFatura(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'),{pago:e.target.checked});
+    if(g){ await persist(); render(); }
   }));
   grid.querySelectorAll('[data-action="gasto-nome"]').forEach(el=>el.addEventListener('change',async e=>{
-    const g=findGasto(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'));
-    if(g){ g.nome=e.target.value; await persist(); }
+    const g=atualizarGastoFatura(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'),{nome:e.target.value});
+    if(g) await persist();
   }));
   grid.querySelectorAll('[data-action="gasto-valor"]').forEach(el=>el.addEventListener('change',async e=>{
-    const g=findGasto(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'));
-    if(g){ g.valor=parseNum(e.target.value)||0; await persist(); render(); }
+    const g=atualizarGastoFatura(e.target.getAttribute('data-fid'),e.target.getAttribute('data-gid'),{valor:parseNum(e.target.value)});
+    if(g){ await persist(); render(); }
   }));
   grid.querySelectorAll('[data-action="del-gasto"]').forEach(el=>el.addEventListener('click',async e=>{
     const fid=e.target.getAttribute('data-fid'), gid=e.target.getAttribute('data-gid');
-    const f=data.faturas.find(x=>x.id===fid);
-    if(f){ f.gastos=(f.gastos||[]).filter(x=>x.id!==gid); await persist(); render(); }
+    if(removerGastoFatura(fid,gid)){ await persist(); render(); }
   }));
   grid.querySelectorAll('[data-action="del-parcelamento"]').forEach(el=>el.addEventListener('click',async e=>{
     const pid=e.target.getAttribute('data-pid');
     if(!(await confirmDialog({title:L('confirm.removerParcTitulo'),text:L('confirm.removerParcTexto'),okLabel:L('btn.remover')}))) return;
-    data.faturas.forEach(f=>{ f.gastos=(f.gastos||[]).filter(x=>x.parcelamentoId!==pid); });
-    await persist(); render();
+    if(removerParcelamento(pid)){ await persist(); render(); }
   }));
   grid.querySelectorAll('[data-action="show-add-fatura"]').forEach(el=>el.addEventListener('click',e=>{
     const form=document.getElementById('af-'+e.target.getAttribute('data-key'));
@@ -240,24 +234,18 @@ function bindMonthEvents(){
     const cartaoEl=form.querySelector('[data-role="af-cartao"]');
     const valorEl=form.querySelector('[data-role="af-valor"]');
     const cartaoId=cartaoEl?cartaoEl.value:null;
-    const valor=parseNum(valorEl.value)||0;
+    const valor=numeroOuZeroSeVazio(valorEl);
     if(!cartaoId) return;
-    const f=ensureFatura(ano,mes,cartaoId);
-    f.valor=valor;
-    await persist(); render();
+    if(salvarFatura({ano,mes,cartaoId,valor})){ await persist(); render(); }
   }));
 
   /* add month */
   document.getElementById('add-month-btn').addEventListener('click',async()=>{
     const mes =parseInt(document.getElementById('new-month-mes').value,10);
-    const ano =parseInt(document.getElementById('new-month-ano').value,10)||new Date().getFullYear();
-    const valor=parseNum(document.getElementById('new-month-valor').value)||0;
+    const ano =parseInt(document.getElementById('new-month-ano').value,10);
+    const valor=numeroOuZeroSeVazio(document.getElementById('new-month-valor'));
     const cartaoEl=document.getElementById('new-month-cartao');
     const cartaoId=cartaoEl?cartaoEl.value:(data.cartoes[0]&&data.cartoes[0].id);
-    const existente=data.faturas.find(x=>x.ano===ano&&x.mes===mes&&x.cartaoId===cartaoId);
-    if(existente){ existente.valor=valor||existente.valor; }
-    else data.faturas.push({id:uid(),mes,ano,valor,pago:false,gastos:[],cartaoId});
-    await persist(); render();
+    if(salvarFatura({ano,mes,cartaoId,valor})){ await persist(); render(); }
   });
 }
-

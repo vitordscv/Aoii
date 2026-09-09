@@ -174,6 +174,50 @@ module.exports=function(t){
   t.igual(ultimo.faturas[0].cartaoId,null,'fatura do último cartão é preservada sem referência');
   t.igual(ultimo.comprasPlanejadas[0].cartaoId,null,'compra planejada também é preservada sem referência');
 
+  console.log('\n\x1b[1mComandos de fatura mantêm cabeçalho e gastos coerentes\x1b[0m');
+  const dadosFatura=base();
+  const ctxFatura=criarAmbiente(dadosFatura,HOJE);
+  t.igual(ctxFatura.salvarFatura({ano:1800,mes:9,valor:100,cartaoId:'a'}),null,'ano inválido é recusado');
+  t.igual(ctxFatura.salvarFatura({ano:2026,mes:13,valor:100,cartaoId:'a'}),null,'mês inválido é recusado');
+  t.igual(ctxFatura.salvarFatura({ano:2026,mes:9,valor:-1,cartaoId:'a'}),null,'valor negativo é recusado');
+  t.igual(ctxFatura.salvarFatura({ano:2026,mes:9,valor:100,cartaoId:'ausente'}),null,'cartão inexistente é recusado');
+  t.igual(dadosFatura.faturas.length,0,'faturas recusadas não deixam item parcial');
+  const fatura=ctxFatura.salvarFatura({ano:2026,mes:9,valor:250,cartaoId:'a'});
+  fatura.gastos=[
+    {id:'g1',nome:'Mercado',valor:80,pago:false,parcelamentoId:'p'},
+    {id:'g2',nome:'Farmácia',valor:40,pago:false},
+  ];
+  const mesmoId=fatura.id;
+  const atualizada=ctxFatura.salvarFatura({ano:2026,mes:9,valor:0,cartaoId:'a'});
+  t.igual(atualizada.id,mesmoId,'salvar o mesmo mês atualiza a fatura existente');
+  t.valor(atualizada.valor,0,'valor explícito zero limpa a fatura');
+  t.igual(atualizada.gastos.length,2,'atualizar o cabeçalho preserva os gastos detalhados');
+  t.igual(dadosFatura.faturas.length,1,'atualização não cria fatura duplicada');
+  t.igual(ctxFatura.atualizarValorFatura(fatura.id,-10),null,'valor inválido não altera fatura existente');
+  t.valor(fatura.valor,0,'fatura conserva o valor anterior após recusa');
+  ctxFatura.atualizarValorFatura(fatura.id,180);
+  t.valor(fatura.valor,180,'valor válido é atualizado');
+  ctxFatura.definirFaturaPaga(fatura.id,true);
+  t.igual(fatura.pago,true,'quitar marca a fatura como paga');
+  t.verdadeiro(fatura.gastos.every(g=>g.pago),'quitar marca todos os gastos da fatura na mesma operação');
+  ctxFatura.definirFaturaPaga(fatura.id,false);
+  t.igual(fatura.pago,false,'fatura pode ser reaberta');
+  t.verdadeiro(fatura.gastos.every(g=>g.pago),'reabrir não desfaz pagamentos individuais já registrados');
+
+  const nomeGastoAntes=fatura.gastos[0].nome;
+  t.igual(ctxFatura.atualizarGastoFatura(fatura.id,'g1',{nome:'Mudou',valor:-1}),null,'edição inválida do gasto é recusada inteira');
+  t.igual(fatura.gastos[0].nome,nomeGastoAntes,'recusa não altera o nome do gasto');
+  ctxFatura.atualizarGastoFatura(fatura.id,'g1',{nome:'Feira',valor:75,pago:false});
+  t.igual(fatura.gastos[0].nome,'Feira','gasto aceita edição válida');
+  t.valor(fatura.gastos[0].valor,75,'valor do gasto é atualizado');
+  t.igual(fatura.gastos[0].pago,false,'pagamento individual é atualizado');
+  t.igual(ctxFatura.removerGastoFatura(fatura.id,'inexistente'),null,'gasto inexistente não altera a fatura');
+  t.igual(ctxFatura.removerParcelamento('p'),1,'parcelamento informa quantas parcelas removeu');
+  t.igual(fatura.gastos.length,1,'parcelas são removidas e outros gastos permanecem');
+  t.igual(ctxFatura.removerFaturas(['inexistente']).length,0,'remoção inexistente não altera a lista');
+  t.igual(ctxFatura.removerFaturas([fatura.id]).length,1,'remoção devolve a fatura afetada');
+  t.igual(dadosFatura.faturas.length,0,'fatura escolhida é removida');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

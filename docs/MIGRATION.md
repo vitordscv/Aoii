@@ -472,3 +472,11 @@ excluir um cartão, suas faturas e compras planejadas migram para o primeiro car
 restante; faturas do mesmo mês são fundidas sem perder valores, gastos ou uma
 pendência de pagamento. Se era o último cartão, as referências ficam vazias e os
 registros financeiros são preservados.
+
+## Retomada em 09/09/2026 — comandos de faturas
+
+Criar, atualizar, quitar e remover faturas passaram para `core/invoices.js`,
+assim como editar ou remover seus gastos e excluir todas as parcelas de uma
+compra. Quitar uma fatura marca seus gastos como pagos na mesma operação. Datas,
+valores e referências são validados antes de alterar o estado; uma fatura
+existente também pode ser zerada de forma explícita.
