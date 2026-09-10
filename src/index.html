@@ -841,6 +841,21 @@
 
     <div class="gf-ativo-row">
       <div>
+        <div class="gf-ativo-label" data-i18n="gf.cartaoLabel">Cobrada no cartão</div>
+        <div class="gf-ativo-sub" data-i18n="gf.cartaoSub">O valor entra na fatura, não sai da conta no dia.</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="gf-cartao">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="sheet-field" id="gf-cartao-qual" hidden>
+      <label for="gf-cartao-select" data-i18n="gf.emQualCartao">Em qual cartão</label>
+      <select id="gf-cartao-select"></select>
+    </div>
+
+    <div class="gf-ativo-row">
+      <div>
         <div class="gf-ativo-label" data-i18n="gf.ativoLabel">Ativo (incluso no orçamento)</div>
         <div class="gf-ativo-sub" data-i18n="gf.ativoSub">Desative para pausar sem excluir</div>
       </div>

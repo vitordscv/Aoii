@@ -136,6 +136,9 @@ function gastoFixoPagoEm(g,ano,mes){
    vencimento e a caixinha da lista perguntam todos aqui. */
 function gastoFixoPendenteEm(g,ano,mes){
   if(!g||!gastoFixoAtivoEm(g,ano,mes)) return false;
+  /* cobrada no cartão: o dinheiro não sai da conta neste dia, sai pela fatura
+     — e a fatura já está contada. Sem isto, o mesmo real conta duas vezes. */
+  if(g.cartao) return false;
   return dataNoMes(ano,mes,g.diaDoMes)>today()&&!gastoFixoPagoEm(g,ano,mes);
 }
 

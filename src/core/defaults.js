@@ -129,6 +129,10 @@ function migrateData(d){
   }
   d.gastosMensais.forEach(g=>{
     if(!Array.isArray(g.pagoEm)) g.pagoEm=[];
+    if(typeof g.cartao!=='boolean') g.cartao=false;
+    /* sem cartão escolhido, cai no primeiro — mesmo critério das compras */
+    if(g.cartao&&!g.cartaoId) g.cartaoId=primeiroCartaoId;
+    if(!g.cartao) g.cartaoId=null;
     if(!g.categoria) g.categoria='Outros';
     if(typeof g.ativo!=='boolean') g.ativo=true;
     if(typeof g.inicioAno!=='number')  g.inicioAno=null;

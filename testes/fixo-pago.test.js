@@ -138,4 +138,43 @@ module.exports=function(t){
   const cf=criarAmbiente(base(),HOJE);
   const futuro=cf.monthMetrics({ano:2026,mes:11,valor:0,pago:true,gastos:[]});
   t.valor(futuro.gastosMensaisCusto,1020,"num mês futuro as duas contas ainda vão sair");
+
+  console.log(String.fromCharCode(10)+String.fromCharCode(27)+"[1mConta fixa cobrada no cartão"+String.fromCharCode(27)+"[0m");
+
+  /* O dinheiro não sai da conta no dia: entra na fatura e sai com ela. Como
+     o app pede a fatura, e a fatura já inclui a assinatura, contar as duas
+     coisas era contar o mesmo real duas vezes. */
+  const comFatura=(gastoFixo)=>{
+    const d=base();
+    d.faturas=[{id:"f1",ano:2026,mes:9,valor:100,pago:false,gastos:[],cartaoId:"a"}];
+    d.gastosMensais=gastoFixo?[gastoFixo]:[];
+    const c=criarAmbiente(d,HOJE);
+    return c.monthMetrics({ano:2026,mes:9,valor:100,pago:false,gastos:[],cartaoId:"a"});
+  };
+  const naConta={id:"s",nome:"Streaming",valor:100,diaDoMes:20,categoria:"Casa",ativo:true,pagoEm:[],cartao:false};
+  const noCartao={id:"s",nome:"Streaming",valor:100,diaDoMes:20,categoria:"Casa",ativo:true,pagoEm:[],cartao:true,cartaoId:"a"};
+
+  t.valor(comFatura(null).despesas,100,"só a fatura: R$ 100");
+  t.valor(comFatura(naConta).despesas,200,"conta debitada da conta soma à fatura — são gastos diferentes");
+  t.valor(comFatura(noCartao).despesas,100,"conta do cartão NÃO soma: ela já está dentro da fatura");
+
+  const dc=base(); dc.gastosMensais=[noCartao];
+  const cc=criarAmbiente(dc,HOJE);
+  t.igual(cc.gastoFixoPendenteEm(dc.gastosMensais[0],2026,9),false,
+    "conta de cartão nunca está pendente na conta — quem vence é a fatura");
+
+  /* e o campo só sobrevive se a referência existir */
+  const comCartao=(g)=>({saldoAtual:0,dinheiroVivo:0,tipoRenda:"mensal",
+    rendaMensal:{valor:0,diaDoMes:5},cartoes:[{id:"a",nome:"Nu",limite:100}],
+    transacoes:[],faturas:[],entradasExtras:[],comprasPlanejadas:[],metas:[],viagens:[],
+    gastosMensais:[g]});
+  const ok=V(comCartao({id:"g",nome:"X",valor:10,diaDoMes:5,cartao:true,cartaoId:"a"}));
+  t.igual(ok.data.gastosMensais[0].cartaoId,"a","cartão existente atravessa");
+  /* os dois passos fazem coisas diferentes, e é de propósito: o validador
+     anula referência que não existe (é o que o tipo ref faz), e a migração
+     é quem decide o substituto. Testar só o primeiro esconde metade. */
+  const solto=V(comCartao({id:"g",nome:"X",valor:10,diaDoMes:5,cartao:true,cartaoId:"nao-existe"}));
+  t.igual(solto.data.gastosMensais[0].cartaoId,null,"validação sozinha anula o cartão que não existe");
+  const inteiro=criarAmbiente({},HOJE).adotarDadosDeFora(comCartao({id:"g",nome:"X",valor:10,diaDoMes:5,cartao:true,cartaoId:"nao-existe"}),"teste");
+  t.igual(inteiro.data.gastosMensais[0].cartaoId,"a","o caminho inteiro cai no primeiro cartão, como as compras");
 };

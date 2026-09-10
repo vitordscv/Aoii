@@ -39,6 +39,16 @@ function setupGastoFixoSheet(){
     mesSel.value=g&&g.inicioMes?g.inicioMes:(hoje.getMonth()+1);
     anoSel.value=g&&g.inicioAno?g.inicioAno:hoje.getFullYear();
     document.getElementById('gf-ativo').checked=g?g.ativo!==false:true;
+    const marcaCartao=document.getElementById('gf-cartao');
+    const selCartao=document.getElementById('gf-cartao-select');
+    const qualCartao=document.getElementById('gf-cartao-qual');
+    marcaCartao.checked=!!(g&&g.cartao);
+    selCartao.innerHTML=(data.cartoes||[]).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+    if(g&&g.cartaoId) selCartao.value=g.cartaoId;
+    /* com um cartão só não há o que escolher; com nenhum, nem marcar faz sentido */
+    const mostrarQual=()=>{ qualCartao.hidden=!(marcaCartao.checked&&(data.cartoes||[]).length>1); };
+    mostrarQual();
+    marcaCartao.onchange=mostrarQual;
     delBtn.style.display=g?'block':'none';
     renderCatGrid();
   }
@@ -77,7 +87,10 @@ function setupGastoFixoSheet(){
     const ativo=document.getElementById('gf-ativo').checked;
     const categoria=categoriaAtual||'Outros';
 
-    const campos={nome,valor,diaDoMes:dia,categoria,ativo,inicioAno,inicioMes};
+    const noCartao=document.getElementById('gf-cartao').checked;
+    const qualCartaoId=document.getElementById('gf-cartao-select').value||null;
+    const campos={nome,valor,diaDoMes:dia,categoria,ativo,inicioAno,inicioMes,
+                  cartao:noCartao,cartaoId:noCartao?qualCartaoId:null};
     const salvo=editingId?atualizarGastoFixo(editingId,campos):criarGastoFixo(campos);
     if(!salvo) return;
     await persist(); render();

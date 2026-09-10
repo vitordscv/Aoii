@@ -124,8 +124,27 @@ coisa, ou a renda é contada uma vez por cartão.
 ### `gastosMensais` — contas fixas
 
 ```js
-{ id, nome, valor, diaDoMes, categoria, ativo, inicioAno, inicioMes, criadoEm, pagoEm }
+{ id, nome, valor, diaDoMes, categoria, ativo, inicioAno, inicioMes, criadoEm,
+  pagoEm, cartao, cartaoId? }
 ```
+
+`cartao:true` muda **de onde o dinheiro sai**. Sem ele, a conta é um débito
+na conta bancária no dia `diaDoMes`. Com ele, a cobrança entra na fatura do
+cartão e sai quando a fatura é paga.
+
+Isso importa porque o app pede a fatura, e a fatura já inclui a assinatura.
+Antes deste campo, o mesmo real era contado duas vezes — medido: fatura de
+R$ 100 mais a conta fixa de R$ 100 que está dentro dela davam R$ 200 de
+despesa no mês. A projeção ficava pessimista no valor de toda conta de cartão,
+todo mês.
+
+Quem decide é `gastoFixoPendenteEm()`: conta de cartão nunca está pendente **na
+conta**, então some do custo do mês, da cota diária e do aviso de vencimento de
+uma vez só. O aviso sumir é correto: conta de cartão não tem vencimento próprio
+para você pagar — quem vence é a fatura, que já tem o aviso dela.
+
+Pelo mesmo motivo a caixinha de "já paga" não aparece nessas contas: elas não
+são pagas por você no dia, são pagas junto com a fatura.
 
 `pagoEm` é a lista dos meses já quitados, no formato `'AAAA-M'`. Uma conta
 fixa se repete, então **pago é por mês, não por conta**: a internet de setembro

@@ -54,6 +54,9 @@ const ITEM_GASTO_FIXO = {
   /* meses já quitados, como 'AAAA-M'. Uma conta fixa se repete, então pago é
      por mês — ver docs/DATA-MODEL.md. */
   pagoEm: { tipo: 'listaTexto', max: 20 },
+  /* cobrada no cartão: o dinheiro não sai da conta no dia, entra na fatura */
+  cartao: { tipo: 'booleano', padrao: false },
+  cartaoId: { tipo: 'ref', de: 'cartoes', nulo: true },
 };
 
 const ITEM_GASTO_FATURA = {

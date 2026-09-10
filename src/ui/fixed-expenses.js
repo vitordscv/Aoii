@@ -63,7 +63,12 @@ function renderGastosFixosTab(){
       const pausado=g.ativo===false;
       const futuro=!pausado&&g.inicioAno&&(g.inicioAno>anoAtual||(g.inicioAno===anoAtual&&g.inicioMes>mesAtual));
       let subTxt=`${L('cal.dia')} ${g.diaDoMes}`;
-      if(pagoEsteMes) subTxt+=' · '+L(soVenceu?'gf.jaVenceu':'gf.pagoEsteMes');
+      /* no cartão: quem vence é a fatura, não a conta — nem "já paga" nem
+         "já venceu" fazem sentido aqui */
+      if(g.cartao) subTxt+=' · 💳 '+((data.cartoes||[]).length>1
+        ? esc(((data.cartoes||[]).find(c=>c.id===g.cartaoId)||{}).nome||L('list.cardDefault'))
+        : L('gf.noCartao'));
+      else if(pagoEsteMes) subTxt+=' · '+L(soVenceu?'gf.jaVenceu':'gf.pagoEsteMes');
       if(pausado) subTxt+=' · '+L('gf.pausado');
       else if(futuro) subTxt+=` · ${L('gf.apartirDe')} ${MONTH_NAMES[g.inicioMes-1]}/${g.inicioAno}`;
       return `
@@ -74,7 +79,7 @@ function renderGastosFixosTab(){
           </div>
           <div class="swipe-content">
             <div class="gf-item-row${ativo?'':' paused'}${pagoEsteMes?' gf-pago':''}" data-action="edit-gasto-fixo" data-id="${g.id}">
-              ${ativo?`<label class="gf-pago-check${soVenceu?' gf-pago-passado':''}" title="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPago'))}">
+              ${(ativo&&!g.cartao)?`<label class="gf-pago-check${soVenceu?' gf-pago-passado':''}" title="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPago'))}">
                 <input type="checkbox" data-action="toggle-gf-pago" data-id="${g.id}" ${pagoEsteMes?'checked':''}${soVenceu?' disabled':''} aria-label="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPagoAria').replace('{nome}',g.nome))}">
               </label>`:''}
               <div class="gf-item-main">

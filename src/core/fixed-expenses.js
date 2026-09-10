@@ -13,7 +13,10 @@ function camposGastoFixo(entrada,atual){
      !Number.isInteger(diaDoMes)||diaDoMes<1||diaDoMes>31||
      !Number.isInteger(inicioAno)||inicioAno<1900||inicioAno>3000||
      !Number.isInteger(inicioMes)||inicioMes<1||inicioMes>12||typeof ativo!=='boolean') return null;
-  return {nome,valor,diaDoMes,categoria,ativo,inicioAno,inicioMes};
+  const cartao=Boolean(ler('cartao'));
+  const cartaoId=cartao?(ler('cartaoId')||((data.cartoes||[])[0]||{}).id||null):null;
+  if(cartao&&cartaoId&&!(data.cartoes||[]).some(c=>c.id===cartaoId)) return null;
+  return {nome,valor,diaDoMes,categoria,ativo,inicioAno,inicioMes,cartao,cartaoId};
 }
 
 function criarGastoFixo(entrada){
