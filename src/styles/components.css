@@ -575,7 +575,8 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .meta-simulador-row{display:flex;gap:8px;flex-wrap:wrap;}
 .meta-simulador-row input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;}
 .meta-simulador-resultado{margin-top:10px;font-size:13px;font-weight:600;color:var(--ink-navy);}
-.export-relatorio-btn{background:none;border:1px solid var(--line);border-radius:9px;padding:0 12px;font-size:12px;font-weight:600;color:var(--ink-navy);cursor:pointer;flex:none;white-space:nowrap;height:36px;line-height:34px;}
+/* embaixo do card agora: ganha respiro em cima e um alvo de toque de 40px */
+.export-relatorio-btn{display:block;margin-top:12px;background:none;border:1px solid var(--line);border-radius:9px;padding:0 14px;font-size:12px;font-weight:600;color:var(--ink-navy);cursor:pointer;white-space:nowrap;height:40px;line-height:38px;}
 .export-relatorio-btn:hover{background:var(--mist-lilac);}
 .cat-manage-list{display:flex;flex-direction:column;gap:0;}
 .cat-manage-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px;}
