@@ -41,6 +41,17 @@ entrada, a string da senha é descartada e a sessão conserva uma `CryptoKey`
 não exportável. Registros antigos em produção continuam em texto puro até a
 migração; não foram alterados aqui.
 
+> **Aberto — snapshots antigos anulam a criptografia da linha ativa.**
+> Conferido no banco em 10/09/2026: 14 linhas, **1 cifrada e 13 em texto puro**.
+> Três delas são snapshots mensais do código ativo, e o id de cada um é
+> **derivado do código de sincronização** (`CXY3HQUM-snap-2026-9`). Como
+> `aoii_get` aceita qualquer id e é acessível pela chave `anon`, quem descobrir
+> o código não abre a linha ativa — mas lê o mês inteiro no snapshot. O
+> atacante que a criptografia deveria deter tem outra porta, ao lado, aberta.
+> Saída: `scripts/exportar-legado.js` e depois
+> [`0007_apaga_legado.sql`](../supabase/migrations/0007_apaga_legado.sql).
+> Snapshots novos já nascem cifrados; isto é faxina do passado.
+
 **Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
 saúde financeira, **nomes dos cartões**, **nomes das metas**, **nomes dos gastos
@@ -219,12 +230,29 @@ quem descobrir o código lê o texto cifrado, mas não escreve.
 O arquivo traz também o roteiro de conferência (o que precisa falhar) e o SQL de
 reversão.
 
-### 9. Criação anônima ilimitada de registros — desenhada, não aplicada
+### 9. Criação anônima ilimitada de registros — **aberta em produção**
 
 `aoii_put` cria linha nova sem exigir token, e não pode ser diferente: se
 exigisse, ninguém conseguiria ligar a sincronização a primeira vez. Como a chave
 `anon` está no HTML publicado, qualquer um pode criar linhas até estourar a cota
 do plano.
+
+> **Meio aplicada, e o meio que falta é o que protege.** Conferido no banco em
+> 10/09/2026, lendo o corpo das funções:
+>
+> | função | consulta `aoii_limites` | recusa criação em massa |
+> |---|---|---|
+> | `aoii_put_homolog` | sim | sim |
+> | **`aoii_put` (produção)** | **não** | **não** |
+>
+> A tabela `aoii_limites` existe e tem os quatro valores — mas quem a criou foi
+> o `0005`, que é de homologação. Olhando só a tabela, parece aplicado. A view
+> `aoii_crescimento` também não existe. Produção segue sem teto de criação.
+>
+> A metade que falta está pronta em
+> [`0006_limites_producao.sql`](../supabase/migrations/0006_limites_producao.sql).
+> O corpo de `aoii_put` em produção foi lido e é exatamente o do `0001`, sem
+> correção posterior: aplicar não sobrescreve trabalho de ninguém.
 
 **Criptografia não resolve isto.** Ela protege o conteúdo, não o espaço.
 
