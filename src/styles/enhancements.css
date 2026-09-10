@@ -214,7 +214,7 @@ details[open]>.det-toggle{background:var(--mist-lilac);border-color:var(--disney
 .resumo-planejamento{margin-top:28px;border-top:1px solid var(--line);padding-top:18px;}
 .resumo-planejamento[open]>.section:first-of-type{margin-top:22px;}
 .cal-head,.cal-row{display:grid;grid-template-columns:56px 1fr 1fr 1.1fr;gap:8px;align-items:center;padding:10px 16px;}
-.cal-head{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--line);background:var(--white);position:sticky;top:0;z-index:2;}
+.cal-head{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--line);background:var(--white);position:sticky;top:0;z-index:2;}
 .cal-head span:not(:first-child){text-align:right;}
 .cal-scroll{max-height:380px;overflow-y:auto;position:relative;}
 .cal-row{transition:background-color .12s;}

@@ -245,7 +245,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .month-stamp{display:none;}
 .month-name{font-size:13.5px;font-weight:700;color:var(--ink-navy);font-family:'Sora',sans-serif;padding-right:32px;display:block;}
 .month-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);padding:3px 0;}
-.month-section-label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px;}
+.month-section-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px;}
 .month-section-label:first-of-type{margin-top:2px;}
 .month-row .v{font-family:'Nunito Sans',sans-serif;font-weight:500;color:var(--num-color);}
 .month-fatura-edit{display:flex;align-items:center;}
@@ -532,7 +532,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .limit-card-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
 .limit-card-nome{font-size:13px;font-weight:700;color:var(--ink-navy);margin-bottom:6px;}
 .transacoes-title{font-size:13px;font-weight:700;color:var(--ink-navy);margin:18px 0 4px;}
-.month-cartao-tag{display:inline-block;flex:none;margin-left:0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);background:var(--mist-lilac);border-radius:6px;padding:2px 7px;vertical-align:middle;}
+.month-cartao-tag{display:inline-block;flex:none;margin-left:0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);background:var(--mist-lilac);border-radius:6px;padding:2px 7px;vertical-align:middle;}
 
 /* ── CATEGORIAS ── */
 .cat-card-wrap{display:flex;flex-direction:column;gap:16px;}
