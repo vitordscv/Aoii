@@ -575,9 +575,19 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .meta-simulador-row{display:flex;gap:8px;flex-wrap:wrap;}
 .meta-simulador-row input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;}
 .meta-simulador-resultado{margin-top:10px;font-size:13px;font-weight:600;color:var(--ink-navy);}
-/* embaixo do card agora: ganha respiro em cima e um alvo de toque de 40px */
-.export-relatorio-btn{display:block;margin-top:12px;background:none;border:1px solid var(--line);border-radius:9px;padding:0 14px;font-size:12px;font-weight:600;color:var(--ink-navy);cursor:pointer;white-space:nowrap;height:40px;line-height:38px;}
-.export-relatorio-btn:hover{background:var(--mist-lilac);}
+/* Embaixo do card, no mesmo plano dele: mesma superfície e mesma sombra do
+   .cat-card acima. Transparente e sem sombra, encostado num card elevado, ele
+   lia como buraco no papel em vez de botão. */
+.export-relatorio-btn{display:block;margin-top:14px;background:var(--white);
+  border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 12px 30px -20px rgba(11,24,48,.48);
+  padding:0 16px;height:40px;line-height:38px;
+  font-size:12px;font-weight:600;color:var(--ink-navy);cursor:pointer;white-space:nowrap;
+  transition:background .15s,box-shadow .15s,transform .12s;}
+.export-relatorio-btn:hover{background:var(--mist-lilac);box-shadow:0 14px 32px -18px rgba(11,24,48,.55);}
+/* afunda ao ser apertado: é o que faz um botão elevado parecer apertável */
+.export-relatorio-btn:active{transform:translateY(1px);box-shadow:0 6px 16px -16px rgba(11,24,48,.5);}
+.export-relatorio-btn:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
 .cat-manage-list{display:flex;flex-direction:column;gap:0;}
 .cat-manage-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px;}
 .cat-manage-row:first-child{border-top:none;}
