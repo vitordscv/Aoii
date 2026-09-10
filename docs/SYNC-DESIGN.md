@@ -1,11 +1,11 @@
 # Sincronização: desenho proposto
 
-**Estado em 08/09/2026: parte 1 aplicada; parte 2 não.**
+**Estado em 09/09/2026: parte 1 aplicada; parte 2 não.**
 O branch `refactor/estrutura-seguranca` usa RPC, criptografia e diálogos de senha
 e conflito. A fila conserva pendências entre sessões e protege edições durante
-a rede. O site publicado ainda é a versão anterior; não houve deploy nesta rodada.
-As seções de desenho abaixo incluem decisões e histórico, não atestam rollout.
-Ver [HOMOLOGACAO-2026-09-08.md](HOMOLOGACAO-2026-09-08.md).
+a rede. A versão compatível foi publicada na Vercel e confirmada pelo cache do
+service worker. A parte 2 ainda depende de cada aparelho ativo abrir essa
+versão ao menos uma vez antes de fechar o acesso direto à tabela.
 
 ## O problema original, antes da parte 1
 
@@ -212,8 +212,8 @@ branch, antes de qualquer criptografia — é o que torna a migração segura.
    geração do código. Falta repetir o roteiro em navegadores distintos.
 6. Revisar e aprovar a aplicação de `0004_limites_e_abuso.sql` em produção.
    Os limites equivalentes já foram testados em homologação; não houve SQL nesta rodada.
-7. Publicar e abrir o app em cada aparelho pelo menos uma vez, confirmando que a
-   migração aconteceu em todos.
+7. ~~Publicar o app compatível.~~ Feito em 09/09/2026. Falta abrir o app em cada
+   aparelho ativo pelo menos uma vez, confirmando que todos já usam esta versão.
 8. Só então aplicar a **parte 2**, que fecha a leitura — e conferir, com a chave
    `anon`: REST direto falha, não dá pra listar, `aoii_get` só lê pelo id exato,
    `aoii_put` respeita token e revisão, token errado não altera nada, revisão

@@ -90,8 +90,10 @@ afetar os dois registros do ensaio de interface que ainda estavam em uso.
   não estava disponível. Esse ensaio adicional permanece pendente.
 - Acessibilidade desta rodada cobre senha, conflito e confirmação compartilhada;
   não representa auditoria completa de todos os painéis e formulários.
-- Nenhum push, deploy, merge, política RLS ou migração SQL nesta rodada. A parte
-  2 e o rollout continuam pendentes; o site público não recebeu estas correções.
+- Nesta rodada original não houve push, deploy, política RLS ou migração SQL. Em
+  09/09/2026, a branch validada foi integrada à `main` e a Vercel passou a servir
+  o build compatível. A parte 2 continua pendente até os aparelhos ativos abrirem
+  essa versão.
 
 Próxima etapa: repetir o ensaio em dois navegadores/perfis quando houver uma
 sessão livre e revisar compatibilidade com clientes antigos antes de propor

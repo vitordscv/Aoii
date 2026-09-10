@@ -53,7 +53,7 @@ dinheiro**, compras planejadas e viagens.
 
 ## Pendências, por gravidade
 
-### 1. Criptografia implementada no branch; rollout pendente
+### 1. Fechamento da tabela após a atualização dos aparelhos
 
 `src/storage/sync-ciclo.js` e `src/ui/sync-ui.js` já ligam a criptografia à
 sincronização por RPC. O código novo tem 12 caracteres e usa Web Crypto quando
@@ -61,8 +61,11 @@ disponível. Se Web Crypto não existir, a geração falha de forma explícita; 
 há fallback para `Math.random()`. A sessão guarda somente uma `CryptoKey`
 AES-GCM não exportável e o token de escrita.
 
-Em produção, a parte 2 ainda não foi aplicada: conhecer a chave pública permite
-acesso direto à tabela. O token da RPC não impede esse caminho alternativo.
+O app compatível já foi publicado, mas a parte 2 ainda não foi aplicada: conhecer
+a chave pública permite acesso direto à tabela. O token da RPC não impede esse
+caminho alternativo. Antes de fechar a tabela, cada aparelho ativo precisa abrir
+a versão publicada ao menos uma vez; caso contrário, uma versão antiga perde a
+sincronização.
 
 O que já existe: `src/storage/encryption.js`, com AES-GCM 256 e chave derivada
 por PBKDF2 (SHA-256, 310.000 voltas, salt de 16 bytes e IV de 12 novos a cada
