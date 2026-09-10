@@ -2,7 +2,10 @@
    Nunca limpa a pendência antes da confirmação do envio. Uma geração salva
    durante a rede exige outra rodada, mesmo quando o primeiro timer já passou. */
 const CHAVE_ESTADO_SYNC='financas-sync-estado:';
-const ESPERA_ESPELHO=1500;
+/* Pequena janela para agrupar dois cliques seguidos sem deixar a nuvem
+   perceptivelmente atrasada. Se outra edição ocorrer durante a rede, a fila
+   continua usando a geração mais recente. */
+const ESPERA_ESPELHO=400;
 let _espelhoAgendado=null;
 let _espelhando=false;
 let _recebendoNuvem=false;

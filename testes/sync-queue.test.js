@@ -43,7 +43,7 @@ module.exports=async t=>{
   t.igual(c.espelhoPendente(),false,'só limpa após confirmar a última geração');
   t.igual(a.timers.size,0,'não fica repetindo sem alterações');
 
-  c.data.saldoAtual=333;await c.persist(); // fecha antes de disparar 1,5 s
+  c.data.saldoAtual=333;await c.persist(); // fecha antes de disparar o debounce
   const b=aparelho(a.storage);b.c.data=JSON.parse(a.storage.getItem('dados-teste'));
   t.igual(b.c.espelhoPendente(),true,'pendência sobrevive ao fechamento antes do debounce');
   b.c.abrirSincronizacao=async()=>{b.c.sync.revisao=9;return {resultado:'aberta',dados:{saldoAtual:999}};};
@@ -54,7 +54,7 @@ module.exports=async t=>{
   b.c.empurrarParaNuvem=async()=>({resultado:'sem-conexao'});
   await b.disparar();
   t.igual(b.c.espelhoPendente(),true,'falha de rede não perde a pendência');
-  t.verdadeiro([...b.timers.values()][0].ms>1500,'falha de rede usa espera crescente');
+  t.verdadeiro([...b.timers.values()][0].ms>400,'falha de rede usa espera crescente');
   b.c.empurrarParaNuvem=async()=>({resultado:'adiado'});
   await b.disparar();
   t.igual(b.timers.size,0,'conflito adiado não reabre o diálogo em loop');

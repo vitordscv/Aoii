@@ -62,6 +62,15 @@ function renderStatusSync(){
   renderSenhaLembrada();
 }
 
+/* Preferências visuais não são uma divergência financeira. Elas ficam no
+   mesmo envelope para viajarem entre aparelhos, mas não devem abrir um
+   conflito quando o saldo e os lançamentos continuam iguais. */
+function conteudoFinanceiroParaConflito(valor){
+  const copia=JSON.parse(JSON.stringify(valor||{}));
+  ['tema','customTheme','fundoIlustrado','temaAutoNoite'].forEach(chave=>delete copia[chave]);
+  return JSON.stringify(copia);
+}
+
 /* A senha derivada fica num cofre do navegador; esta linha conta se ela está
    lá e se o navegador prometeu não descartá-la. São duas coisas diferentes:
    guardada é o que o app faz; durável é o que o navegador concede. Dizer só a
@@ -302,6 +311,15 @@ async function empurrarParaNuvem(){
       sync.status='sincronizada';
       renderStatusSync();
       return {resultado:'enviado',revisao:lido.revision};
+    }
+
+    if(conteudoFinanceiroParaConflito(remoto)===conteudoFinanceiroParaConflito(data)){
+      /* Só a aparência mudou de um lado para o outro. Mantém a escolha feita
+         neste aparelho e atualiza a revisão antes de reenviar, sem diálogo. */
+      sync.revisao=lido.revision;
+      const reenvio=await enviarParaNuvem(data);
+      if(reenvio.resultado==='enviado'){ setSaveStatus(L('st.syncDados')); renderStatusSync(); }
+      return reenvio;
     }
 
     if(sync.ultimoConhecido&&remotoTexto===sync.ultimoConhecido){

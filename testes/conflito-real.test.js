@@ -104,6 +104,16 @@ module.exports=async function(t){
   t.igual(r2.resultado,'enviado','a troca de tema sobe');
   t.igual((await oQueEstaLa()).tema,'sakura','e chega lá');
 
+  /* ── 2b. os dois lados só trocaram a aparência ──
+     Mesmo com revisões diferentes, não há escolha financeira a fazer. */
+  await gravarPorFora(dados(1000,'noite'));
+  A.data=dados(1000,'matcha');
+  espiao.vezes=0;
+  const r2b=await A.empurrarParaNuvem();
+  t.igual(espiao.vezes,0,'temas diferentes não abrem conflito');
+  t.igual(r2b.resultado,'enviado','a preferência local é reenviada');
+  t.igual((await oQueEstaLa()).tema,'matcha','o tema escolhido fica na nuvem');
+
   /* ── 3. divergência de verdade ──
      A nuvem tem algo que este aparelho não tem. Aqui perguntar É o certo, e a
      pergunta não pode ter sumido junto com as outras duas. */
