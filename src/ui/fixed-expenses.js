@@ -54,11 +54,16 @@ function renderGastosFixosTab(){
     const subtotal=items.filter(g=>gastoFixoAtivoEm(g,anoAtual,mesAtual)).reduce((s,g)=>s+g.valor,0);
     const itemsHtml=items.map(g=>{
       const ativo=gastoFixoAtivoEm(g,anoAtual,mesAtual);
-      const pagoEsteMes=gastoFixoPagoEm(g,anoAtual,mesAtual);
+      /* a caixa diz "não sai mais neste mês", que é o que o app usa na conta.
+         Marcada à mão OU já vencida — e nesse segundo caso não há o que
+         desmarcar, porque o passado não volta a ficar pendente. */
+      const marcadaPaga=gastoFixoPagoEm(g,anoAtual,mesAtual);
+      const pagoEsteMes=marcadaPaga||(ativo&&!gastoFixoPendenteEm(g,anoAtual,mesAtual));
+      const soVenceu=pagoEsteMes&&!marcadaPaga;
       const pausado=g.ativo===false;
       const futuro=!pausado&&g.inicioAno&&(g.inicioAno>anoAtual||(g.inicioAno===anoAtual&&g.inicioMes>mesAtual));
       let subTxt=`${L('cal.dia')} ${g.diaDoMes}`;
-      if(pagoEsteMes) subTxt+=' · '+L('gf.pagoEsteMes');
+      if(pagoEsteMes) subTxt+=' · '+L(soVenceu?'gf.jaVenceu':'gf.pagoEsteMes');
       if(pausado) subTxt+=' · '+L('gf.pausado');
       else if(futuro) subTxt+=` · ${L('gf.apartirDe')} ${MONTH_NAMES[g.inicioMes-1]}/${g.inicioAno}`;
       return `
@@ -69,8 +74,8 @@ function renderGastosFixosTab(){
           </div>
           <div class="swipe-content">
             <div class="gf-item-row${ativo?'':' paused'}${pagoEsteMes?' gf-pago':''}" data-action="edit-gasto-fixo" data-id="${g.id}">
-              ${ativo?`<label class="gf-pago-check" title="${esc(L('gf.marcarPago'))}">
-                <input type="checkbox" data-action="toggle-gf-pago" data-id="${g.id}" ${pagoEsteMes?'checked':''} aria-label="${esc(L('gf.marcarPagoAria').replace('{nome}',g.nome))}">
+              ${ativo?`<label class="gf-pago-check${soVenceu?' gf-pago-passado':''}" title="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPago'))}">
+                <input type="checkbox" data-action="toggle-gf-pago" data-id="${g.id}" ${pagoEsteMes?'checked':''}${soVenceu?' disabled':''} aria-label="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPagoAria').replace('{nome}',g.nome))}">
               </label>`:''}
               <div class="gf-item-main">
                 <div class="gf-item-nome">${esc(g.nome)}${g.criadoEm&&(Date.now()-new Date(g.criadoEm).getTime())>18*30*24*60*60*1000?` <span class="gf-stale-badge" title="${esc(L('gf.semReajusteHelp'))}">⏳</span>`:''}</div>

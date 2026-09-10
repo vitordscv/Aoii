@@ -107,4 +107,35 @@ module.exports=function(t){
     gastosMensais:[{id:'g1',nome:'Internet',valor:120,diaDoMes:20}]});
   t.igual(Array.isArray(semCampo.data.gastosMensais[0].pagoEm),true,
     'backup antigo ganha a lista vazia na migração');
+
+  console.log('\n\x1b[1mPendente: uma pergunta, uma resposta\x1b[0m');
+
+  /* Três lugares perguntavam "esta conta ainda vai sair?" com critérios
+     diferentes: o cálculo do mês, o aviso de vencimento e a caixinha da
+     lista. Agora todos passam por gastoFixoPendenteEm(). */
+  const dd=base(); const cd2=criarAmbiente(dd,HOJE);
+  const net2=()=>dd.gastosMensais.find(g=>g.id==="net");
+  const alu2=()=>dd.gastosMensais.find(g=>g.id==="alu");
+
+  t.igual(cd2.gastoFixoPendenteEm(net2(),2026,9),true,"internet vence dia 20, hoje é 15: pendente");
+  t.igual(cd2.gastoFixoPendenteEm(alu2(),2026,9),false,"aluguel venceu dia 5: já não é pendente");
+
+  cd2.definirGastoFixoPago("net",2026,9,true);
+  t.igual(cd2.gastoFixoPendenteEm(net2(),2026,9),false,"marcada como paga deixa de ser pendente");
+
+  /* o que a tela desenha tem que bater com o que a conta usa */
+  const detalhe=cd2.monthMetrics({ano:2026,mes:9,valor:0,pago:true,gastos:[]}).gastosMensaisDetalhe;
+  t.igual(detalhe.find(x=>x.nome==="Internet").pago,true,"o mês concorda: internet não sai mais");
+  t.igual(detalhe.find(x=>x.nome==="Aluguel").pago,true,"e o aluguel também não, porque já venceu");
+
+  /* conta pausada não é pendente: não vai sair de jeito nenhum */
+  const dp2=base(); const cp2=criarAmbiente(dp2,HOJE);
+  dp2.gastosMensais.find(g=>g.id==="net").ativo=false;
+  t.igual(cp2.gastoFixoPendenteEm(dp2.gastosMensais.find(g=>g.id==="net"),2026,9),false,
+    "conta pausada não conta como pendente");
+
+  /* mês futuro: nada venceu ainda, tudo pendente */
+  const cf=criarAmbiente(base(),HOJE);
+  const futuro=cf.monthMetrics({ano:2026,mes:11,valor:0,pago:true,gastos:[]});
+  t.valor(futuro.gastosMensaisCusto,1020,"num mês futuro as duas contas ainda vão sair");
 };

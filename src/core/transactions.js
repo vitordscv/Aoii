@@ -128,6 +128,17 @@ function gastoFixoPagoEm(g,ano,mes){
   return !!(g&&Array.isArray(g.pagoEm)&&g.pagoEm.includes(ano+'-'+mes));
 }
 
+/* Esta conta ainda vai sair neste mês?
+
+   Duas maneiras de deixar de estar pendente, e as duas valem: a data já
+   passou (o dinheiro saiu quando devia) ou a pessoa marcou que pagou antes.
+   Quem responde isso é só esta função — o cálculo do mês, o aviso de
+   vencimento e a caixinha da lista perguntam todos aqui. */
+function gastoFixoPendenteEm(g,ano,mes){
+  if(!g||!gastoFixoAtivoEm(g,ano,mes)) return false;
+  return dataNoMes(ano,mes,g.diaDoMes)>today()&&!gastoFixoPagoEm(g,ano,mes);
+}
+
 /* Marca ou desmarca. Poda os meses antigos: um item por mês não pesa muito,
    mas isto sobe pra nuvem em toda gravação e não precisa crescer pra sempre —
    dois anos de histórico é mais do que qualquer tela mostra. */

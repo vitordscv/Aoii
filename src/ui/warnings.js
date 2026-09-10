@@ -42,7 +42,9 @@ function renderFaturaWarning(){
     .sort((a,b)=>a.diff-b.diff);
   const anoA=t.getFullYear(), mesA=t.getMonth()+1;
   const contaAlerts=(data.gastosMensais||[])
-    .filter(g=>gastoFixoAtivoEm(g,anoA,mesA))
+    /* conta já paga não vence mais: avisar dela é pedir uma coisa que já foi
+       feita, que é o pior tipo de aviso — ensina a ignorar os outros */
+    .filter(g=>gastoFixoPendenteEm(g,anoA,mesA))
     .map(g=>{
       const venc=startOfDay(dataNoMes(anoA,mesA,g.diaDoMes));
       const diff=Math.round((venc-t)/86400000);
