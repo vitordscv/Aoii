@@ -25,8 +25,8 @@ const I18N_ES={'nav.entradas':'Ingresos','nav.fixos':'Fijos','nav.resumo':'Resum
 ,'senha.migrarTexto':'Esta copia antigua todavía no tenía contraseña. Crea y confirma una ahora; usa la misma en el otro dispositivo para proteger la sincronización de ahora en adelante.'
 ,'senha.migrarOk':'Crear contraseña y continuar'
 ,'resumo.planejamento':'Planificación y análisis'
-,'resumo.agoraKicker':'PANEL DEL MES','resumo.agoraTitulo':'Decide qué hacer hoy','resumo.agoraTexto':'Sigue tus límites, gastos y próximos pasos sin buscar en varias pantallas.'
-,'resumo.atalhos':'Atajos del resumen'
+
+
 ,'common.loading':'cargando…','common.years':'años','common.of':'de','common.day':'día','common.days':'días'
 ,'theme.customizeColors':'Personalizar colores','theme.closeSaved':'✕ Cerrar','theme.closeSavedTitle':'Cerrar (los colores siguen guardados)','theme.background':'Fondo','theme.cards':'Tarjetas','theme.primaryBlue':'Azul principal','theme.darkBlue':'Azul oscuro','theme.text':'Texto','theme.numbers':'Números','theme.heroHeader':'Cabecera','theme.heroText':'Texto de la cabecera','theme.positive':'Positivo','theme.negative':'Negativo','theme.divider':'Línea divisoria','theme.accent':'Destacado','theme.restore':'Restaurar','theme.customize':'Personalizar','theme.customizeOption':'✏️ Personalizar'
 ,'tip.cardLimit':'Muestra cuánto del límite ya está comprometido con facturas abiertas. El valor parcial es la factura actual antes del cierre y aún puede crecer hasta la fecha de cierre.','tip.categoryBudget':'Define un límite mensual para cada categoría. La barra suma movimientos del Diario, gastos con tarjeta y gastos fijos activos del mes actual.'

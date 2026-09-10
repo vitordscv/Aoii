@@ -1,51 +1,41 @@
-/* ─── tour guiado: aponta pra 5 pontos-chave do app, um por vez, estilo tutorial de jogo ─── */
+/* ─── tour guiado: 5 passos, todos com alvo visível na tela inicial ─── */
 function startTour(){
   const idioma=data.idioma||'pt';
   const STEPS_I18N={
     pt:[
-      {sel:'.hero', title:'Seu resumo', text:'Aqui fica o saldo estimado, dias de trabalho, renda e quanto falta receber/pagar até a data escolhida.', tab:'view-resumo'},
-      {sel:'#gasto-fab', title:'Registrar um gasto', text:'Toque no + sempre que fizer uma compra — escolha dinheiro, pix, débito ou crédito.', tab:'view-resumo'},
-      {sel:'#transacoes-list', title:'Diário', text:'Aqui fica o histórico de tudo que você já lançou, dia por dia. Deslize um item pra editar ou apagar.', tab:'view-diario'},
-      {sel:'#gf-new-btn', title:'Fixos', text:'Contas que se repetem todo mês (internet, aluguel, assinaturas) — cadastre aqui uma vez e elas entram sozinhas no cálculo todo mês.', tab:'view-fixos'},
-      {sel:'#rr-new-btn', title:'Entradas', text:'Fontes de renda recorrente (salário, freelas fixos) além da renda principal ficam aqui.', tab:'view-entradas'},
-      {sel:'#inv-new-btn', title:'Economias', text:'Acompanhe investimentos, metas de poupança e seu patrimônio ao longo do tempo.', tab:'view-economias'},
-      {sel:'#topbar-settings-btn', title:'Configurações', text:'Ajuste renda, cartões, categorias e temas por aqui sempre que precisar.', tab:'view-resumo'},
+      {sel:"#hero-content", title:"Isto é uma previsão", text:"O número grande não é o seu saldo de hoje: é quanto você deve ter na data escolhida, já descontando o que ainda vai sair. É para isso que o app existe.", tab:'view-resumo'},
+      {sel:"#stat-chips", title:"De onde ele sai", text:"Da sua renda até lá, menos o que falta pagar, mais o que falta receber. Quanto mais coisas você cadastrar, mais perto da realidade fica.", tab:'view-resumo'},
+      {sel:"#gasto-fab", title:"Toda compra entra aqui", text:"Toque no + assim que gastar. Leva cinco segundos e a previsão lá em cima se refaz na hora.", tab:'view-resumo'},
+      {sel:".bn-item[data-target=\"view-fixos\"]", title:"O que se repete", text:"Aluguel, internet, assinaturas: cadastre uma vez em Fixos e o app desconta sozinho todo mês, sem você lembrar.", tab:'view-resumo'},
+      {sel:"#topbar-settings-btn", title:"Comece por aqui", text:"Sua renda e seu cartão ficam nas Configurações. Sem eles a previsão fica pela metade — é o primeiro lugar para ir agora.", tab:'view-resumo'},
     ],
     en:[
-      {sel:'.hero', title:'Your overview', text:'Estimated balance, work days, income and what\'s still due/owed until the chosen date.', tab:'view-resumo'},
-      {sel:'#gasto-fab', title:'Log an expense', text:'Tap + whenever you make a purchase — choose cash, Pix, debit or credit.', tab:'view-resumo'},
-      {sel:'#transacoes-list', title:'Journal', text:'History of everything you\'ve logged, day by day. Swipe an item to edit or delete.', tab:'view-diario'},
-      {sel:'#gf-new-btn', title:'Bills', text:'Recurring bills (internet, rent, subscriptions) — register once and they factor into the calculation every month automatically.', tab:'view-fixos'},
-      {sel:'#rr-new-btn', title:'Income', text:'Recurring income sources (salary, steady freelance work) besides your main income live here.', tab:'view-entradas'},
-      {sel:'#inv-new-btn', title:'Savings', text:'Track investments, savings goals and your net worth over time.', tab:'view-economias'},
-      {sel:'#topbar-settings-btn', title:'Settings', text:'Adjust income, cards, categories and themes here whenever you need.', tab:'view-resumo'},
+      {sel:"#hero-content", title:"This is a forecast", text:"The big number is not today's balance: it is what you should have on the chosen date, with what is still going out already deducted. That is what this app is for.", tab:'view-resumo'},
+      {sel:"#stat-chips", title:"Where it comes from", text:"Your income until then, minus what is left to pay, plus what is left to receive. The more you record, the closer to reality it gets.", tab:'view-resumo'},
+      {sel:"#gasto-fab", title:"Every purchase goes here", text:"Tap + as soon as you spend. It takes five seconds and the forecast above redoes itself right away.", tab:'view-resumo'},
+      {sel:".bn-item[data-target=\"view-fixos\"]", title:"What repeats", text:"Rent, internet, subscriptions: add them once under Bills and the app deducts them every month on its own.", tab:'view-resumo'},
+      {sel:"#topbar-settings-btn", title:"Start here", text:"Your income and your card live in Settings. Without them the forecast is only half done — that is the first place to go now.", tab:'view-resumo'},
     ],
     es:[
-      {sel:'.hero', title:'Tu resumen', text:'Saldo estimado, días trabajados, ingresos y cuánto falta por cobrar/pagar hasta la fecha elegida.', tab:'view-resumo'},
-      {sel:'#gasto-fab', title:'Registrar un gasto', text:'Toca el + cada vez que hagas una compra — elige efectivo, Pix, débito o crédito.', tab:'view-resumo'},
-      {sel:'#transacoes-list', title:'Diario', text:'Historial de todo lo que registraste, día a día. Desliza un ítem para editar o borrar.', tab:'view-diario'},
-      {sel:'#gf-new-btn', title:'Fijos', text:'Cuentas que se repiten cada mes (internet, alquiler, suscripciones) — regístralas una vez y entran solas en el cálculo cada mes.', tab:'view-fixos'},
-      {sel:'#rr-new-btn', title:'Ingresos', text:'Fuentes de ingreso recurrentes (salario, freelance fijo) además del ingreso principal están aquí.', tab:'view-entradas'},
-      {sel:'#inv-new-btn', title:'Ahorros', text:'Sigue inversiones, metas de ahorro y tu patrimonio a lo largo del tiempo.', tab:'view-economias'},
-      {sel:'#topbar-settings-btn', title:'Configuración', text:'Ajusta ingresos, tarjetas, categorías y temas aquí siempre que lo necesites.', tab:'view-resumo'},
+      {sel:"#hero-content", title:"Esto es una previsión", text:"El número grande no es tu saldo de hoy: es cuánto deberías tener en la fecha elegida, ya descontando lo que aún va a salir. Para eso existe la app.", tab:'view-resumo'},
+      {sel:"#stat-chips", title:"De dónde sale", text:"Tus ingresos hasta esa fecha, menos lo que falta pagar, más lo que falta cobrar. Cuanto más registres, más se acerca a la realidad.", tab:'view-resumo'},
+      {sel:"#gasto-fab", title:"Cada compra entra aquí", text:"Toca el + en cuanto gastes. Lleva cinco segundos y la previsión de arriba se rehace al instante.", tab:'view-resumo'},
+      {sel:".bn-item[data-target=\"view-fixos\"]", title:"Lo que se repite", text:"Alquiler, internet, suscripciones: regístralos una vez en Fijos y la app los descuenta sola cada mes.", tab:'view-resumo'},
+      {sel:"#topbar-settings-btn", title:"Empieza por aquí", text:"Tus ingresos y tu tarjeta están en Configuración. Sin ellos la previsión queda a medias — es el primer lugar al que ir ahora.", tab:'view-resumo'},
     ],
     fr:[
-      {sel:'.hero', title:'Votre aperçu', text:'Solde estimé, jours travaillés, revenus et ce qui reste à recevoir/payer jusqu\'à la date choisie.', tab:'view-resumo'},
-      {sel:'#gasto-fab', title:'Enregistrer une dépense', text:'Appuyez sur + à chaque achat — choisissez espèces, Pix, débit ou crédit.', tab:'view-resumo'},
-      {sel:'#transacoes-list', title:'Journal', text:'Historique de tout ce que vous avez enregistré, jour par jour. Glissez un élément pour modifier ou supprimer.', tab:'view-diario'},
-      {sel:'#gf-new-btn', title:'Factures', text:'Factures récurrentes (internet, loyer, abonnements) — enregistrez-les une fois et elles s\'ajoutent seules au calcul chaque mois.', tab:'view-fixos'},
-      {sel:'#rr-new-btn', title:'Revenus', text:'Sources de revenus récurrentes (salaire, freelance stable) en plus du revenu principal se trouvent ici.', tab:'view-entradas'},
-      {sel:'#inv-new-btn', title:'Épargne', text:'Suivez vos investissements, objectifs d\'épargne et votre patrimoine dans le temps.', tab:'view-economias'},
-      {sel:'#topbar-settings-btn', title:'Paramètres', text:'Ajustez revenus, cartes, catégories et thèmes ici quand vous en avez besoin.', tab:'view-resumo'},
+      {sel:"#hero-content", title:"Ceci est une prévision", text:"Le grand nombre n'est pas votre solde du jour : c'est ce que vous devriez avoir à la date choisie, ce qui doit encore sortir étant déjà déduit. C'est à cela que sert l'app.", tab:'view-resumo'},
+      {sel:"#stat-chips", title:"D'où il vient", text:"Vos revenus jusque-là, moins ce qu'il reste à payer, plus ce qu'il reste à recevoir. Plus vous enregistrez, plus c'est proche de la réalité.", tab:'view-resumo'},
+      {sel:"#gasto-fab", title:"Chaque achat passe ici", text:"Touchez le + dès que vous dépensez. Cela prend cinq secondes et la prévision au-dessus se refait aussitôt.", tab:'view-resumo'},
+      {sel:".bn-item[data-target=\"view-fixos\"]", title:"Ce qui revient", text:"Loyer, internet, abonnements : saisissez-les une fois dans Factures et l'app les déduit seule chaque mois.", tab:'view-resumo'},
+      {sel:"#topbar-settings-btn", title:"Commencez ici", text:"Vos revenus et votre carte sont dans Paramètres. Sans eux la prévision reste à moitié faite — c'est le premier endroit où aller maintenant.", tab:'view-resumo'},
     ],
     it:[
-      {sel:'.hero', title:'La tua panoramica', text:'Saldo stimato, giorni lavorati, reddito e cosa manca da ricevere/pagare fino alla data scelta.', tab:'view-resumo'},
-      {sel:'#gasto-fab', title:'Registra una spesa', text:'Tocca + ogni volta che fai un acquisto — scegli contanti, Pix, debito o credito.', tab:'view-resumo'},
-      {sel:'#transacoes-list', title:'Diario', text:'Storico di tutto ciò che hai registrato, giorno per giorno. Scorri una voce per modificare o eliminare.', tab:'view-diario'},
-      {sel:'#gf-new-btn', title:'Bollette', text:'Bollette ricorrenti (internet, affitto, abbonamenti) — registrale una volta e entrano da sole nel calcolo ogni mese.', tab:'view-fixos'},
-      {sel:'#rr-new-btn', title:'Entrate', text:'Fonti di reddito ricorrenti (stipendio, freelance stabile) oltre al reddito principale si trovano qui.', tab:'view-entradas'},
-      {sel:'#inv-new-btn', title:'Risparmi', text:'Traccia investimenti, obiettivi di risparmio e il tuo patrimonio nel tempo.', tab:'view-economias'},
-      {sel:'#topbar-settings-btn', title:'Impostazioni', text:'Regola reddito, carte, categorie e temi qui ogni volta che ne hai bisogno.', tab:'view-resumo'},
+      {sel:"#hero-content", title:"Questa è una previsione", text:"Il numero grande non è il saldo di oggi: è quanto dovresti avere alla data scelta, già tolto ciò che deve ancora uscire. L'app serve a questo.", tab:'view-resumo'},
+      {sel:"#stat-chips", title:"Da dove viene", text:"Il tuo reddito fino a quella data, meno ciò che resta da pagare, più ciò che resta da ricevere. Più registri, più si avvicina alla realtà.", tab:'view-resumo'},
+      {sel:"#gasto-fab", title:"Ogni spesa entra qui", text:"Tocca il + appena spendi. Ci vogliono cinque secondi e la previsione qui sopra si rifà subito.", tab:'view-resumo'},
+      {sel:".bn-item[data-target=\"view-fixos\"]", title:"Ciò che si ripete", text:"Affitto, internet, abbonamenti: inseriscili una volta in Bollette e l'app li scala da sola ogni mese.", tab:'view-resumo'},
+      {sel:"#topbar-settings-btn", title:"Comincia da qui", text:"Il tuo reddito e la tua carta stanno nelle Impostazioni. Senza, la previsione resta a metà — è il primo posto dove andare adesso.", tab:'view-resumo'},
     ],
   };
   const steps=STEPS_I18N[idioma]||STEPS_I18N.pt;
@@ -78,7 +68,14 @@ function startTour(){
       callout.querySelector('.tour-callout-progress').textContent=`${i+1}/${steps.length}`;
       callout.querySelector('.tour-next').textContent=L(i===steps.length-1?'tour.done':'tour.next');
       const cw=callout.offsetWidth||300;
-      let left=Math.min(window.innerWidth-cw-14,Math.max(14,r.left+r.width/2-cw/2));
+      /* Centralizar sob o alvo só funciona quando os dois têm largura parecida.
+         Num monitor largo o alvo pode ter 1000 px e a caixa 300: centralizada,
+         ela aterrissa no meio do nada e parece uma janela solta, sem ligação
+         com o que está destacando. Quando o alvo é bem mais largo, a caixa
+         encosta na borda esquerda dele. */
+      const alvoMuitoLargo=r.width>cw*1.6;
+      const desejado=alvoMuitoLargo ? r.left+24 : r.left+r.width/2-cw/2;
+      let left=Math.min(window.innerWidth-cw-14,Math.max(14,desejado));
       const spaceBelow=window.innerHeight-r.bottom;
       const top=spaceBelow>180?r.bottom+pad+14:Math.max(14,r.top-pad-14-callout.offsetHeight);
       callout.style.left=left+'px'; callout.style.top=top+'px';
