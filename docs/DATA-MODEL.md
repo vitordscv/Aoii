@@ -29,6 +29,9 @@ lugares** — `schema.js` (senão é descartado ao entrar), `defaultData()` e
 `migrateData()`. Campo que só existe em dois dos três é perdido silenciosamente
 no primeiro backup importado.
 
+O quarto lugar é este arquivo. Ele não muda o comportamento de nada, mas é
+onde se lê por que um campo existe — e é o primeiro a ser esquecido.
+
 Ao mudar a forma de um campo já existente, suba `SCHEMA_VERSAO` e escreva a
 migração para o formato anterior em `migrateData()`.
 
@@ -149,8 +152,15 @@ Cada pagamento anotado em "+ recebi" também lança uma `transacao` de
 ### `comprasPlanejadas` — o que se quer comprar
 
 ```js
-{ id, nome, valor, dataPrevista?, cartao, parcelas, parcelasLancadas, cartaoId, feito, nota }
+{ id, nome, valor, dataPrevista?, cartao, parcelas, parcelasLancadas, cartaoId, feito, nota, link? }
 ```
+
+`nota` é o motivo da compra e `link` o endereço do produto — os dois opcionais.
+`link` é do tipo `url` no esquema, e esse tipo existe por um motivo só: é o
+único campo do app que volta pro DOM como `href`, e `href` é onde texto vira
+execução. Só sobrevive http/https absoluto; `javascript:`, `data:` e afins
+viram `null` na entrada, e a compra sobrevive sem o link em vez de ser
+descartada inteira.
 
 Sem `dataPrevista`, a compra pesa já no mês corrente — é o que faz o saldo do
 mês parecer pior do que é quando há um item caro sem data.
@@ -158,6 +168,35 @@ mês parecer pior do que é quando há um item caro sem data.
 Marcar como feita com `cartao:true` chama `lancarParcelamento()`, que divide o
 valor nas faturas dos meses seguintes (o resto dos centavos vai na primeira
 parcela) e marca `parcelasLancadas` para não lançar de novo.
+
+### `dividas` — o que se deve a alguém
+
+```js
+{ id, nome, credor, valor, pago, modo, dataPrevista?, quitado, quitadoEm?, nota }
+```
+
+O espelho de `entradasExtras` com o sinal trocado: `valor` é o **total
+combinado**, `pago` é o que já saiu, e `restanteDivida(d) = valor − pago` é o
+que **sai** da projeção. Os dois passam pela mesma função em `timeline.js`, e é
+isso que garante que a projeção use o mesmo critério dos dois lados.
+
+- `credor` é para quem se deve; separado do `nome` porque a pessoa é o que se
+  lembra.
+- `modo` tem os mesmos três valores de `entradasExtras`, mas o **padrão é
+  `'semPrevisao'`** — quem pega dinheiro emprestado de um conhecido quase nunca
+  combina data, e escolher um mês por conta própria seria inventar número na
+  projeção.
+- `quitado`/`quitadoEm` no lugar de `feito`/`feitoEm`: uma dívida não é feita,
+  é quitada, e o nome do campo é o que a pessoa lê no backup. Quem traduz um
+  nome no outro é a tabela `LISTAS_PLANEJADAS` em `core/planned.js`.
+- `quitado` vira `true` sozinho quando `pago` alcança `valor`; pagar mais do
+  que falta é aparado, não vira crédito.
+
+Cada pagamento anotado em "+ paguei" lança uma `transacao` de gasto. Sem isso a
+dívida encolheria sozinha, o saldo não mexeria e a previsão ficaria otimista.
+
+Lista separada de `comprasPlanejadas` de propósito: uma coisa é o que se quer
+comprar, outra é o que já se deve.
 
 ### `metas` — metas de economia
 

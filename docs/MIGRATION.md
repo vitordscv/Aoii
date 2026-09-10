@@ -294,7 +294,10 @@ Nenhuma publicação, push ou alteração no Supabase foi feita neste bloco.
 
 1. **Concluir a preparação da transição.** Repetir a interface em navegadores
    distintos e preparar preview e rollout para aprovação.
-   A parte 2 do banco permanece pendente e não pode anteceder clientes compatíveis.
+   A parte 2 do banco foi aplicada depois disso, com os aparelhos já na versão
+   nova. Conferido em 10/09/2026: a tabela não tem mais grants pro anon nem
+   políticas, e a linha ativa foi gravada cifrada no mesmo dia. Ver a pendência 1
+   de SECURITY.md.
 
 2. **Desempenho e PWA.** Ícones e manifesto para fora do HTML; precache do
    shell; fallback offline; redesenho por seção em vez da tela inteira.

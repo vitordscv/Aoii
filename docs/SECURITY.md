@@ -64,38 +64,30 @@ dinheiro**, compras planejadas e viagens.
 
 ## Pendências, por gravidade
 
-### 1. Fechamento da tabela após a atualização dos aparelhos
+### ~~1. Fechamento da tabela após a atualização dos aparelhos~~ — resolvido
 
-`src/storage/sync-ciclo.js` e `src/ui/sync-ui.js` já ligam a criptografia à
-sincronização por RPC. O código novo tem 12 caracteres e usa Web Crypto quando
-disponível. Se Web Crypto não existir, a geração falha de forma explícita; não
-há fallback para `Math.random()`. A sessão guarda somente uma `CryptoKey`
-AES-GCM não exportável e o token de escrita.
+O app compatível foi publicado, os aparelhos foram atualizados e a parte 2 foi
+aplicada. **Conferido no banco em 10/09/2026:**
 
-O app compatível já foi publicado, mas a parte 2 ainda não foi aplicada: conhecer
-a chave pública permite acesso direto à tabela. O token da RPC não impede esse
-caminho alternativo. Antes de fechar a tabela, cada aparelho ativo precisa abrir
-a versão publicada ao menos uma vez; caso contrário, uma versão antiga perde a
-sincronização.
+| | resultado |
+|---|---|
+| grants da `financas` para `anon` | **nenhum** (a tabela sumiu do REST) |
+| RLS na `financas` | ligada, **0 políticas** |
+| `aoii_get` / `aoii_put` | existem, `SECURITY DEFINER` |
+| linha ativa `CXY3HQUM` | cifrada (`aoii`, `cipher`, `kdf`, `revision`, `device_id`), gravada em 10/09/2026 |
 
-O que já existe: `src/storage/encryption.js`, com AES-GCM 256 e chave derivada
-por PBKDF2 (SHA-256, 310.000 voltas, salt de 16 bytes e IV de 12 novos a cada
-gravação), metadados amarrados como dados autenticados, e 31 testes contra a
-Web Crypto de verdade — inclusive adulteração de um byte, do IV, da revisão e do
-`device_id`.
+A gravação do dia prova o caminho inteiro: o app publicado deriva a chave, cifra,
+manda pela RPC com token e revisão, e o servidor aceita. Não é só que a tabela
+fechou — é que o caminho novo está em uso.
 
-O que falta: concluir a preparação e a implantação coordenada do app e do banco.
-[SYNC-DESIGN.md](SYNC-DESIGN.md) tem o desenho completo — formato, token de
-escrita, controle de revisão, migração e rollback — e
-[`supabase/migrations/0001_sync_seguro.sql`](../supabase/migrations/0001_sync_seguro.sql)
-tem o SQL. A parte 1 já está aplicada; nenhuma migração foi aplicada nesta rodada.
+O que existe por trás: `src/storage/encryption.js`, com AES-GCM 256 e chave
+derivada por PBKDF2 (SHA-256, 310.000 voltas, salt de 16 bytes estável por
+código e IV de 12 bytes novos a cada gravação), metadados amarrados como dados
+autenticados, e 31 testes contra a Web Crypto de verdade — inclusive adulteração
+de um byte, do IV, da revisão e do `device_id`.
 
-Enquanto isso, a sincronização deve ser tratada como "publicar os dados num
-endereço que só quem tem o código conhece".
-
-Uma proteção da migração **já está no branch**: a validação recusa tanto um envelope
-cifrado quanto um objeto sem nenhum campo do Aoii. Sem ela, uma versão antiga do
-app leria a cópia cifrada como "backup vazio" e a salvaria por cima.
+**A criptografia da linha ativa protege menos do que parece enquanto a
+pendência 10 estiver aberta.** Ver abaixo.
 
 ### ~~2. Importação sem validação~~ — resolvido
 
@@ -177,7 +169,7 @@ de conflito e os estados de status estão descritos em
 [SYNC-DESIGN.md](SYNC-DESIGN.md). Sem merge automático de valor financeiro:
 juntar dois saldos sem regra é pior do que perguntar.
 
-### 8. RLS do Supabase — **verificada em 06/09/2026, e está aberta**
+### ~~8. RLS do Supabase~~ — fechada em 10/09/2026
 
 Deixou de ser suposição. A política em vigor no projeto de produção é:
 
@@ -211,12 +203,14 @@ aplicada no mesmo dia** e o quadro hoje é:
   de cada verificação). Nada quebrou: o app publicado continua lendo e gravando
   por REST.
 - [`0002_sync_fecha_tabela.sql`](../supabase/migrations/0002_sync_fecha_tabela.sql) —
-  fecha o SELECT e o resto. **Ainda não aplicada, e não deve ser**: só depois
-  que o app publicado usar as funções, senão derruba a sincronização de quem
-  estiver na versão anterior.
+  fecha o SELECT e o resto. **Aplicada**, depois que o app publicado passou a
+  usar as funções. Conferido em 10/09/2026: a `financas` não tem nenhum grant
+  para `anon` e nenhuma política — o REST não a enxerga mais.
 
-Ou seja: o vandalismo (apagar o espelho de todo mundo) está fechado; a leitura
-indevida continua aberta até a etapa do app.
+Ou seja: a leitura indevida da tabela ativa está fechada. O que continua aberto
+é o que se lê **sem** a tabela, pelos ids de snapshot que qualquer um monta a
+partir do código (pendência 10), e o que se **escreve** na gêmea de homologação
+que ficou para trás (pendência 11).
 
 A URL e a chave `anon` estarem no código publicado continua sendo normal e
 esperado — não é vazamento de senha. O problema é o que a chave permite fazer.
@@ -271,6 +265,69 @@ mostra linhas criadas por dia — nenhuma das duas é acessível pelo `anon`.
 paciente, dentro do teto por hora, ainda enche a tabela devagar. O Supabase
 oferece limitação de taxa no plano pago; enquanto não houver, os tetos são o que
 existe, e a view de crescimento é como se percebe.
+
+### 10. Snapshots antigos em texto puro, com id derivado do código — **aberta**
+
+A pior das que restam, porque anula em parte a pendência 1.
+
+Conferido em 10/09/2026: das 14 linhas da `financas`, **1 está cifrada** (a
+ativa) e **13 estão em texto puro**. Três delas têm o id derivado do código de
+sincronização em uso:
+
+    CXY3HQUM              → cifrada
+    CXY3HQUM-snap-2026-9  → texto puro, 3.787 bytes
+    CXY3HQUM-snap-2026-8  → texto puro, 3.406 bytes
+    CXY3HQUM-snap-2026-7  → texto puro, 3.240 bytes
+
+`aoii_get` devolve qualquer linha pelo id exato — é o desenho, e está certo:
+sem isso ninguém lê o próprio espelho. Mas quem descobrir o código **monta o id
+do snapshot sozinho** e lê um mês inteiro em texto puro: saldo, cartões, cada
+lançamento do Diário. A senha da sincronização não entra nesse caminho.
+
+As outras 10 são códigos antigos (`JW84MMKJ`, `SC3CGHXT`, `6XGNQ73V`,
+`YJFV69G9`, `VW46YQJT`, `XGBAHC54`, `QCQHGY8Z`, `CXY3HQUN`, `ACU67TCB` e um
+snapshot de `JW84MMKJ`). Essas não são deriváveis de nada, mas continuam em
+texto puro para quem souber o código.
+
+**O app atual não cria mais isso**: `ensureMonthlySnapshot()` cifra o snapshot
+com a mesma chave do espelho, e só roda com a sincronização destrancada. O
+passivo é do app antigo.
+
+Caminho, na ordem, e nenhum passo pula o anterior:
+
+1. `node scripts/exportar-legado.js` com os ids em `AOII_IDS` — baixa cada
+   linha para um arquivo local. Não apaga nada e não imprime conteúdo.
+2. Conferir os arquivos.
+3. [`0007_apaga_legado.sql`](../supabase/migrations/0007_apaga_legado.sql).
+
+**O passo 3 é irreversível.** Sem o passo 1 feito e conferido, não se faz.
+
+### 11. Gêmea de homologação aberta dentro da produção — **aberta**
+
+O `0003` criou `financas_homolog` para o ensaio, com as políticas abertas de
+propósito. O ensaio acabou; a tabela ficou. Conferido em 10/09/2026:
+
+| tabela | RLS | políticas | grants para `anon` |
+|---|---|---|---|
+| `financas` | on | 0 | nenhum |
+| **`financas_homolog`** | on | **4** | **SELECT, INSERT, UPDATE, DELETE, TRUNCATE** |
+
+As quatro são `using (true)` / `with check (true)`. É o mesmo buraco que o
+`0002` fechou na `financas`, intacto numa tabela ao lado, no mesmo projeto —
+e sem nem as defesas da parte 1: não há token, não há revisão, não há teto de
+5 MB por linha, não há teto de criação.
+
+Tem 0 linhas hoje, então não há dado a perder. O que existe é a porta: qualquer
+um com a chave `anon` enche o projeto pelo lado de fora, sem passar por função
+nenhuma. Nesse aspecto é **mais grave que a pendência 9**, onde ao menos a
+função e o teto por linha estão no caminho.
+
+Proposta em
+[`0008_remove_homologacao.sql`](../supabase/migrations/0008_remove_homologacao.sql):
+derruba as duas funções e a tabela. Rollback = reaplicar `0003` e `0005`, que
+são idempotentes. O que se perde é ensaiar contra produção pelo atalho do
+`localStorage['aoii-homolog']` — e perder isso é o certo: ensaio não se faz no
+projeto onde moram os dados reais.
 
 ## Regras para quem for mexer
 

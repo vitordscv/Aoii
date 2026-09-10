@@ -100,31 +100,3 @@ async function nuvemGravar(code,envelope,revisaoEsperada,tokenDeEscrita){
   if(r&&r.conflito) return {conflito:true,revision:r.revision};
   return {erro:(r&&r.erro)||'desconhecido'};
 }
-
-async function supabaseGet(code){
-  const url=`${SUPABASE_URL}/rest/v1/financas?id=eq.${encodeURIComponent(code)}&select=data`;
-  const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),5000);
-  try{
-    const res=await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`},signal:ctrl.signal});
-    if(!res.ok) throw new Error('supabase get failed');
-    const rows=await res.json();
-    return rows&&rows[0]?rows[0].data:null;
-  } finally { clearTimeout(t); }
-}
-async function supabaseSet(code,valueObj){
-  const url=`${SUPABASE_URL}/rest/v1/financas`;
-  const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),5000);
-  try{
-    const res=await fetch(url,{
-      method:'POST',
-      signal:ctrl.signal,
-      headers:{
-        apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type':'application/json',
-        Prefer:'resolution=merge-duplicates'
-    },
-    body:JSON.stringify({id:code,data:valueObj,updated_at:new Date().toISOString()})
-  });
-  if(!res.ok) throw new Error('supabase set failed');
-  } finally { clearTimeout(t); }
-}
