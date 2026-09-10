@@ -128,6 +128,7 @@ function migrateData(d){
     d.faturas.forEach(f=>{ if(f.pago) (f.gastos||[]).forEach(g=>{ g.pago=true; }); });
   }
   d.gastosMensais.forEach(g=>{
+    if(!Array.isArray(g.pagoEm)) g.pagoEm=[];
     if(!g.categoria) g.categoria='Outros';
     if(typeof g.ativo!=='boolean') g.ativo=true;
     if(typeof g.inicioAno!=='number')  g.inicioAno=null;

@@ -54,9 +54,11 @@ function renderGastosFixosTab(){
     const subtotal=items.filter(g=>gastoFixoAtivoEm(g,anoAtual,mesAtual)).reduce((s,g)=>s+g.valor,0);
     const itemsHtml=items.map(g=>{
       const ativo=gastoFixoAtivoEm(g,anoAtual,mesAtual);
+      const pagoEsteMes=gastoFixoPagoEm(g,anoAtual,mesAtual);
       const pausado=g.ativo===false;
       const futuro=!pausado&&g.inicioAno&&(g.inicioAno>anoAtual||(g.inicioAno===anoAtual&&g.inicioMes>mesAtual));
       let subTxt=`${L('cal.dia')} ${g.diaDoMes}`;
+      if(pagoEsteMes) subTxt+=' · '+L('gf.pagoEsteMes');
       if(pausado) subTxt+=' · '+L('gf.pausado');
       else if(futuro) subTxt+=` · ${L('gf.apartirDe')} ${MONTH_NAMES[g.inicioMes-1]}/${g.inicioAno}`;
       return `
@@ -66,7 +68,10 @@ function renderGastosFixosTab(){
             <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',g.nome))}">🗑</button>
           </div>
           <div class="swipe-content">
-            <div class="gf-item-row${ativo?'':' paused'}" data-action="edit-gasto-fixo" data-id="${g.id}">
+            <div class="gf-item-row${ativo?'':' paused'}${pagoEsteMes?' gf-pago':''}" data-action="edit-gasto-fixo" data-id="${g.id}">
+              ${ativo?`<label class="gf-pago-check" title="${esc(L('gf.marcarPago'))}">
+                <input type="checkbox" data-action="toggle-gf-pago" data-id="${g.id}" ${pagoEsteMes?'checked':''} aria-label="${esc(L('gf.marcarPagoAria').replace('{nome}',g.nome))}">
+              </label>`:''}
               <div class="gf-item-main">
                 <div class="gf-item-nome">${esc(g.nome)}${g.criadoEm&&(Date.now()-new Date(g.criadoEm).getTime())>18*30*24*60*60*1000?` <span class="gf-stale-badge" title="${esc(L('gf.semReajusteHelp'))}">⏳</span>`:''}</div>
                 <div class="gf-item-sub">${esc(subTxt)}</div>
@@ -88,6 +93,17 @@ function renderGastosFixosTab(){
 
   groupsEl.querySelectorAll('[data-action="toggle-gf-group"]').forEach(head=>{
     head.addEventListener('click',()=>{ head.closest('.gf-group').classList.toggle('open'); });
+  });
+  groupsEl.querySelectorAll('[data-action="toggle-gf-pago"]').forEach(cx=>{
+    /* a linha inteira abre a ficha de edição; a caixa não pode disparar isso */
+    cx.addEventListener('click',e=>e.stopPropagation());
+    cx.addEventListener('change',async e=>{
+      e.stopPropagation();
+      const t=today();
+      if(definirGastoFixoPago(e.target.getAttribute('data-id'),t.getFullYear(),t.getMonth()+1,e.target.checked)){
+        vibrate(8); await persist(); render();
+      }
+    });
   });
   groupsEl.querySelectorAll('[data-action="edit-gasto-fixo"]').forEach(row=>{
     ativarComoBotao(row,e=>{

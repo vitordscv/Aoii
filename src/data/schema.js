@@ -51,6 +51,9 @@ const ITEM_GASTO_FIXO = {
   inicioAno: { tipo: 'inteiro', min: 1900, max: 3000, nulo: true },
   inicioMes: { tipo: 'inteiro', min: 1, max: 12, nulo: true },
   criadoEm: { tipo: 'iso', nulo: true },
+  /* meses já quitados, como 'AAAA-M'. Uma conta fixa se repete, então pago é
+     por mês — ver docs/DATA-MODEL.md. */
+  pagoEm: { tipo: 'listaTexto', max: 20 },
 };
 
 const ITEM_GASTO_FATURA = {

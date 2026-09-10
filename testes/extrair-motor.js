@@ -85,7 +85,7 @@ const FUNCOES=[
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
-  'camposGastoFixo','criarGastoFixo','atualizarGastoFixo','removerGastoFixo','restaurarGastoFixo',
+  'gastoFixoPagoEm','definirGastoFixoPago','camposGastoFixo','criarGastoFixo','atualizarGastoFixo','removerGastoFixo','restaurarGastoFixo',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','camposRendaRecorrente','criarRendaRecorrente','atualizarRendaRecorrente',
   'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown',
   'computeGastoMesPorCategoria','definirOrcamento','computeMonthSpend','computeWeekSummary','computeDailyBudget',

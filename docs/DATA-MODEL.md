@@ -124,8 +124,26 @@ coisa, ou a renda é contada uma vez por cartão.
 ### `gastosMensais` — contas fixas
 
 ```js
-{ id, nome, valor, diaDoMes, categoria, ativo, inicioAno, inicioMes, criadoEm }
+{ id, nome, valor, diaDoMes, categoria, ativo, inicioAno, inicioMes, criadoEm, pagoEm }
 ```
+
+`pagoEm` é a lista dos meses já quitados, no formato `'AAAA-M'`. Uma conta
+fixa se repete, então **pago é por mês, não por conta**: a internet de setembro
+estar paga não diz nada sobre a de outubro.
+
+Ele existe por um caso só, e é o de pagar **antes** do dia. `monthMetrics` já
+contava apenas o que ainda vai vencer (`custo: d > hoje ? valor : 0`), então
+pagar no dia sempre funcionou: passada a data, a conta some do que falta sair.
+Quem paga a internet no dia 3 com vencimento no dia 10 ficava com o dinheiro
+fora da conta e o app ainda descontando a mesma conta até o dia 10. Marcar
+como paga vale o mesmo que o dia ter passado.
+
+Cuidado ao ler `gastosMensaisCusto`: o nome sugere "o que o mês custou", mas o
+valor é **o que ainda falta sair neste mês**. Sempre foi assim.
+
+A lista é podada nos 24 meses mais recentes em `definirGastoFixoPago()`. Um
+item por mês é pouco, mas isto sobe cifrado pra nuvem em toda gravação e não
+tem razão de crescer para sempre.
 
 `ativo:false` pausa sem apagar o histórico. `inicioAno`/`inicioMes` marcam
 quando a conta começou a ser cobrada — antes disso ela não entra no cálculo.

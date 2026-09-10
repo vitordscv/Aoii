@@ -104,7 +104,11 @@ function monthMetrics(fatura){
   const gastosCusto=(fatura.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0);
   const gastosMensaisDetalhe=(data.gastosMensais||[]).filter(g=>gastoFixoAtivoEm(g,ano,mes)).map(g=>{
     const d=dataNoMes(ano,mes,g.diaDoMes);
-    return {nome:g.nome,custo:d>t?g.valor:0};
+    /* custo aqui é o que ainda FALTA sair. Depois do dia, some sozinho; paga
+       antes do dia, some porque a pessoa disse que já pagou. Sem a segunda
+       parte, quem paga adiantado é descontado duas vezes até a data chegar. */
+    const aindaFalta=d>t&&!gastoFixoPagoEm(g,ano,mes);
+    return {nome:g.nome,custo:aindaFalta?g.valor:0,pago:gastoFixoPagoEm(g,ano,mes)};
   });
   const gastosMensaisCusto=gastosMensaisDetalhe.reduce((s,g)=>s+g.custo,0);
   const despesas=faturaCusto+gastosCusto+gastosMensaisCusto;

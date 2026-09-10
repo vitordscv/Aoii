@@ -123,6 +123,30 @@ function restaurarTransacao(item,indice){
 }
 
 /* ── gasto fixo: ativo (não pausado) e já dentro do período de cobrança ── */
+/* Esta conta já foi paga neste mês? */
+function gastoFixoPagoEm(g,ano,mes){
+  return !!(g&&Array.isArray(g.pagoEm)&&g.pagoEm.includes(ano+'-'+mes));
+}
+
+/* Marca ou desmarca. Poda os meses antigos: um item por mês não pesa muito,
+   mas isto sobe pra nuvem em toda gravação e não precisa crescer pra sempre —
+   dois anos de histórico é mais do que qualquer tela mostra. */
+function definirGastoFixoPago(id,ano,mes,pago){
+  const g=(data.gastosMensais||[]).find(x=>x.id===id);
+  if(!g||typeof pago!=='boolean') return null;
+  if(!Number.isInteger(ano)||!Number.isInteger(mes)||mes<1||mes>12) return null;
+  if(!Array.isArray(g.pagoEm)) g.pagoEm=[];
+  const chave=ano+'-'+mes;
+  const jaEsta=g.pagoEm.includes(chave);
+  if(pago&&!jaEsta) g.pagoEm.push(chave);
+  if(!pago&&jaEsta) g.pagoEm=g.pagoEm.filter(k=>k!==chave);
+  if(g.pagoEm.length>24){
+    const ordem=k=>{ const [a,m]=k.split('-').map(Number); return a*12+m; };
+    g.pagoEm=g.pagoEm.slice().sort((x,y)=>ordem(x)-ordem(y)).slice(-24);
+  }
+  return g;
+}
+
 function gastoFixoAtivoEm(g,ano,mes){
   if(g.ativo===false) return false;
   if(g.inicioAno&&g.inicioMes){

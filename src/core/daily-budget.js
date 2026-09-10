@@ -19,6 +19,8 @@ function computeDailyBudget(){
   });
   (data.gastosMensais||[]).forEach(g=>{
     if(!gastoFixoAtivoEm(g,ano,mes)) return;
+    /* já paga não vence mais: continua no custo do mês, sai do que falta sair */
+    if(gastoFixoPagoEm(g,ano,mes)) return;
     const d=dataNoMes(ano,mes,g.diaDoMes);
     if(d>t) despesas+=g.valor;
   });
