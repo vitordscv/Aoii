@@ -40,8 +40,7 @@ function setupCartaoSheet(){
     const inp=document.getElementById('categoria-nova-nome');
     const nome=inp.value.trim();
     if(!nome) return;
-    if(CATS().some(c=>c.toLowerCase()===nome.toLowerCase())){ inp.value=''; return; }
-    data.categorias=[...CATS(),nome];
+    if(!adicionarCategoria(nome)){ inp.value=''; return; }
     inp.value='';
     await persist(); render();
   });
@@ -49,8 +48,7 @@ function setupCartaoSheet(){
     const nInp=document.getElementById('viagem-nova-nome'), oInp=document.getElementById('viagem-novo-orcamento');
     const nome=nInp.value.trim();
     if(!nome) return;
-    if(!data.viagens) data.viagens=[];
-    data.viagens.push({id:uid(),nome,orcamento:parseNum(oInp.value)||0});
+    if(!criarViagem({nome,orcamento:parseNum(oInp.value)||0})) return;
     nInp.value=''; oInp.value='';
     await persist(); render();
   });

@@ -289,6 +289,27 @@ module.exports=function(t){
   t.valor(dadosPreferencias.reservaGuardado,500,'valor da reserva é atualizado');
   t.igual(dadosPreferencias.reservaNaConta,false,'local da reserva é atualizado');
 
+  console.log('\n\x1b[1mCategorias e viagens preservam os lançamentos\x1b[0m');
+  const dadosListas=base();
+  dadosListas.categorias=['Mercado','Outros'];
+  dadosListas.transacoes=[{id:'t',nome:'Compra',valor:20,categoria:'Mercado',metodo:'pix',data:HOJE,viagemId:'v'}];
+  dadosListas.gastosMensais=[{id:'g',nome:'Feira',valor:50,categoria:'Mercado'}];
+  dadosListas.faturas=[{id:'f',ano:2026,mes:9,valor:0,pago:false,cartaoId:'a',gastos:[{id:'fg',nome:'Cartão',valor:30,categoria:'Mercado'}]}];
+  dadosListas.viagens=[{id:'v',nome:'Férias',orcamento:1000}];
+  dadosListas.orcamentos={Mercado:400};
+  const ctxListas=criarAmbiente(dadosListas,HOJE);
+  t.igual(ctxListas.adicionarCategoria('mercado'),null,'categoria duplicada ignora maiúsculas e minúsculas');
+  t.igual(ctxListas.adicionarCategoria('Casa'),'Casa','categoria nova é adicionada');
+  const categoriaRemovida=ctxListas.removerCategoria('Mercado');
+  t.igual(categoriaRemovida.destino,'Outros','categoria removida escolhe destino existente');
+  t.verdadeiro([dadosListas.transacoes[0].categoria,dadosListas.gastosMensais[0].categoria,dadosListas.faturas[0].gastos[0].categoria].every(c=>c==='Outros'),'lançamentos antigos são preservados numa categoria restante');
+  t.igual(dadosListas.orcamentos.Mercado,undefined,'orçamento da categoria removida sai junto');
+  t.igual(ctxListas.criarViagem({nome:'',orcamento:100}),null,'viagem sem nome é recusada');
+  const viagem=ctxListas.criarViagem({nome:'Trabalho',orcamento:500});
+  t.igual(viagem.nome,'Trabalho','viagem válida é criada');
+  ctxListas.removerViagem('v');
+  t.igual(dadosListas.transacoes[0].viagemId,null,'remover viagem preserva a transação sem referência quebrada');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

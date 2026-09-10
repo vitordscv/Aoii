@@ -74,6 +74,7 @@ const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORM
 const FUNCOES=[
   'parseNum','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'definirTipoRenda','atualizarRendaDiaria','atualizarRendaMensal','atualizarSaldoConta','atualizarDinheiroVivo','atualizarDataAlvo','atualizarReserva',
+  'adicionarCategoria','removerCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','daysBetweenInclusive','remainingWorkDaysUntil',
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','camposFatura','salvarFatura','atualizarValorFatura',
   'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','fatiasAosPoucos',

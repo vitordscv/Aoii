@@ -14,8 +14,7 @@ function renderViagensList(){
   el.querySelectorAll('.cat-manage-del').forEach(btn=>btn.addEventListener('click',async()=>{
     const id=btn.getAttribute('data-id');
     if(!(await confirmDialog({text:L('confirm.removerViagem')}))) return;
-    data.viagens=(data.viagens||[]).filter(v=>v.id!==id);
-    (data.transacoes||[]).forEach(t=>{ if(t.viagemId===id) t.viagemId=null; });
+    if(!removerViagem(id)) return;
     await persist(); render();
   }));
 }
@@ -32,7 +31,7 @@ function renderCategoriasList(){
     const cat=btn.getAttribute('data-cat');
     if(CATS().length<=1) return;
     if(!(await confirmDialog({text:L('confirm.removerCategoria').replace('{cat}',categoriaLabel(cat))}))) return;
-    data.categorias=CATS().filter(c=>c!==cat);
+    if(!removerCategoria(cat)) return;
     await persist(); render();
   }));
 }
