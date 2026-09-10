@@ -258,11 +258,16 @@
   </div><!-- /view-diario -->
 
   <div class="tab-view" id="view-fixos" style="display:none;">
-
-  <!-- ══════ GASTOS FIXOS ══════ -->
+  <div class="view-tabs" role="tablist" data-grupo="fixos" data-i18n-aria-label="fixos.abasAria" aria-label="Visões dos gastos fixos">
+    <button type="button" class="view-tab" id="tab-fixos-contas" role="tab" aria-controls="pane-fixos-contas" aria-selected="false" tabindex="-1" data-pane="contas" data-sub="fixos.abaContasSub"><span data-i18n="fixos.abaContas">Contas fixas</span></button>
+    <button type="button" class="view-tab" id="tab-fixos-evolucao" role="tab" aria-controls="pane-fixos-evolucao" aria-selected="false" tabindex="-1" data-pane="evolucao" data-sub="fixos.abaEvolucaoSub"><span data-i18n="fixos.abaEvolucao">Evolução</span></button>
+    <button type="button" class="view-tab" id="tab-fixos-trajetoria" role="tab" aria-controls="pane-fixos-trajetoria" aria-selected="false" tabindex="-1" data-pane="trajetoria" data-sub="fixos.abaTrajetoriaSub"><span data-i18n="fixos.abaTrajetoria">Trajetória</span></button>
+    <button type="button" class="view-tab" id="tab-fixos-linha" role="tab" aria-controls="pane-fixos-linha" aria-selected="false" tabindex="-1" data-pane="linha" data-sub="fixos.abaLinhaSub"><span data-i18n="fixos.abaLinha">Linha do tempo</span></button>
+  </div>
+  <div class="view-tab-sub" data-abas-sub="fixos"></div>
+  <div class="view-pane" id="pane-fixos-contas" role="tabpanel" tabindex="0" aria-labelledby="tab-fixos-contas" hidden>
   <div class="section" id="gastos-fixos-section">
     <div class="gf-health-card" id="gf-health-card"></div>
-    <div class="chart-card" id="gf-evolucao-card" style="display:none;"></div>
     <div class="gf-groups-head">
       <div class="section-title" style="margin:0;" data-i18n="main.porCategoria">Por categoria</div>
       <button type="button" class="gf-expand-toggle" id="gf-expand-toggle" data-i18n="main.expandirTudo">Expandir tudo</button>
@@ -275,7 +280,13 @@
     </div>
     <button type="button" class="gf-new-btn" id="gf-new-btn" data-i18n="main.novoGastoFixo">+ Novo gasto fixo</button>
   </div>
-
+  </div>
+  <div class="view-pane" id="pane-fixos-evolucao" role="tabpanel" tabindex="0" aria-labelledby="tab-fixos-evolucao" hidden>
+  <div class="section">
+    <div class="chart-card" id="gf-evolucao-card" style="display:none;"></div>
+  </div>
+  </div>
+  <div class="view-pane" id="pane-fixos-trajetoria" role="tabpanel" tabindex="0" aria-labelledby="tab-fixos-trajetoria" hidden>
   <!-- ══════ GRÁFICO DE TRAJETÓRIA ══════ -->
   <div class="section">
     <div class="section-head">
@@ -285,6 +296,8 @@
     <div class="chart-card" id="chart-card"></div>
   </div>
 
+  </div>
+  <div class="view-pane" id="pane-fixos-linha" role="tabpanel" tabindex="0" aria-labelledby="tab-fixos-linha" hidden>
   <!-- ══════ LINHA DO TEMPO ══════ -->
   <div class="section">
     <div class="section-head">
@@ -302,10 +315,18 @@
     <div class="month-grid" id="month-grid"></div>
   </div>
 
+  </div>
   </div><!-- /view-fixos -->
 
   <div class="tab-view" id="view-entradas" style="display:none;">
-
+  <div class="view-tabs" role="tablist" data-grupo="entradas" data-i18n-aria-label="entradas.abasAria" aria-label="Visões das entradas">
+    <button type="button" class="view-tab" id="tab-entradas-rendas" role="tab" aria-controls="pane-entradas-rendas" aria-selected="false" tabindex="-1" data-pane="rendas" data-sub="entradas.abaRendasSub"><span data-i18n="main.rendasRecorrentes">Rendas recorrentes</span></button>
+    <button type="button" class="view-tab" id="tab-entradas-extras" role="tab" aria-controls="pane-entradas-extras" aria-selected="false" tabindex="-1" data-pane="extras" data-sub="entradas.abaExtrasSub"><span data-i18n="main.entradasExtras">Entradas extras</span></button>
+    <button type="button" class="view-tab" id="tab-entradas-dividas" role="tab" aria-controls="pane-entradas-dividas" aria-selected="false" tabindex="-1" data-pane="dividas" data-sub="entradas.abaDividasSub"><span data-i18n="main.dividas">Dívidas</span></button>
+    <button type="button" class="view-tab" id="tab-entradas-compras" role="tab" aria-controls="pane-entradas-compras" aria-selected="false" tabindex="-1" data-pane="compras" data-sub="entradas.abaComprasSub"><span data-i18n="main.comprasPlanejadas">Compras planejadas</span></button>
+  </div>
+  <div class="view-tab-sub" data-abas-sub="entradas"></div>
+  <div class="view-pane" id="pane-entradas-rendas" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-rendas" hidden>
   <!-- ══════ RENDAS RECORRENTES ══════ -->
   <div class="section entradas-renda">
     <div class="list-panel entradas-card-principal">
@@ -317,9 +338,9 @@
     </div>
   </div>
 
-  <!-- ══════ LISTAS ══════ -->
+  </div>
+  <div class="view-pane" id="pane-entradas-extras" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-extras" hidden>
   <div class="section entradas-planejamento">
-    <div class="lists-grid">
       <div class="list-panel">
         <h3 data-i18n="main.entradasExtras">Entradas extras</h3>
         <div class="panel-sub" data-i18n="main.entradasExtrasNote">Dinheiro que ainda vai entrar. Marque como recebido quando cair na conta e atualizar o saldo atual.</div>
@@ -332,6 +353,10 @@
           <button id="extras-add" data-i18n="btn.adicionarSimples">Adicionar</button>
         </div>
       </div>
+  </div>
+  </div>
+  <div class="view-pane" id="pane-entradas-dividas" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-dividas" hidden>
+  <div class="section entradas-planejamento">
       <div class="list-panel">
         <h3 data-i18n="main.dividas">Dívidas</h3>
         <div class="panel-sub" data-i18n="main.dividasNote">Dinheiro que você deve a alguém e vai pagando aos poucos, em valores e datas que você não controla. Registre cada pagamento e veja o quanto falta.</div>
@@ -345,6 +370,10 @@
         </div>
         <div class="help-text" data-i18n="divida.help">Toda dívida começa sem previsão: ela conta no total, mas não mexe na projeção enquanto você não combinar uma data. Cada pagamento registrado também entra no Diário como gasto.</div>
       </div>
+  </div>
+  </div>
+  <div class="view-pane" id="pane-entradas-compras" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-compras" hidden>
+  <div class="section entradas-planejamento">
       <div class="list-panel">
         <h3 data-i18n="main.comprasPlanejadas">Compras planejadas</h3>
         <div class="panel-sub" data-i18n="main.comprasPlanejadasNote">Coisas que você quer comprar. Cada item mostra o melhor mês pra comprar, com base na sua trajetória de saldo. Marque como comprado quando pagar.</div>
@@ -369,13 +398,18 @@
         </div>
         <div class="help-text" data-i18n="planned.cardHelp">Marcando "Cartão", ao dar como comprada essa compra é dividida automaticamente nas faturas dos próximos meses.</div>
       </div>
-    </div>
   </div>
-
+  </div>
   </div><!-- /view-entradas -->
 
   <div class="tab-view" id="view-economias" style="display:none;">
-
+  <div class="view-tabs" role="tablist" data-grupo="economias" data-i18n-aria-label="economias.abasAria" aria-label="Visões das economias">
+    <button type="button" class="view-tab" id="tab-economias-patrimonio" role="tab" aria-controls="pane-economias-patrimonio" aria-selected="false" tabindex="-1" data-pane="patrimonio" data-sub="economias.abaPatrimonioSub"><span data-i18n="main.patrimonio">Patrimônio</span></button>
+    <button type="button" class="view-tab" id="tab-economias-metas" role="tab" aria-controls="pane-economias-metas" aria-selected="false" tabindex="-1" data-pane="metas" data-sub="economias.abaMetasSub"><span data-i18n="main.metasEconomia">Metas</span></button>
+    <button type="button" class="view-tab" id="tab-economias-investimentos" role="tab" aria-controls="pane-economias-investimentos" aria-selected="false" tabindex="-1" data-pane="investimentos" data-sub="economias.abaInvestimentosSub"><span data-i18n="main.investimentos">Investimentos</span></button>
+  </div>
+  <div class="view-tab-sub" data-abas-sub="economias"></div>
+  <div class="view-pane" id="pane-economias-patrimonio" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-patrimonio" hidden>
   <!-- ══════ PATRIMÔNIO ══════ -->
   <div class="section" id="patrimonio-section">
     <div class="section-head">
@@ -385,6 +419,8 @@
     <div class="patrimonio-card" id="patrimonio-card"></div>
   </div>
 
+  </div>
+  <div class="view-pane" id="pane-economias-metas" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-metas" hidden>
   <!-- ══════ METAS DE ECONOMIA ══════ -->
   <div class="section">
     <div class="section-head">
@@ -413,6 +449,8 @@
     </div>
   </div>
 
+  </div>
+  <div class="view-pane" id="pane-economias-investimentos" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-investimentos" hidden>
   <!-- ══════ INVESTIMENTOS ══════ -->
   <div class="section" id="investimentos-section">
     <div class="section-head">
@@ -473,26 +511,27 @@
     </div>
   </div>
 
+  </div>
   </div><!-- /view-economias -->
 
   <!-- ══════ CONFIGURAÇÕES ══════ -->
   <div class="modal-backdrop" id="settings-backdrop" style="display:none;"></div>
-  <div class="settings-panel settings-modal" id="settings-panel" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="settings-panel-title">
+  <div class="view-pane settings-panel settings-modal" id="settings-panel" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="settings-panel-title">
     <div class="settings-modal-head">
       <span id="settings-panel-title" data-i18n="settings.title">Configurações</span>
       <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
-      <div class="settings-tabs" role="tablist" data-i18n-aria-label="settings.abasAria" aria-label="Seções das configurações">
-        <button type="button" class="settings-tab" id="settings-tab-renda" role="tab" aria-controls="settings-pane-renda" aria-selected="false" tabindex="-1" data-pane="renda"><span data-i18n="settings.renda">Renda</span></button>
-        <button type="button" class="settings-tab" id="settings-tab-dados" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
-        <button type="button" class="settings-tab" id="settings-tab-preferencias" role="tab" aria-controls="settings-pane-preferencias" aria-selected="false" tabindex="-1" data-pane="preferencias"><span data-i18n="settings.preferencias">Preferências</span></button>
-        <button type="button" class="settings-tab" id="settings-tab-personalizacao" role="tab" aria-controls="settings-pane-personalizacao" aria-selected="false" tabindex="-1" data-pane="personalizacao"><span data-i18n="settings.personalizacao">Personalização</span></button>
-        <button type="button" class="settings-tab" id="settings-tab-ia" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
-        <button type="button" class="settings-tab" id="settings-tab-zona" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
+      <div class="view-tabs settings-tabs" role="tablist" data-grupo="settings" data-i18n-aria-label="settings.abasAria" aria-label="Seções das configurações">
+        <button type="button" class="view-tab settings-tab" id="settings-tab-renda" data-sub="settings.rendaSub" role="tab" aria-controls="settings-pane-renda" aria-selected="false" tabindex="-1" data-pane="renda"><span data-i18n="settings.renda">Renda</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-dados" data-sub="settings.dadosSub" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-preferencias" data-sub="settings.preferenciasSub" role="tab" aria-controls="settings-pane-preferencias" aria-selected="false" tabindex="-1" data-pane="preferencias"><span data-i18n="settings.preferencias">Preferências</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-personalizacao" data-sub="settings.personalizacaoSub" role="tab" aria-controls="settings-pane-personalizacao" aria-selected="false" tabindex="-1" data-pane="personalizacao"><span data-i18n="settings.personalizacao">Personalização</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-ia" data-sub="settings.iaSub" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-zona" data-sub="settings.zonaSub" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
       </div>
-      <div class="settings-tab-sub" id="settings-tab-sub"></div>
-      <div class="settings-pane" id="settings-pane-renda" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-renda" hidden>
+      <div class="view-tab-sub settings-tab-sub" data-abas-sub="settings"></div>
+      <div class="view-pane settings-pane" id="settings-pane-renda" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-renda" hidden>
         <div class="field-group">
           <label data-i18n="settings.rendaPergunta">Como você recebe sua renda?</label>
           <div class="segmented" id="cfg-tipo-renda">
@@ -533,7 +572,7 @@
         </div>
 
       </div>
-      <div class="settings-pane" id="settings-pane-dados" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-dados" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-dados" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-dados" hidden>
         <div class="field-group">
           <label data-i18n="settings.backupLocal">Backup local</label>
           <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
@@ -571,7 +610,7 @@
           <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
         </div>
       </div>
-      <div class="settings-pane" id="settings-pane-preferencias" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-preferencias" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-preferencias" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-preferencias" hidden>
         <div class="field-group">
           <label for="cfg-idioma" data-i18n="settings.idioma">Idioma</label>
           <select id="cfg-idioma">
@@ -621,7 +660,7 @@
         </div>
 
       </div>
-      <div class="settings-pane" id="settings-pane-personalizacao" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-personalizacao" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-personalizacao" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-personalizacao" hidden>
         <div class="field-group">
           <label data-i18n="settings.viagens">Viagens / eventos com orçamento próprio</label>
           <div id="viagens-list" class="cat-manage-list"></div>
@@ -652,7 +691,7 @@
         </div>
 
       </div>
-      <div class="settings-pane" id="settings-pane-ia" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-ia" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-ia" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-ia" hidden>
         <div class="field-group" id="ia-section">
           <label class="gasto-checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="ia-ativa-check"> <span data-i18n="settings.ativarIA">Ativar conselheiro com IA</span></label>
           <div id="ia-fields" style="display:none;">
@@ -662,7 +701,7 @@
         </div>
 
       </div>
-      <div class="settings-pane settings-danger-zone" id="settings-pane-zona" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-zona" hidden>
+      <div class="view-pane settings-pane settings-danger-zone" id="settings-pane-zona" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-zona" hidden>
         <div class="field-group">
           <button class="reset-btn" id="reset-btn" data-i18n="btn.resetarDados">Resetar todos os dados</button>
           <div class="help-text" data-i18n="settings.resetHelp">Apaga tudo e volta ao ponto de partida.</div>

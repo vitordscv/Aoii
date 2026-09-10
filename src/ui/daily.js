@@ -107,7 +107,8 @@ function renderCalendarioMes(){
 let gfePeriodo=6;
 function renderGfEvolucao(){
   const el=document.getElementById('gf-evolucao-card'); if(!el) return;
-  if((data.gastosMensais||[]).length===0){ el.innerHTML=''; el.style.display='none'; return; }
+  const vazio=`<div class="empty-illus"><span class="ei-icon">📉</span>${L("empty.semEvolucao")}<br>${L("empty.semEvolucaoSub")}</div>`;
+  if((data.gastosMensais||[]).length===0){ el.innerHTML=vazio; el.style.display=''; return; }
   const hoje=new Date();
   const n=gfePeriodo;
   const meses=[];
@@ -117,7 +118,7 @@ function renderGfEvolucao(){
     const total=(data.gastosMensais||[]).reduce((s,g)=>s+(gastoFixoAtivoEm(g,ano,mes)?g.valor:0),0);
     meses.push({ano,mes,total});
   }
-  if(meses.every(m=>m.total<=0)){ el.innerHTML=''; el.style.display='none'; return; }
+  if(meses.every(m=>m.total<=0)){ el.innerHTML=vazio; el.style.display=''; return; }
   el.style.display='';
   const atualTotal=meses[meses.length-1].total;
   const prevTotal=meses.length>1?meses[meses.length-2].total:atualTotal;
