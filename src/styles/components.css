@@ -47,11 +47,12 @@
 .brand{display:flex;align-items:center;gap:10px;flex:1 1 0;}
 .brand-mark{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;}
 .brand-mark-img{width:100%;height:100%;object-fit:contain;display:block;transition:filter .2s;}
-/* matiz da logo acompanha o tema (a arte original é azul — Onda/Noite ficam como estão) */
-html[data-theme="sakura"] .brand-mark-img{filter:hue-rotate(127deg);}
-html[data-theme="matcha"] .brand-mark-img{filter:hue-rotate(-86deg);}
-html[data-theme="poupa"] .brand-mark-img{filter:hue-rotate(-45deg);}
-html[data-theme="roxo"] .brand-mark-img{filter:hue-rotate(58deg);}
+/* A rotação acompanha o tema, mas com menos saturação: a imagem tem uma área
+   clara grande e girá-la inteira deixa o fundo rosa/amarelo demais. */
+html[data-theme="sakura"] .brand-mark-img{filter:hue-rotate(127deg) saturate(.62);}
+html[data-theme="matcha"] .brand-mark-img{filter:hue-rotate(-86deg) saturate(.48);}
+html[data-theme="poupa"] .brand-mark-img{filter:hue-rotate(-45deg) saturate(.62);}
+html[data-theme="roxo"] .brand-mark-img{filter:hue-rotate(58deg) saturate(.62);}
 html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 .brand-name{font-family:'Sora',sans-serif;font-weight:600;font-size:18px;letter-spacing:.01em;}
 .save-status{font-size:12px;color:var(--muted);font-family:'Nunito Sans',sans-serif;}
