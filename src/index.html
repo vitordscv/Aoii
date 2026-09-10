@@ -170,6 +170,8 @@
     </div>
   </div>
 
+  <details class="resumo-planejamento">
+    <summary><span data-i18n="resumo.planejamento">Planejamento e análises</span><span aria-hidden="true">⌄</span></summary>
   <!-- ══════ ORÇAMENTO POR CATEGORIA ══════ -->
   <div class="section">
     <div class="section-head">
@@ -191,6 +193,7 @@
   <!-- ══════ CONSELHOS ══════ -->
   <div id="conselhos-card"></div>
   <div id="ia-pergunta-card"></div>
+  </details>
 
   <!-- ══════ CALENDÁRIO DO MÊS ══════ -->
   <div class="section" id="calendario-section">
@@ -198,7 +201,10 @@
       <div class="section-title" style="font-size:18px;" data-i18n="main.calendarioMes">Calendário do mês</div>
       <div class="section-note" data-i18n="main.calendarioNote">Gasto real × planejado × saldo projetado, dia a dia — veja exatamente como o mês caminha.</div>
     </div>
-    <div class="cal-card" id="calendario-card"></div>
+    <details class="calendario-detalhes">
+      <summary data-i18n="cal.verDetalhes">Ver detalhes</summary>
+      <div class="cal-card" id="calendario-card"></div>
+    </details>
   </div>
 
   </div><!-- /view-resumo -->

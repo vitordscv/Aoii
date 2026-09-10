@@ -151,6 +151,14 @@
 
 /* ═══ CALENDÁRIO DO MÊS ═══ */
 .cal-card{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 26px -10px rgba(11,24,48,0.28);overflow:hidden;}
+.calendario-detalhes>summary{cursor:pointer;color:var(--blue);font-weight:800;margin-bottom:12px;}
+.calendario-detalhes[open]>summary{margin-bottom:14px;}
+.resumo-planejamento{margin-top:28px;border-top:1px solid var(--line);padding-top:18px;}
+.resumo-planejamento>summary{display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:var(--ink-navy);font-size:15px;font-weight:800;list-style:none;}
+.resumo-planejamento>summary::-webkit-details-marker{display:none;}
+.resumo-planejamento>summary span:last-child{color:var(--muted2);transition:transform .18s ease;}
+.resumo-planejamento[open]>summary span:last-child{transform:rotate(180deg);}
+.resumo-planejamento[open]>.section:first-of-type{margin-top:22px;}
 .cal-head,.cal-row{display:grid;grid-template-columns:56px 1fr 1fr 1.1fr;gap:8px;align-items:center;padding:10px 16px;}
 .cal-head{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--line);background:var(--white);position:sticky;top:0;z-index:2;}
 .cal-head span:not(:first-child){text-align:right;}

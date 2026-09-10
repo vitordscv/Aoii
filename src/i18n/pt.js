@@ -24,6 +24,7 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 ,'senha.migrarTitulo':'Crie a senha desta cópia'
 ,'senha.migrarTexto':'Esta cópia antiga ainda não tinha senha. Crie e confirme uma agora; use a mesma no outro aparelho para proteger a sincronização daqui em diante.'
 ,'senha.migrarOk':'Criar senha e continuar'
+,'resumo.planejamento':'Planejamento e análises'
 ,'common.loading':'carregando…','common.years':'anos','common.of':'de','common.day':'dia','common.days':'dias'
 ,'theme.customizeColors':'Personalizar cores','theme.closeSaved':'✕ Fechar','theme.closeSavedTitle':'Fechar (as cores continuam salvas)','theme.background':'Fundo','theme.cards':'Cartões','theme.primaryBlue':'Azul primário','theme.darkBlue':'Azul escuro','theme.text':'Texto','theme.numbers':'Números','theme.heroHeader':'Hero/cabeçalho','theme.heroText':'Texto do hero','theme.positive':'Positivo','theme.negative':'Negativo','theme.divider':'Linha divisória','theme.accent':'Destaque','theme.restore':'Restaurar','theme.customize':'Personalizar','theme.customizeOption':'✏️ Personalizar'
 ,'tip.cardLimit':'Mostra quanto do limite já está comprometido com faturas em aberto. O valor parcial é a fatura atual antes de fechar e ainda pode crescer até a data de fechamento do cartão.','tip.categoryBudget':'Defina um teto de gasto mensal para cada categoria. A barra soma transações do Diário, gastos no cartão e contas fixas ativas no mês atual.'
