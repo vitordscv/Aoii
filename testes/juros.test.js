@@ -5,6 +5,14 @@ module.exports=function(t){
   console.log('\n\x1b[1mCalculadora de juros\x1b[0m');
   const ctx=criarAmbiente({idioma:'pt',taxasManuais:{}},'2026-09-09');
 
+  t.verdadeiro(ctx.atualizarTaxasManuais({cdi:12.5,selic:10.75},'2026-09-09T12:00:00.000Z'),
+    'aceita taxas anuais válidas');
+  t.igual(ctx.taxaAnualDisponivel('cdi'),12.5,'retorna a taxa CDI disponível');
+  t.igual(ctx.data.taxasManuais.atualizadoEm,'2026-09-09T12:00:00.000Z','registra a atualização das taxas');
+  t.igual(ctx.atualizarTaxasManuais({cdi:-1,selic:11}),false,
+    'rejeita uma atualização com taxa negativa');
+  t.igual(ctx.data.taxasManuais.selic,10.75,'não altera parcialmente as taxas inválidas');
+
   const semTaxa=ctx.jurosProjetados(1000,100,0,12);
   t.valor(semTaxa.investido,2200,'total investido soma principal e doze aportes');
   t.valor(semTaxa.simples,2200,'taxa zero não cria rendimento simples');

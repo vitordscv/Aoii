@@ -9,6 +9,21 @@ function taxaAnualDisponivel(qual){ // 'cdi' | 'selic' → % a.a. ou null
   const tm=data.taxasManuais||{};
   return (typeof tm[qual]==='number'&&tm[qual]>0)?tm[qual]:null;
 }
+function atualizarTaxasManuais(taxas,atualizadoEm){
+  if(!taxas||typeof taxas!=='object') return false;
+  const proximas={};
+  for(const chave of ['cdi','selic']){
+    if(!(chave in taxas)) continue;
+    const valor=taxas[chave];
+    if(valor!==null&&(!Number.isFinite(valor)||valor<0)) return false;
+    proximas[chave]=valor;
+  }
+  if(!Object.keys(proximas).length) return false;
+  if(!data.taxasManuais) data.taxasManuais={cdi:null,selic:null,atualizadoEm:null};
+  Object.assign(data.taxasManuais,proximas);
+  data.taxasManuais.atualizadoEm=atualizadoEm||new Date().toISOString();
+  return true;
+}
 
 /* juros simples e compostos, com aporte mensal opcional */
 function jurosProjetados(principal,aporteMensal,taxaAnualPct,meses){

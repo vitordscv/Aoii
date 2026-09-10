@@ -4,10 +4,7 @@ async function fetchTaxasAtuais(){
   if(st) st.textContent=L('calc.taxasBuscando');
   try{
     const taxas=await buscarTaxasAtuais();
-    if(!data.taxasManuais) data.taxasManuais={};
-    if(typeof taxas.cdi==='number') data.taxasManuais.cdi=taxas.cdi;
-    if(typeof taxas.selic==='number') data.taxasManuais.selic=taxas.selic;
-    data.taxasManuais.atualizadoEm=new Date().toISOString();
+    if(!atualizarTaxasManuais(taxas)) throw new Error('taxas inválidas');
     await persist();
     refreshTaxasUI();
     setSaveStatus(L('st.taxasAtualizadas'));
@@ -74,18 +71,15 @@ function bindCalculadora(){
   if(upd) upd.addEventListener('click',()=>{ vibrate(10); fetchTaxasAtuais(); });
   const ci=document.getElementById('taxa-cdi-manual');
   if(ci) ci.addEventListener('change',async e=>{
-    if(!data.taxasManuais) data.taxasManuais={};
-    data.taxasManuais.cdi=parseNum(e.target.value)||null;
-    data.taxasManuais.atualizadoEm=new Date().toISOString();
+    const valor=parseNum(e.target.value);
+    if(!atualizarTaxasManuais({cdi:Number.isFinite(valor)&&valor>=0?valor:null})) return;
     await persist(); refreshTaxasUI();
   });
   const si=document.getElementById('taxa-selic-manual');
   if(si) si.addEventListener('change',async e=>{
-    if(!data.taxasManuais) data.taxasManuais={};
-    data.taxasManuais.selic=parseNum(e.target.value)||null;
-    data.taxasManuais.atualizadoEm=new Date().toISOString();
+    const valor=parseNum(e.target.value);
+    if(!atualizarTaxasManuais({selic:Number.isFinite(valor)&&valor>=0?valor:null})) return;
     await persist(); refreshTaxasUI();
   });
   refreshTaxasUI();
 }
-
