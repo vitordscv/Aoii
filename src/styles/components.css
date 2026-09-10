@@ -693,10 +693,14 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .timeline-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
 .compacto-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
 .compacto-toggle input{position:absolute;opacity:0;width:0;height:0;}
-.compacto-toggle-track{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .18s;}
-.compacto-toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--white);box-shadow:0 1px 3px rgba(11,24,48,.25);transition:transform .18s;}
-.compacto-toggle input:checked+.compacto-toggle-track{background:var(--disney-blue-deep);}
-.compacto-toggle input:checked+.compacto-toggle-track .compacto-toggle-thumb{transform:translateX(16px);}
+/* mesmas medidas e mesma cor acesa do .toggle-switch: um interruptor só no app */
+.compacto-toggle-track{width:51px;height:31px;border-radius:16px;background:var(--line);position:relative;flex:none;transition:background .2s ease-out;}
+.compacto-toggle-thumb{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:transform .2s ease-out;}
+.compacto-toggle input:checked+.compacto-toggle-track{background:var(--pos);}
+.compacto-toggle input:checked+.compacto-toggle-track .compacto-toggle-thumb{transform:translateX(20px);}
+@media(prefers-reduced-motion:reduce){
+  .compacto-toggle-track,.compacto-toggle-thumb{transition:none;}
+}
 .compacto-toggle input:focus-visible+.compacto-toggle-track{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
 .compacto-toggle-label{font-size:12.5px;font-weight:600;color:var(--muted);}
 .gasto-valor-hint{text-align:center;font-size:11.5px;color:var(--muted);margin-top:6px;}
@@ -757,12 +761,27 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .gf-ativo-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;background:var(--cream);border-radius:12px;}
 .gf-ativo-label{font-size:13px;font-weight:700;color:var(--ink-navy);}
 .gf-ativo-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
-.toggle-switch{position:relative;display:inline-block;width:42px;height:24px;flex:none;}
-.toggle-switch input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;inset:0;background:var(--line);border-radius:999px;cursor:pointer;transition:background .15s;}
-.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,0.25);}
+/* Interruptor no formato do iOS: trilho de 51×31, botão de 27 e a mesma
+   sombra dupla — uma larga e difusa, outra curta e fechada, que é o que dá o
+   relevo de disco pousado em vez de círculo desenhado.
+
+   A cor acesa é var(--pos), não o #34C759 do original: o app tem sete temas e
+   uma auditoria de contraste em todos. Cor fixa passaria por cima disso. */
+.toggle-switch{position:relative;display:inline-block;width:51px;height:31px;flex:none;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--line);border-radius:16px;cursor:pointer;
+  transition:background .2s ease-out;}
+.toggle-slider::before{content:'';position:absolute;width:27px;height:27px;left:2px;top:2px;
+  background:#fff;border-radius:50%;
+  box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);
+  transition:transform .2s ease-out;}
 .toggle-switch input:checked+.toggle-slider{background:var(--pos);}
-.toggle-switch input:checked+.toggle-slider::before{transform:translateX(18px);}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(20px);}
+.toggle-switch input:focus-visible+.toggle-slider{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+/* quem escolheu menos movimento na tela recebe a troca sem a animação */
+@media(prefers-reduced-motion:reduce){
+  .toggle-slider,.toggle-slider::before{transition:none;}
+}
 
 /* ── PATRIMÔNIO (aba Economias) ── */
 .patrimonio-card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px 20px;}
