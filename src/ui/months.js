@@ -19,6 +19,7 @@ function renderMonths(){
     item.extras=p?p.extras:0;
     item.compras=p?p.compras:0;
     item.aportes=p?(p.aportes||0):0;
+    item.dividas=p?(p.dividas||0):0;
   });
 
   // meses futuros/atual primeiro, meses passados no final (mais recente primeiro) — só ordem de exibição, o saldo acumulado acima já é cronológico
@@ -32,9 +33,12 @@ function renderMonths(){
   const multiCartao=(data.cartoes||[]).length>1;
   const nomeCartao=id=>esc((data.cartoes.find(c=>c.id===id)||{}).nome||'');
 
-  const cardFn=({fs,m,saldoConta,extras,compras,aportes})=>{
+  /* `dividas` com padrão 0 de propósito: se um dia alguém acrescentar um
+     campo aqui e esquecer de copiá-lo acima, o mês mostra um número errado
+     — que dá pra ver — em vez de derrubar a montagem de todos os cards. */
+  const cardFn=({fs,m,saldoConta,extras,compras,aportes,dividas=0})=>{
     const f0=fs[0];
-    const saldoMesTotal=m.saldoMes+(extras||0)-(compras||0)-(aportes||0);
+    const saldoMesTotal=m.saldoMes+(extras||0)-(compras||0)-(aportes||0)-(dividas||0);
     const rendaPct=Math.min(100,(m.renda/maxVal)*100);
     const despPct =Math.min(100,(m.despesas/maxVal)*100);
 
@@ -111,8 +115,18 @@ function renderMonths(){
         </div>
       </div>`;
   };
-  const cardsFuturos=futuros.map(cardFn).join('');
-  const cardsPassados=passados.map(cardFn).join('');
+  /* o erro vale por um card, não pela grade inteira — ver comentário abaixo */
+  const cardSeguro=item=>{
+    try{ return cardFn(item); }
+    catch(e){
+      console.error('mês não montou',item&&item.fs&&item.fs[0],e);
+      const mes=item&&item.fs&&item.fs[0];
+      const rotulo=mes?MONTH_NAMES[mes.mes-1]+'/'+mes.ano:'';
+      return `<div class="month-card month-card-erro"><div class="month-name">${esc(rotulo)}</div><div class="month-erro-msg">${L('cal.mesNaoMontou')}</div></div>`;
+    }
+  };
+  const cardsFuturos=futuros.map(cardSeguro).join('');
+  const cardsPassados=passados.map(cardSeguro).join('');
   const addCard=`
     <div class="add-month-card">
       <select id="new-month-mes">${MONTH_NAMES.map((n,i)=>`<option value="${i+1}"${(i+1)===(new Date().getMonth()+1)?' selected':''}>${n}</option>`).join('')}</select>

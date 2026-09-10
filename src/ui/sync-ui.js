@@ -32,6 +32,20 @@ function textoDoStatusSync(){
   }
 }
 
+function ligarBotaoEsquecerSenha(){
+  const btn=document.getElementById('senha-esquecer-btn');
+  if(!btn) return;
+  btn.addEventListener('click',async()=>{
+    if(!(await confirmDialog({
+      title:L('senha.esquecerTitulo'),
+      text:L('senha.esquecerTexto'),
+      okLabel:L('senha.esquecerOk'),
+    }))) return;
+    esquecerSenha();
+    renderStatusSync();
+  });
+}
+
 function renderStatusSync(){
   const el=document.getElementById('sync-status-text');
   if(!el) return;
@@ -45,6 +59,23 @@ function renderStatusSync(){
     (emHomologacao()?'  ⚠️ HOMOLOGAÇÃO':'');
   if(pendente) setSaveStatus(L('sync.pendente'));
   else if(sync.status==='sincronizada') setSaveStatus(L('sync.emDia'));
+  renderSenhaLembrada();
+}
+
+/* A senha derivada fica num cofre do navegador; esta linha conta se ela está
+   lá e se o navegador prometeu não descartá-la. São duas coisas diferentes:
+   guardada é o que o app faz; durável é o que o navegador concede. Dizer só a
+   primeira faria a pessoa achar que está resolvido quando não está. */
+async function renderSenhaLembrada(){
+  const bloco=document.getElementById('senha-lembrada');
+  if(!bloco) return;
+  const lembrada=getSyncCode()?await senhaLembradaAqui():false;
+  bloco.hidden=!lembrada;
+  if(!lembrada) return;
+  const duravel=await armazenamentoEhDuravel();
+  document.getElementById('senha-lembrada-titulo').textContent=L('senha.lembradaTitulo');
+  document.getElementById('senha-lembrada-sub').textContent=
+    L(duravel?'senha.lembradaDuravel':'senha.lembradaFragil');
 }
 
 async function exigirBackupAntesDeCifrar(){

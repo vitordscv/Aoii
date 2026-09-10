@@ -371,6 +371,16 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .item-cartao-toggle input:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
 .item-cartao-toggle input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:9px;font-weight:800;line-height:1;}
 .item-nota{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:2px;}
+.month-card-erro{border-color:var(--neg);}
+.month-erro-msg{font-size:11.5px;color:var(--neg);font-weight:600;padding:8px 0;}
+
+/* a senha lembrada: um estado, não um botão solto */
+.senha-lembrada{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--cream);}
+.senha-lembrada-texto{flex:1;min-width:170px;}
+.senha-lembrada-titulo{display:block;font-size:12.5px;font-weight:700;color:var(--ink-navy);}
+.senha-lembrada-sub{display:block;margin-top:3px;font-size:11px;line-height:1.4;color:var(--muted);}
+.senha-esquecer-btn{flex:none;align-self:center;}
+
 /* dívidas */
 .item-credor{border:1px solid transparent;background:none;font-size:11.5px;color:var(--muted);width:100%;padding:1px 0;margin-top:1px;}
 .item-credor:hover,.item-credor:focus{border-color:var(--line);border-radius:6px;padding:1px 5px;background:var(--cream);}
@@ -788,10 +798,10 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .field-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;}
 .field-group input[inputmode=decimal]{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:13.5px;width:140px;}
 .field-group select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
-.weekday-group{display:flex;gap:8px;flex-wrap:wrap;}
+.weekday-group{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
 /* o dia da semana: a etiqueta inteira é o botão */
-.weekday-chip{display:flex;align-items:center;justify-content:center;min-width:52px;min-height:38px;
-  border:1px solid var(--line);border-radius:10px;padding:6px 12px;
+.weekday-chip{display:flex;align-items:center;justify-content:center;min-width:0;min-height:40px;
+  border:1px solid var(--line);border-radius:10px;padding:6px 2px;
   font-size:12.5px;font-weight:600;color:var(--muted);background:var(--cream);
   cursor:pointer;user-select:none;transition:background .15s,border-color .15s,color .15s;}
 .weekday-chip:hover{border-color:var(--disney-blue-deep);color:var(--ink-navy);}

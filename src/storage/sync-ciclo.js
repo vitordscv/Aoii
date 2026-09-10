@@ -42,8 +42,26 @@ function abrirCofreSync(){
     pedido.onsuccess=()=>resolve(pedido.result); pedido.onerror=()=>resolve(null);
   });
 }
+/* Pede ao navegador pra não descartar o armazenamento deste site.
+
+   Sem isto o cofre é "melhor esforço": o Safari apaga o IndexedDB depois de
+   dias sem visita e o Chrome apaga sob pressão de espaço — e a senha volta a
+   ser pedida sem a pessoa ter feito nada. Chamado logo depois de destrancar,
+   que é o momento em que ela demonstrou que quer isso guardado.
+
+   O navegador pode recusar, e recusar não é erro: só quer dizer que o cofre
+   continua valendo até a próxima limpeza. Quem conta isso é a tela. */
+async function pedirArmazenamentoDuravel(){
+  try{
+    if(!navigator.storage||!navigator.storage.persist) return null;
+    if(await navigator.storage.persisted()) return true;
+    return await navigator.storage.persist();
+  }catch(e){ return null; }
+}
+
 async function guardarSessaoSync(){
   const db=await abrirCofreSync(); if(!db||!sincronizacaoDestrancada()) return;
+  pedirArmazenamentoDuravel();
   await new Promise(resolve=>{ const tx=db.transaction('sessao','readwrite'); tx.objectStore('sessao').put({codigo:sync.codigo,salt:sync.salt,chave:sync.chave,token:sync.token,revisao:sync.revisao},'atual'); tx.oncomplete=tx.onerror=()=>resolve(); });
   db.close();
 }
@@ -51,7 +69,12 @@ async function restaurarSessaoSync(){
   const db=await abrirCofreSync(); if(!db) return false;
   const valor=await new Promise(resolve=>{ const tx=db.transaction('sessao','readonly'); const p=tx.objectStore('sessao').get('atual'); p.onsuccess=()=>resolve(p.result||null); p.onerror=()=>resolve(null); }); db.close();
   if(!valor||valor.codigo!==getSyncCode()||!ehChaveDeCifra(valor.chave)||typeof valor.token!=='string') return false;
-  sync.codigo=valor.codigo; sync.salt=valor.salt; sync.chave=valor.chave; sync.token=valor.token; sync.revisao=valor.revisao||0; sync.status='sincronizada'; return true;
+  sync.codigo=valor.codigo; sync.salt=valor.salt; sync.chave=valor.chave; sync.token=valor.token; sync.revisao=valor.revisao||0; sync.status='sincronizada';
+  /* quem destrancou há meses nunca passa por guardarSessaoSync() de novo, e
+     era só lá que o pedido acontecia — sem isto, justamente quem mais usa o
+     app nunca pediria pro navegador manter o cofre. */
+  pedirArmazenamentoDuravel();
+  return true;
 }
 
 function idDesteAparelho() {
@@ -84,6 +107,25 @@ function saltGuardado() { try { return localStorage.getItem(CHAVE_SALT) || null;
 function guardarSalt(s) { try { s ? localStorage.setItem(CHAVE_SALT, s) : localStorage.removeItem(CHAVE_SALT); } catch (e) {} }
 
 function sincronizacaoDestrancada() { return !!(sync.codigo && sync.chave && sync.token); }
+
+/* A senha está lembrada neste aparelho? Pergunta ao cofre, não à sessão: o que
+   interessa é se ela sobrevive a fechar o app, não se está aberta agora. */
+async function senhaLembradaAqui(){
+  const db=await abrirCofreSync(); if(!db) return false;
+  const valor=await new Promise(resolve=>{
+    const tx=db.transaction('sessao','readonly');
+    const p=tx.objectStore('sessao').get('atual');
+    p.onsuccess=()=>resolve(p.result||null); p.onerror=()=>resolve(null);
+  });
+  db.close();
+  return !!(valor&&valor.codigo===getSyncCode()&&ehChaveDeCifra(valor.chave));
+}
+
+/* Já foi concedido o "não descarte"? Só pra tela contar a verdade. */
+async function armazenamentoEhDuravel(){
+  try{ return !!(navigator.storage&&navigator.storage.persisted&&await navigator.storage.persisted()); }
+  catch(e){ return false; }
+}
 
 function esquecerSenha() {
   sync.chave = null; sync.token = null;
