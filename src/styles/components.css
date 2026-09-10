@@ -113,6 +113,13 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 @media (max-width:640px){.hero-icon-preview{width:42px;height:42px;bottom:10px;right:12px;}}
 
 /* ── HERO CONTENT ── */
+/* a data encolhe no celular pra caber na linha do rótulo; se o idioma for
+   longo demais e ainda quebrar, o row-gap dá respiro em vez de grudar */
+@media(max-width:560px){
+  .hero-eyebrow-row{row-gap:8px;}
+  .hero-eyebrow{white-space:nowrap;}
+  .hero-date-input{font-size:11px;padding:3px 6px;letter-spacing:0;}
+}
 .hero-eyebrow-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .hero-icon{width:34px;height:34px;border-radius:9px;object-fit:cover;margin-right:2px;flex-shrink:0;}
 .hero-eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--gold-ink);}
@@ -128,14 +135,27 @@ border-color:rgba(255,255,255,.42);}
 .hero-date-input::-webkit-calendar-picker-indicator{filter:invert(.65) sepia(.5) hue-rotate(200deg);cursor:pointer;margin-left:4px;padding:0;}
 .hero-number{font-family:'Sora',sans-serif;font-weight:600;font-size:clamp(38px,7vw,72px);line-height:1.04;margin:10px 0 2px;}
 .hero-number.negativo{color:var(--hero-neg-text);}
-/* o "?" das seções é escuro sobre creme; aqui ele vive sobre o azul do hero */
-.hero-tip-btn{background:rgba(255,255,255,.16);color:rgba(251,244,232,.9);margin-left:2px;}
+/* o "?" das seções é escuro sobre creme; aqui ele vive sobre o azul do hero.
+   Ao lado de um número de 38–72 px ele precisa se descolar da linha de base:
+   alinhado ao topo, ele acompanha o número em vez de pendurar embaixo dele. */
+.hero-tip-btn{background:rgba(255,255,255,.16);color:rgba(251,244,232,.9);
+  margin-left:8px;vertical-align:top;position:relative;top:.6em;}
 .hero-tip-btn:hover{background:rgba(255,255,255,.3);}
 
 /* Os três campos numa fileira. O "Total disponível" é a soma dos outros dois:
    não é campo, é resultado — então ele não ocupa largura de campo. */
 .saldo-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:18px;}
 .saldo-total-field{margin-left:auto;text-align:right;}
+
+/* No celular os dois campos já ocupam a fileira, e o total quebra pra linha
+   dele. Encostado à direita ele virava um valor solto no canto; como linha de
+   total — rótulo à esquerda, valor à direita — ele se explica sozinho. */
+@media(max-width:560px){
+  .saldo-total-field{margin-left:0;width:100%;display:flex;align-items:baseline;
+    justify-content:space-between;gap:12px;
+    border-top:1px solid rgba(255,255,255,.16);padding-top:12px;margin-top:4px;}
+  .saldo-total-field label{margin-bottom:0;}
+}
 .saldo-field label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(251,244,232,.62);margin-bottom:6px;font-weight:600;}
 .saldo-field input{font-family:'Nunito Sans',sans-serif;font-size:19px;font-weight:500;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);color:var(--hero-text);border-radius:10px;padding:9px 12px;width:160px;}
 .saldo-field input:focus{background:rgba(255,255,255,0.18);}
@@ -161,7 +181,11 @@ border-color:rgba(255,255,255,.42);}
 
 /* ── CHIPS ── */
 .chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:18px;}
-@media(max-width:760px){.chips{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:760px){
+  .chips{grid-template-columns:repeat(2,1fr);}
+  /* número ímpar de fichas: a última ocupa a linha em vez de deixar buraco */
+  .chips .chip:last-child:nth-child(odd){grid-column:1/-1;}
+}
 /* sombra leve padrão pra caixas flutuantes (cards) */
 .chip,.chart-card,.month-card,.list-panel,.limit-card,.cat-card,.gf-health-card,.patrimonio-card,.parcelamento-card{
   box-shadow:0 3px 14px -6px rgba(11,24,48,0.14);
