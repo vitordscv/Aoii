@@ -6,11 +6,11 @@
 --
 -- Por que precisa acontecer
 -- ------------------------
--- A linha ativa (CXY3HQUM) está cifrada. Os snapshots mensais dela, não — e o
+-- A linha ativa (AAAA1111) está cifrada. Os snapshots mensais dela, não — e o
 -- id de cada um sai do próprio código de sincronização:
 --
---     CXY3HQUM                → cifrado
---     CXY3HQUM-snap-2026-9    → texto puro, id derivado do código
+--     AAAA1111                → cifrado
+--     AAAA1111-snap-2026-9    → texto puro, id derivado do código
 --
 -- aoii_get aceita qualquer id e é acessível pela chave anon. Então quem
 -- descobrir o código não lê a linha ativa, mas lê setembro inteiro no snapshot.

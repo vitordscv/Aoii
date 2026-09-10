@@ -1,21 +1,56 @@
-MIT License
+Todos os direitos reservados
+============================
 
 Copyright (c) 2026 vitordscv
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Este programa e o seu código-fonte são propriedade do titular do direito
+autoral acima. Nenhuma permissão é concedida para usar, copiar, modificar,
+mesclar, publicar, distribuir, sublicenciar, vender cópias ou criar obras
+derivadas deste programa, no todo ou em parte, para qualquer finalidade,
+inclusive comercial, sem autorização prévia e por escrito do titular.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+O acesso ao código-fonte pelo navegador — inerente ao funcionamento de
+qualquer aplicação web — não constitui licença, cessão ou renúncia de
+direitos.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+O programa é fornecido "como está", sem garantia de qualquer espécie, expressa
+ou implícita, incluindo, sem limitação, garantias de comercialização, adequação
+a uma finalidade específica e não violação. Em nenhuma hipótese o titular será
+responsável por qualquer reivindicação, dano ou outra responsabilidade
+decorrente do programa ou do seu uso.
+
+---
+
+All rights reserved
+===================
+
+Copyright (c) 2026 vitordscv
+
+This program and its source code are the property of the copyright holder named
+above. No permission is granted to use, copy, modify, merge, publish,
+distribute, sublicense, sell copies of, or create derivative works from this
+program, in whole or in part, for any purpose, including commercial purposes,
+without the prior written permission of the copyright holder.
+
+Access to the source code through a web browser — inherent to how any web
+application works — does not constitute a license, assignment, or waiver of
+rights.
+
+The program is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+copyright holder be liable for any claim, damages or other liability arising
+from the program or its use.
+
+---
+
+NOTA HISTÓRICA, porque ela importa
+
+Até 10/09/2026 este repositório esteve público sob licença MIT. A MIT é
+irrevogável para as cópias já distribuídas sob ela: quem obteve o código
+naquele período mantém, para AQUELA versão, o direito de usar, modificar e
+redistribuir, inclusive comercialmente. Trocar a licença vale daqui em diante,
+não para trás.
+
+Esta nota existe para que ninguém — inclusive o próprio titular, no futuro —
+confunda as duas coisas.

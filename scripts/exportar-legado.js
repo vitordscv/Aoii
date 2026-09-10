@@ -7,8 +7,8 @@
    A linha ativa foi migrada e está cifrada. Mas os snapshots mensais antigos
    não foram — e o id deles é derivado do código de sincronização:
 
-       CXY3HQUM        → cifrado
-       CXY3HQUM-snap-2026-9  → texto puro, e o id sai do código
+       AAAA1111        → cifrado
+       AAAA1111-snap-2026-9  → texto puro, e o id sai do código
 
    Quem descobrir o código monta o id do snapshot e lê o mês inteiro pela
    aoii_get, que aceita qualquer id. A criptografia da linha ativa não impede
@@ -54,7 +54,7 @@ async function main() {
   if (!IDS.length) {
     console.error('\n  Informe os ids a exportar em AOII_IDS, separados por vírgula.');
     console.error('  Exemplo:');
-    console.error('    AOII_IDS="CXY3HQUM-snap-2026-9,CXY3HQUM-snap-2026-8" node scripts/exportar-legado.js\n');
+    console.error('    AOII_IDS="AAAA1111-snap-2026-9,AAAA1111-snap-2026-8" node scripts/exportar-legado.js\n');
     process.exit(2);
   }
 

@@ -44,7 +44,7 @@ migração; não foram alterados aqui.
 > **Aberto — snapshots antigos anulam a criptografia da linha ativa.**
 > Conferido no banco em 10/09/2026: 14 linhas, **1 cifrada e 13 em texto puro**.
 > Três delas são snapshots mensais do código ativo, e o id de cada um é
-> **derivado do código de sincronização** (`CXY3HQUM-snap-2026-9`). Como
+> **derivado do código de sincronização** (`AAAA1111-snap-2026-9`). Como
 > `aoii_get` aceita qualquer id e é acessível pela chave `anon`, quem descobrir
 > o código não abre a linha ativa — mas lê o mês inteiro no snapshot. O
 > atacante que a criptografia deveria deter tem outra porta, ao lado, aberta.
@@ -74,7 +74,7 @@ aplicada. **Conferido no banco em 10/09/2026:**
 | grants da `financas` para `anon` | **nenhum** (a tabela sumiu do REST) |
 | RLS na `financas` | ligada, **0 políticas** |
 | `aoii_get` / `aoii_put` | existem, `SECURITY DEFINER` |
-| linha ativa `CXY3HQUM` | cifrada (`aoii`, `cipher`, `kdf`, `revision`, `device_id`), gravada em 10/09/2026 |
+| linha ativa `AAAA1111` | cifrada (`aoii`, `cipher`, `kdf`, `revision`, `device_id`), gravada em 10/09/2026 |
 
 A gravação do dia prova o caminho inteiro: o app publicado deriva a chave, cifra,
 manda pela RPC com token e revisão, e o servidor aceita. Não é só que a tabela
@@ -274,19 +274,19 @@ Conferido em 10/09/2026: das 14 linhas da `financas`, **1 está cifrada** (a
 ativa) e **13 estão em texto puro**. Três delas têm o id derivado do código de
 sincronização em uso:
 
-    CXY3HQUM              → cifrada
-    CXY3HQUM-snap-2026-9  → texto puro, 3.787 bytes
-    CXY3HQUM-snap-2026-8  → texto puro, 3.406 bytes
-    CXY3HQUM-snap-2026-7  → texto puro, 3.240 bytes
+    AAAA1111              → cifrada
+    AAAA1111-snap-2026-9  → texto puro, 3.787 bytes
+    AAAA1111-snap-2026-8  → texto puro, 3.406 bytes
+    AAAA1111-snap-2026-7  → texto puro, 3.240 bytes
 
 `aoii_get` devolve qualquer linha pelo id exato — é o desenho, e está certo:
 sem isso ninguém lê o próprio espelho. Mas quem descobrir o código **monta o id
 do snapshot sozinho** e lê um mês inteiro em texto puro: saldo, cartões, cada
 lançamento do Diário. A senha da sincronização não entra nesse caminho.
 
-As outras 10 são códigos antigos (`JW84MMKJ`, `SC3CGHXT`, `6XGNQ73V`,
-`YJFV69G9`, `VW46YQJT`, `XGBAHC54`, `QCQHGY8Z`, `CXY3HQUN`, `ACU67TCB` e um
-snapshot de `JW84MMKJ`). Essas não são deriváveis de nada, mas continuam em
+As outras 10 são códigos antigos (`BBBB2222`, `CCCC3333`, `DDDD4444`,
+`EEEE5555`, `FFFF6666`, `GGGG7777`, `HHHH8888`, `AAAA1112`, `JJJJ9999` e um
+snapshot de `BBBB2222`). Essas não são deriváveis de nada, mas continuam em
 texto puro para quem souber o código.
 
 **O app atual não cria mais isso**: `ensureMonthlySnapshot()` cifra o snapshot
@@ -330,6 +330,14 @@ são idempotentes. O que se perde é ensaiar contra produção pelo atalho do
 projeto onde moram os dados reais.
 
 ## Regras para quem for mexer
+
+**Nunca escreva um código de sincronização real neste repositório.** Ele é o
+endereço da linha na nuvem: quem o tem monta o id dos snapshots e chama
+`aoii_get`. Este documento já teve o código verdadeiro em 25 commits, num
+repositório público, enquanto os snapshots estavam em texto puro — ou seja,
+publicou o caminho até um mês de finanças legíveis. Use `AAAA1111` e
+parentes; eles têm a mesma forma e não abrem nada.
+
 
 - Todo conteúdo de backup, Supabase, Gemini ou campo digitado é **não confiável**.
 - Dado externo não vira HTML. `textContent`, `createElement`, `dataset`.
