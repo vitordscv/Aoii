@@ -494,3 +494,10 @@ Investimentos agora são criados, editados, removidos e restaurados por
 `core/investments.js`. Tipo, valor, taxa opcional e dividendos são validados
 antes da alteração; editar preserva a data de criação e o desfazer restaura a
 posição original na lista.
+
+## Retomada em 09/09/2026 — preferências financeiras
+
+Saldo, dinheiro vivo, renda principal, data-alvo e reserva agora passam por
+`core/preferences.js`. Entradas inválidas são recusadas antes de alterar a
+projeção; valores de saldo registram sua data de atualização e a data-alvo exige
+um dia real do calendário.

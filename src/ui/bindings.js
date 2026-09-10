@@ -51,17 +51,17 @@ function bindStatic(){
   });
   document.querySelectorAll('#cfg-tipo-renda .segmented-btn').forEach(btn=>{
     btn.addEventListener('click',async()=>{
-      data.tipoRenda=btn.getAttribute('data-tipo'); await persist(); render();
+      if(definirTipoRenda(btn.getAttribute('data-tipo'))) { await persist(); render(); }
     });
   });
   document.getElementById('cfg-renda-diaria').addEventListener('change',async e=>{
-    data.rendaDiaria=parseNum(e.target.value)||0; await persist(); render();
+    if(atualizarRendaDiaria(parseNum(e.target.value))!==null){ await persist(); render(); }
   });
   document.getElementById('cfg-renda-mensal-valor').addEventListener('change',async e=>{
-    data.rendaMensal.valor=parseNum(e.target.value)||0; await persist(); render();
+    if(atualizarRendaMensal(parseNum(e.target.value),data.rendaMensal.diaDoMes)){ await persist(); render(); }
   });
   document.getElementById('cfg-renda-mensal-dia').addEventListener('change',async e=>{
-    data.rendaMensal.diaDoMes=Math.min(31,Math.max(1,parseInt(e.target.value,10)||1)); await persist(); render();
+    if(atualizarRendaMensal(data.rendaMensal.valor,parseInt(e.target.value,10))){ await persist(); render(); }
   });
   document.getElementById('cfg-fundo-ilustrado').addEventListener('change',async e=>{
     data.fundoIlustrado=e.target.checked;

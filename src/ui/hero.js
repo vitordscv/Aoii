@@ -28,19 +28,14 @@ function renderHero(){
   `;
   document.getElementById('saldo-atual-input').addEventListener('change',async e=>{
     const v=parseNum(e.target.value);
-    data.saldoAtual=isNaN(v)?0:v;
-    data.saldoAtualizadoEm=new Date().toISOString();
-    await persist(); render();
+    if(atualizarSaldoConta(v)!==null){ await persist(); render(); }
   });
   document.getElementById('dinheiro-vivo-input').addEventListener('change',async e=>{
     const v=parseNum(e.target.value);
-    data.dinheiroVivo=isNaN(v)?0:v;
-    data.dinheiroVivoAtualizadoEm=new Date().toISOString();
-    await persist(); render();
+    if(atualizarDinheiroVivo(v)!==null){ await persist(); render(); }
   });
   document.getElementById('hero-date-input').addEventListener('change',async e=>{
-    data.dataAlvo=e.target.value||defaultTargetValue();
-    await persist(); render();
+    if(atualizarDataAlvo(e.target.value||defaultTargetValue())){ await persist(); render(); }
   });
 }
 
@@ -69,4 +64,3 @@ function renderChips(){
   if(tt) tt.textContent=L('main.linhaDoTempo')+' — '+
     t.target.toLocaleDateString(localeAtual(),{month:'long',year:'numeric'});
 }
-

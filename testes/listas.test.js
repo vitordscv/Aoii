@@ -266,6 +266,29 @@ module.exports=function(t){
   ctxInvest.restaurarInvestimento(investRemovido.item,investRemovido.indice);
   t.igual(dadosInvest.investimentos[0].id,invest.id,'desfazer restaura o investimento na posição');
 
+  console.log('\n\x1b[1mPreferências financeiras validam antes de recalcular\x1b[0m');
+  const dadosPreferencias=base();
+  const ctxPreferencias=criarAmbiente(dadosPreferencias,HOJE);
+  t.igual(ctxPreferencias.definirTipoRenda('outra'),null,'tipo de renda inválido é recusado');
+  t.igual(ctxPreferencias.atualizarRendaDiaria(-1),null,'renda diária negativa é recusada');
+  t.igual(ctxPreferencias.atualizarRendaMensal(1000,32),null,'dia de renda mensal inválido é recusado');
+  ctxPreferencias.atualizarRendaMensal(2500,5);
+  t.valor(dadosPreferencias.rendaMensal.valor,2500,'renda mensal válida é atualizada');
+  t.igual(ctxPreferencias.atualizarSaldoConta(NaN),null,'saldo inválido não é gravado');
+  ctxPreferencias.atualizarSaldoConta(850);
+  ctxPreferencias.atualizarDinheiroVivo(150);
+  t.valor(dadosPreferencias.saldoAtual,850,'saldo em conta é atualizado');
+  t.valor(dadosPreferencias.dinheiroVivo,150,'dinheiro vivo é atualizado');
+  t.verdadeiro(Boolean(dadosPreferencias.saldoAtualizadoEm&&dadosPreferencias.dinheiroVivoAtualizadoEm),'alterações de saldo registram quando ocorreram');
+  t.igual(ctxPreferencias.atualizarDataAlvo('invalida'),null,'data-alvo inválida é recusada');
+  t.igual(ctxPreferencias.atualizarDataAlvo('2026-02-31'),null,'data-alvo impossível é recusada');
+  ctxPreferencias.atualizarDataAlvo('2027-01-31');
+  t.igual(dadosPreferencias.dataAlvo,'2027-01-31','data-alvo válida é atualizada');
+  t.igual(ctxPreferencias.atualizarReserva({reservaGuardado:-1}),null,'reserva negativa é recusada');
+  ctxPreferencias.atualizarReserva({reservaGuardado:500,reservaMeses:6,reservaNaConta:false});
+  t.valor(dadosPreferencias.reservaGuardado,500,'valor da reserva é atualizado');
+  t.igual(dadosPreferencias.reservaNaConta,false,'local da reserva é atualizado');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

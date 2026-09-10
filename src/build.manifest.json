@@ -24,6 +24,7 @@
     "core/helpers.js",
     "core/money.js",
     "core/dates.js",
+    "core/preferences.js",
     "core/invoices.js",
     "core/income.js",
     "core/goals.js",

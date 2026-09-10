@@ -130,7 +130,8 @@ recorrentes passam pelos comandos de `core/income.js`. Cartões e a migração d
 suas referências passam por `core/cards.js`. Faturas e seus gastos passam por
 `core/invoices.js`; gastos fixos passam por `core/fixed-expenses.js`. A interface
 agora também usa `core/investments.js` para investimentos. Restam diretamente as
-preferências gerais de configuração.
+preferências visuais e de idioma; saldo, renda, data-alvo e reserva passam por
+`core/preferences.js`.
 
 Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
 [MIGRATION.md](MIGRATION.md).

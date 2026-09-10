@@ -72,17 +72,15 @@ function renderReservaCard(){
   const gIn=document.getElementById('reserva-guardado-input');
   gIn.addEventListener('change',async()=>{
     const v=parseNum(gIn.value);
-    data.reservaGuardado=isNaN(v)?0:v;
-    await persist(); render();
+    if(atualizarReserva({reservaGuardado:v})){ await persist(); render(); }
   });
   document.getElementById('reserva-meses-select').addEventListener('change',async e=>{
-    data.reservaMeses=parseInt(e.target.value,10)||3;
-    await persist(); render();
+    if(atualizarReserva({reservaMeses:parseInt(e.target.value,10)})){ await persist(); render(); }
   });
   el.querySelectorAll('.reserva-onde .segmented-btn').forEach(b=>b.addEventListener('click',async()=>{
     const naConta=b.getAttribute('data-onde')==='conta';
     if(data.reservaNaConta===naConta) return;
-    data.reservaNaConta=naConta;
+    atualizarReserva({reservaNaConta:naConta});
     vibrate(8);
     await persist(); render();
   }));
