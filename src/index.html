@@ -483,8 +483,14 @@
       <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
-      <div>
-        <div class="settings-section-title" data-i18n="settings.renda">Renda</div>
+      <details class="settings-section">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.renda">Renda</span>
+            <span class="det-toggle-sub" data-i18n="settings.rendaSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group">
           <label data-i18n="settings.rendaPergunta">Como você recebe sua renda?</label>
           <div class="segmented" id="cfg-tipo-renda">
@@ -524,7 +530,15 @@
           <div class="help-text" data-i18n="settings.rendaFixaHelp">Renda fixa, lançada automaticamente todo mês nesse dia.</div>
         </div>
 
-        <div class="settings-section-title" data-i18n="settings.dados">Dados e sincronização</div>
+      </details>
+      <details class="settings-section">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.dados">Dados e sincronização</span>
+            <span class="det-toggle-sub" data-i18n="settings.dadosSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group">
           <label data-i18n="settings.backupLocal">Backup local</label>
           <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
@@ -561,9 +575,15 @@
           <textarea id="import-input" class="code-box" placeholder="Cole aqui o código recebido" data-i18n-placeholder="ph.colaCodigo" data-i18n-aria-label="ph.colaCodigo"></textarea>
           <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
         </div>
-      </div>
-      <div>
-        <div class="settings-section-title" data-i18n="settings.preferencias">Preferências</div>
+      </details>
+      <details class="settings-section">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.preferencias">Preferências</span>
+            <span class="det-toggle-sub" data-i18n="settings.preferenciasSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group">
           <label for="cfg-idioma" data-i18n="settings.idioma">Idioma</label>
           <select id="cfg-idioma">
@@ -612,7 +632,15 @@
           </div>
         </div>
 
-        <div class="settings-section-title" data-i18n="settings.personalizacao">Personalização</div>
+      </details>
+      <details class="settings-section">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.personalizacao">Personalização</span>
+            <span class="det-toggle-sub" data-i18n="settings.personalizacaoSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group">
           <label data-i18n="settings.viagens">Viagens / eventos com orçamento próprio</label>
           <div id="viagens-list" class="cat-manage-list"></div>
@@ -642,7 +670,15 @@
           <div class="help-text" data-i18n="settings.cartoesHelp">Cadastre um ou mais cartões. Usado pra calcular quanto do limite de cada um já está comprometido com as faturas em aberto.</div>
         </div>
 
-        <div class="settings-section-title" data-i18n="settings.ia">Assistente com IA</div>
+      </details>
+      <details class="settings-section">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.ia">Assistente com IA</span>
+            <span class="det-toggle-sub" data-i18n="settings.iaSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group" id="ia-section">
           <label class="gasto-checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="ia-ativa-check"> <span data-i18n="settings.ativarIA">Ativar conselheiro com IA</span></label>
           <div id="ia-fields" style="display:none;">
@@ -650,15 +686,21 @@
             <div class="help-text"><span data-i18n="settings.iaHelp">Sua chave fica salva só neste aparelho (nunca sai daqui, exceto pra falar direto com o Google). Pegue a sua grátis em</span> <span style="font-weight:700;">aistudio.google.com/apikey</span>.</div>
           </div>
         </div>
-      </div>
 
-      <div class="settings-danger-zone">
-        <div class="settings-section-title" data-i18n="settings.zona">Zona de risco</div>
+      </details>
+      <details class="settings-section settings-danger-zone">
+        <summary class="det-toggle">
+          <span class="det-toggle-texto">
+            <span class="det-toggle-titulo" data-i18n="settings.zona">Zona de risco</span>
+            <span class="det-toggle-sub" data-i18n="settings.zonaSub"></span>
+          </span>
+          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+        </summary>
         <div class="field-group">
           <button class="reset-btn" id="reset-btn" data-i18n="btn.resetarDados">Resetar todos os dados</button>
           <div class="help-text" data-i18n="settings.resetHelp">Apaga tudo e volta ao ponto de partida.</div>
         </div>
-      </div>
+      </details>
     </div>
   </div>
 
