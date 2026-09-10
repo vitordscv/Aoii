@@ -136,7 +136,7 @@ const FX_MOEDAS_INICIAIS=['BRL','EUR','GBP','USD'];
 /* O par de sempre. O conversor abre nele todas as vezes, e não no último par
    usado: lembrar parecia gentileza, mas quem converteu ienes uma vez achava
    ienes na abertura seguinte sem entender por quê. Trocar são dois toques. */
-const FX_PADRAO_DE='BRL', FX_PADRAO_PARA='USD';
+const FX_PADRAO_DE='USD', FX_PADRAO_PARA='BRL';
 
 function formatarNaMoeda(valor,codigo){
   try{ return valor.toLocaleString(localeAtual(),{style:'currency',currency:codigo}); }
