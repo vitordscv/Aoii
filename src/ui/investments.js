@@ -92,13 +92,12 @@ function renderInvestimentos(){
   });
 }
 function removeInvestimentoComUndo(id){
-  const idx=(data.investimentos||[]).findIndex(i=>i.id===id);
-  if(idx<0) return;
-  const removed=data.investimentos.splice(idx,1)[0];
+  const removido=removerInvestimento(id);
+  if(!removido) return;
   vibrate(15);
   render();
-  showUndoToast(L('undo.removido').replace('{nome}',removed.nome||tipoInvest(removed.tipo).label),()=>{
-    data.investimentos.splice(Math.min(idx,data.investimentos.length),0,removed);
+  showUndoToast(L('undo.removido').replace('{nome}',removido.item.nome||tipoInvest(removido.item.tipo).label),()=>{
+    restaurarInvestimento(removido.item,removido.indice);
   });
 }
 
@@ -221,13 +220,9 @@ function setupInvSheet(){
     if(!t.conservador&&!nome){ document.getElementById('inv-nome').focus(); return; }
     const descricao=document.getElementById('inv-descricao').value.trim();
     const percentCdi=parseNum(document.getElementById('inv-percent-cdi').value)||null;
-    if(!data.investimentos) data.investimentos=[];
-    if(editingId){
-      const inv=data.investimentos.find(x=>x.id===editingId);
-      if(inv) Object.assign(inv,{tipo:tipoAtual,nome,descricao,valorInvestido:valor,percentCdi:t.conservador?percentCdi:null,dividendos:divsDraft});
-    }else{
-      data.investimentos.push({id:uid(),tipo:tipoAtual,nome,descricao,valorInvestido:valor,percentCdi:t.conservador?percentCdi:null,dividendos:divsDraft,criadoEm:new Date().toISOString()});
-    }
+    const campos={tipo:tipoAtual,nome,descricao,valorInvestido:valor,percentCdi:t.conservador?percentCdi:null,dividendos:divsDraft};
+    const salvo=editingId?atualizarInvestimento(editingId,campos):criarInvestimento(campos);
+    if(!salvo) return;
     vibrate([10,30,10]);
     await persist(); render();
     close();

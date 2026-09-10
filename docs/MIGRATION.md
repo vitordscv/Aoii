@@ -487,3 +487,10 @@ Criação, edição, remoção e restauração de gastos fixos passaram para
 `core/fixed-expenses.js`. Valor, dia, início, categoria e estado ativo são
 validados juntos antes da alteração. A exclusão por gesto e seu desfazer agora
 usam os mesmos comandos da ficha de edição.
+
+## Retomada em 09/09/2026 — comandos de investimentos
+
+Investimentos agora são criados, editados, removidos e restaurados por
+`core/investments.js`. Tipo, valor, taxa opcional e dividendos são validados
+antes da alteração; editar preserva a data de criação e o desfazer restaura a
+posição original na lista.

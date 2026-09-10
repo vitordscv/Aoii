@@ -242,6 +242,30 @@ module.exports=function(t){
   ctxFixo.restaurarGastoFixo(fixoRemovido.item,fixoRemovido.indice);
   t.igual(dadosFixo.gastosMensais[0].id,fixo.id,'desfazer restaura o gasto na posição');
 
+  console.log('\n\x1b[1mComandos de investimentos preservam dividendos e histórico\x1b[0m');
+  const dadosInvest=base();
+  const ctxInvest=criarAmbiente(dadosInvest,HOJE);
+  const camposInvest={tipo:'acoes',nome:'Empresa',descricao:'Longo prazo',valorInvestido:1000,percentCdi:null,
+    dividendos:[{id:'div1',data:'2026-09-01',valor:12.5}]};
+  t.igual(ctxInvest.criarInvestimento({...camposInvest,tipo:'inexistente'}),null,'tipo de investimento inválido é recusado');
+  t.igual(ctxInvest.criarInvestimento({...camposInvest,nome:''}),null,'investimento de mercado sem nome é recusado');
+  t.igual(ctxInvest.criarInvestimento({...camposInvest,valorInvestido:-1}),null,'valor negativo é recusado');
+  t.igual(dadosInvest.investimentos.length,0,'criações recusadas não deixam investimento parcial');
+  const invest=ctxInvest.criarInvestimento(camposInvest);
+  t.igual(invest.dividendos.length,1,'dividendos válidos nascem junto com o investimento');
+  const criadoEmInvest=invest.criadoEm;
+  t.igual(ctxInvest.atualizarInvestimento(invest.id,{nome:'Mudou',dividendos:[{id:'div2',data:'2026-09-02',valor:0}]}),null,'dividendo inválido recusa a edição inteira');
+  t.igual(invest.nome,'Empresa','recusa conserva o nome existente');
+  ctxInvest.atualizarInvestimento(invest.id,{nome:'Empresa B',valorInvestido:1200});
+  t.igual(invest.nome,'Empresa B','edição parcial válida atualiza o nome');
+  t.valor(invest.valorInvestido,1200,'edição parcial válida atualiza o valor');
+  t.igual(invest.dividendos.length,1,'edição parcial preserva dividendos');
+  t.igual(invest.criadoEm,criadoEmInvest,'edição preserva a data de criação');
+  const investRemovido=ctxInvest.removerInvestimento(invest.id);
+  t.igual(dadosInvest.investimentos.length,0,'remoção tira o investimento');
+  ctxInvest.restaurarInvestimento(investRemovido.item,investRemovido.indice);
+  t.igual(dadosInvest.investimentos[0].id,invest.id,'desfazer restaura o investimento na posição');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();

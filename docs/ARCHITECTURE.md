@@ -129,7 +129,8 @@ movem o mesmo valor no saldo da conta e preservam o patrimônio. Rendas
 recorrentes passam pelos comandos de `core/income.js`. Cartões e a migração das
 suas referências passam por `core/cards.js`. Faturas e seus gastos passam por
 `core/invoices.js`; gastos fixos passam por `core/fixed-expenses.js`. A interface
-ainda altera diretamente as preferências gerais de configuração.
+agora também usa `core/investments.js` para investimentos. Restam diretamente as
+preferências gerais de configuração.
 
 Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
 [MIGRATION.md](MIGRATION.md).

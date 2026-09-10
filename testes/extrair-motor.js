@@ -87,6 +87,7 @@ const FUNCOES=[
   'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
+  'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
