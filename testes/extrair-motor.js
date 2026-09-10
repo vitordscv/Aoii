@@ -95,7 +95,7 @@ const FUNCOES=[
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
-  'empurrarParaNuvem','computeInsights','invalidarTimeline'
+  'empurrarParaNuvem','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline'
 ];
 
 function montarMotor(arquivo){

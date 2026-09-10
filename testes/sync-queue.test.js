@@ -22,7 +22,7 @@ function aparelho(storage=criarArmazenamentoFalso()){
   vm.createContext(c);
   vm.runInContext(trecho('const store={','const CHAVE_RESGATE='),c);
   vm.runInContext(trecho("const CHAVE_ESTADO_SYNC=",'function textoDoStatusSync'),c);
-  ['abrirSyncPelaInterface','destrancarSincronizacao','puxarDaNuvem','conduzirMigracao'].forEach(n=>vm.runInContext(recortar(src,n),c));
+  ['chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','abrirSyncPelaInterface','destrancarSincronizacao','puxarDaNuvem','conduzirMigracao'].forEach(n=>vm.runInContext(recortar(src,n),c));
   return {c,timers,eventos,storage,async disparar(){const [n,t]=timers.entries().next().value;timers.delete(n);return t.fn();}};
 }
 module.exports=async t=>{

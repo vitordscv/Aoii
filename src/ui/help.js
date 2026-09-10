@@ -54,7 +54,11 @@ async function init(){
        vez ao abrir; se a pessoa dispensar, o app segue inteiro em modo local e
        o status diz que está trancada. */
     if(await restaurarSessaoSync()) renderStatusSync();
-    else { renderStatusSync(); destrancarSincronizacao(); }
+    else {
+      renderStatusSync();
+      /* uma vez por código: quem dispensou não é interrompido de novo */
+      if(!senhaFoiDispensada(getSyncCode())) destrancarSincronizacao();
+    }
   }
   // O ciclo também atende quem ativar a sincronização depois de abrir o app.
   setInterval(async()=>{

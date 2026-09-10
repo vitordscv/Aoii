@@ -129,4 +129,34 @@ module.exports=async function(t){
      seria decidir com base em algo que já não dá pra verificar. */
   A.esquecerSenha();
   t.igual(A.sync.ultimoConhecido,null,'esquecer a senha esquece a lembrança junto');
+
+  console.log(String.fromCharCode(10)+String.fromCharCode(27)+"[1mCriar a senha cria a linha na nuvem"+String.fromCharCode(27)+"[0m");
+
+  /* Antes, o caminho "nova" só agendava o espelho (1,5 s). Fechar o app
+     antes disso deixava a senha criada no aparelho e NENHUMA linha na nuvem —
+     e a abertura seguinte pedia pra criar a senha de novo, pra sempre. */
+  const nuvem2=criarNuvemFalsa();
+  const espiao2={vezes:0,resposta:"local"};
+  const B=criarAparelho(nuvem2,espiao2);
+  B.setSyncCode("OUTROCODIGO1");
+  B.data=dados(500);
+  const nova=await B.abrirSincronizacao("OUTROCODIGO1","senha-de-ensaio-1234");
+  t.igual(nova.resultado,"nova","código novo é reconhecido como novo");
+  t.igual(nuvem2.get("OUTROCODIGO1"),null,"abrir sozinho ainda não cria a linha");
+
+  /* é a primeira gravação que cria; ela agora acontece na hora */
+  t.igual((await B.enviarParaNuvem(B.data)).resultado,"enviado","a primeira gravação vai");
+  t.igual(!!nuvem2.get("OUTROCODIGO1"),true,"e a linha passa a existir");
+
+  /* com a linha lá, a consulta seguinte não pede mais pra CRIAR senha */
+  const consulta=await B.consultarSincronizacao("OUTROCODIGO1");
+  t.igual(consulta.resultado,"cifrada","a próxima abertura vê uma cópia cifrada, não um código novo");
+
+  /* e a memória da dispensa */
+  t.igual(B.senhaFoiDispensada("OUTROCODIGO1"),false,"começa sem dispensa");
+  B.marcarSenhaDispensada("OUTROCODIGO1");
+  t.igual(B.senhaFoiDispensada("OUTROCODIGO1"),true,"dispensar é lembrado");
+  t.igual(B.senhaFoiDispensada("UMOUTROCODIGO"),false,"e vale só para aquele código");
+  B.limparSenhaDispensada();
+  t.igual(B.senhaFoiDispensada("OUTROCODIGO1"),false,"destrancar limpa a dispensa");
 };

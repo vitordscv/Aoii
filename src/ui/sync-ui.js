@@ -88,6 +88,22 @@ async function exigirBackupAntesDeCifrar(){
   return confirmado;
 }
 
+/* Quem já dispensou o pedido de senha deste código não é perguntado de novo
+   na abertura seguinte. A sincronização fica trancada, o status diz isso, e
+   destrancar vira escolha — o botão "Usar este código" nas Configurações
+   continua ali. Um diálogo que volta sozinho depois de dispensado ensina a
+   fechar sem ler. */
+function chaveSenhaDispensada(){ return 'financas-senha-dispensada'; }
+function senhaFoiDispensada(codigo){
+  try{ return localStorage.getItem(chaveSenhaDispensada())===codigo; }catch(e){ return false; }
+}
+function marcarSenhaDispensada(codigo){
+  try{ localStorage.setItem(chaveSenhaDispensada(),codigo||''); }catch(e){}
+}
+function limparSenhaDispensada(){
+  try{ localStorage.removeItem(chaveSenhaDispensada()); }catch(e){}
+}
+
 /* ── destrancar ──
    Chamada quando há código configurado mas a sessão ainda não tem a chave.
    Devolve true se abriu. */
@@ -121,7 +137,7 @@ async function abrirSyncPelaInterface(codigo){
     return false;
   }
   const criando=consulta.resultado==='nova'||consulta.resultado==='migrar';
-  if(criando&&!await exigirBackupAntesDeCifrar()) return false;
+  if(criando&&!await exigirBackupAntesDeCifrar()){ marcarSenhaDispensada(codigo); return false; }
   const senha=await pedirSenhaSync(criando?{
     titulo:consulta.resultado==='migrar'?L('senha.migrarTitulo'):L('senha.novaTitulo'),
     texto:consulta.resultado==='migrar'?L('senha.migrarTexto'):L('senha.novaTexto'),
@@ -131,7 +147,8 @@ async function abrirSyncPelaInterface(codigo){
     titulo:L('senha.destrancarTitulo'),
     texto:L('senha.destrancarTexto').replace('{codigo}',codigo),
   });
-  if(!senha) return false;
+  if(!senha){ marcarSenhaDispensada(codigo); return false; }
+  limparSenhaDispensada();
 
   sync.status='sincronizando'; renderStatusSync();
   const r=await abrirSincronizacao(codigo,senha);
@@ -162,7 +179,19 @@ async function abrirSyncPelaInterface(codigo){
   }
   if(r.resultado==='nova'){
     confirmarRevisaoLocal(0);
-    agendarEspelho();
+    /* Grava agora, não daqui a 1,5 s: com espelho adiado, fechar o app antes
+       do prazo deixava a senha criada no aparelho e NENHUMA linha na nuvem —
+       e a próxima abertura pedia pra criar a senha de novo. */
+    const primeira=await enviarParaNuvem(data);
+    if(primeira.resultado!=='enviado'){
+      setSaveStatus(L(primeira.resultado==='sem-conexao'?'st.semConexao':'st.syncErro'));
+      renderStatusSync();
+      /* a sessão continua aberta: a próxima gravação tenta de novo */
+      agendarEspelho();
+      return true;
+    }
+    setSaveStatus(L('st.syncAtivada'));
+    renderStatusSync();
     return true;
   }
   if(pendente){
