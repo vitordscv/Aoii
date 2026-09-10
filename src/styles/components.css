@@ -412,6 +412,15 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .settings-danger-zone>.det-toggle{border-color:color-mix(in srgb,var(--neg) 35%,var(--line));}
 .settings-danger-zone>.det-toggle .det-toggle-titulo{color:var(--neg);}
 
+/* o botão que estende o Diário: largo, porque é o fim da lista e o
+   polegar chega ali depois de rolar */
+.diario-mais-btn{display:block;width:100%;margin-top:12px;padding:12px;min-height:44px;
+  border:1px dashed var(--line);border-radius:12px;background:var(--cream);
+  color:var(--accent-ink);font-size:12.5px;font-weight:700;cursor:pointer;
+  transition:background .15s,border-color .15s;}
+.diario-mais-btn:hover{background:var(--mist-lilac);border-color:var(--disney-blue-deep);}
+.diario-mais-btn:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+
 /* conta fixa já paga neste mês */
 .gf-pago-check{display:flex;align-items:center;flex:none;padding:0 10px 0 0;cursor:pointer;}
 .gf-pago-check input{appearance:none;-webkit-appearance:none;width:17px;height:17px;flex:none;border:1.5px solid var(--line);border-radius:6px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}

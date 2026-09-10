@@ -1,6 +1,6 @@
   /* ── melhorias: busca do diário, CSV, undo e calculadora de investimentos ── */
   const buscaEl=document.getElementById('diario-busca');
-  if(buscaEl) buscaEl.addEventListener('input',e=>{ diarioBusca=e.target.value; renderTransacoesList(); });
+  if(buscaEl) buscaEl.addEventListener('input',e=>{ diarioBusca=e.target.value; diarioVoltaAoTopo(); renderTransacoesList(); });
   document.getElementById('repetir-gasto-btn')?.addEventListener('click',async()=>{
     const t=repetirUltimoGasto();
     if(!t){ vibrate(15); return; }
@@ -9,7 +9,7 @@
     showUndoToast(L('diary.repeated').replace('{name}',`"${t.nome}"`),()=>{ removerTransacao(t.id); });
   });
   const mesFiltroEl=document.getElementById('diario-mes-filtro');
-  if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; vibrate(6); renderTransacoesList(); });
+  if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; diarioVoltaAoTopo(); vibrate(6); renderTransacoesList(); });
   const csvBtn=document.getElementById('export-csv-btn');
   if(csvBtn) csvBtn.addEventListener('click',exportTransacoesCSV);
   bindUndoToast();
@@ -50,6 +50,7 @@ function renderTransacoesFiltro(){
   el.querySelectorAll('.cat-pill').forEach(btn=>{
     btn.addEventListener('click',()=>{
       transacoesFiltro=btn.getAttribute('data-cat');
+      diarioVoltaAoTopo();
       vibrate(6);
       renderTransacoesFiltro(); renderTransacoesList();
     });
@@ -58,6 +59,11 @@ function renderTransacoesFiltro(){
 
 /* ── histórico de compras em débito/dinheiro (com busca, mês, swipe e undo) ── */
 let diarioBusca='';
+/* quantos lançamentos o Diário mostra agora. Cresce de 10 em 10 e volta ao
+   começo sempre que o filtro muda — ver diarioVoltaAoTopo(). */
+const DIARIO_PAGINA=10;
+let diarioMostrando=DIARIO_PAGINA;
+function diarioVoltaAoTopo(){ diarioMostrando=DIARIO_PAGINA; }
 let diarioMesFiltro='todos';
 function renderDiarioMesOptions(){
   const sel=document.getElementById('diario-mes-filtro'); if(!sel) return;
@@ -101,9 +107,13 @@ function renderTransacoesList(){
     el.innerHTML=`<div class="diario-history-title">${L('empty.historico')}</div><div class="empty-illus"><span class="ei-icon">🔍</span>${L('empty.nadaEncontrado')}</div>`;
     return;
   }
+  /* só o pedaço visível vira HTML: o resto nem é montado */
+  const visiveis=list.slice(0,diarioMostrando);
+  const faltam=list.length-visiveis.length;
+
   el.innerHTML=`
     <div class="diario-history-title">${L('empty.historicoDebito')}</div>
-    ${list.map(t=>`
+    ${visiveis.map(t=>`
     <div class="swipe-item" data-id="${t.id}">
       <div class="swipe-actions">
         <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',t.nome))}">✏️</button>
@@ -123,7 +133,19 @@ function renderTransacoesList(){
           <button type="button" class="item-del" data-action="del-transacao" data-id="${t.id}" title="${esc(L('tt.removerDevolve'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',t.nome))}">✕</button>`}
         </div>
       </div>
-    </div>`).join('')}`;
+    </div>`).join('')}
+    ${faltam>0?`<button type="button" class="diario-mais-btn" data-action="diario-mais">${L('diario.mostrarMais').replace('{n}',Math.min(DIARIO_PAGINA,faltam)).replace('{faltam}',faltam)}</button>`:''}`;
+
+  el.querySelector('[data-action="diario-mais"]')?.addEventListener('click',()=>{
+    diarioMostrando+=DIARIO_PAGINA;
+    renderTransacoesList();
+    /* o foco iria pro nada com o botão redesenhado; volta pro botão novo, ou
+       pro último item quando acabou a lista */
+    const novo=el.querySelector('[data-action="diario-mais"]');
+    if(novo) novo.focus();
+    else el.querySelectorAll('.swipe-item [data-action="edit-transacao"]')?.[visiveis.length]?.focus();
+  });
+
   function doDelete(id){
     const removida=removerTransacao(id); if(!removida) return;
     vibrate(15);
