@@ -26,6 +26,7 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 ,'senha.migrarOk':'Créer le mot de passe et continuer'
 ,'resumo.planejamento':'Planification et analyses'
 ,'resumo.agoraKicker':'TABLEAU DU MOIS','resumo.agoraTitulo':'Décidez quoi faire aujourd’hui','resumo.agoraTexto':'Suivez vos limites, dépenses et prochaines étapes sans chercher dans plusieurs écrans.'
+,'resumo.atalhos':'Raccourcis du résumé'
 ,'common.loading':'chargement…','common.years':'ans','common.of':'de','common.day':'jour','common.days':'jours'
 ,'theme.customizeColors':'Personnaliser les couleurs','theme.closeSaved':'✕ Fermer','theme.closeSavedTitle':'Fermer (vos couleurs restent enregistrées)','theme.background':'Arrière-plan','theme.cards':'Cartes','theme.primaryBlue':'Bleu principal','theme.darkBlue':'Bleu foncé','theme.text':'Texte','theme.numbers':'Nombres','theme.heroHeader':'En-tête','theme.heroText':'Texte de l’en-tête','theme.positive':'Positif','theme.negative':'Négatif','theme.divider':'Ligne de séparation','theme.accent':'Accent','theme.restore':'Restaurer','theme.customize':'Personnaliser','theme.customizeOption':'✏️ Personnaliser'
 ,'tip.cardLimit':'Indique la part de la limite déjà engagée par les factures ouvertes. Le montant partiel correspond à la facture avant clôture et peut encore augmenter jusqu’à cette date.','tip.categoryBudget':'Définissez un plafond mensuel par catégorie. La barre additionne les opérations du Journal, les dépenses par carte et les charges fixes actives du mois.'

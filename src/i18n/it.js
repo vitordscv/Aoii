@@ -26,6 +26,7 @@ const I18N_IT={'nav.entradas':'Entrate','nav.fixos':'Bollette','nav.resumo':'Pan
 ,'senha.migrarOk':'Crea password e continua'
 ,'resumo.planejamento':'Pianificazione e analisi'
 ,'resumo.agoraKicker':'PANNELLO DEL MESE','resumo.agoraTitulo':'Decidi cosa fare oggi','resumo.agoraTexto':'Segui limiti, spese e prossimi passi senza cercare in più schermate.'
+,'resumo.atalhos':'Scorciatoie del riepilogo'
 ,'common.loading':'caricamento…','common.years':'anni','common.of':'di','common.day':'giorno','common.days':'giorni'
 ,'theme.customizeColors':'Personalizza i colori','theme.closeSaved':'✕ Chiudi','theme.closeSavedTitle':'Chiudi (i colori restano salvati)','theme.background':'Sfondo','theme.cards':'Schede','theme.primaryBlue':'Blu principale','theme.darkBlue':'Blu scuro','theme.text':'Testo','theme.numbers':'Numeri','theme.heroHeader':'Intestazione','theme.heroText':'Testo dell’intestazione','theme.positive':'Positivo','theme.negative':'Negativo','theme.divider':'Linea divisoria','theme.accent':'Accento','theme.restore':'Ripristina','theme.customize':'Personalizza','theme.customizeOption':'✏️ Personalizza'
 ,'tip.cardLimit':'Mostra quanto del limite è già impegnato dalle fatture aperte. Il valore parziale è la fattura corrente prima della chiusura e può ancora aumentare fino a quella data.','tip.categoryBudget':'Imposta un tetto mensile per ogni categoria. La barra somma le voci del Diario, le spese con carta e le spese fisse attive del mese.'

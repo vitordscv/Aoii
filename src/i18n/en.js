@@ -26,6 +26,7 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 ,'senha.migrarOk':'Create password and continue'
 ,'resumo.planejamento':'Planning and analysis'
 ,'resumo.agoraKicker':'MONTHLY DASHBOARD','resumo.agoraTitulo':'Decide what to do today','resumo.agoraTexto':'Keep track of limits, spending, and next steps without searching through screens.'
+,'resumo.atalhos':'Summary shortcuts'
 ,'common.loading':'loading…','common.years':'years','common.of':'of','common.day':'day','common.days':'days'
 ,'theme.customizeColors':'Customize colors','theme.closeSaved':'✕ Close','theme.closeSavedTitle':'Close (your colors remain saved)','theme.background':'Background','theme.cards':'Cards','theme.primaryBlue':'Primary blue','theme.darkBlue':'Dark blue','theme.text':'Text','theme.numbers':'Numbers','theme.heroHeader':'Hero/header','theme.heroText':'Hero text','theme.positive':'Positive','theme.negative':'Negative','theme.divider':'Divider','theme.accent':'Accent','theme.restore':'Restore','theme.customize':'Customize','theme.customizeOption':'✏️ Customize'
 ,'tip.cardLimit':'Shows how much of the limit is already committed to open invoices. The partial amount is the current invoice before closing and can still grow until the card closing date.','tip.categoryBudget':'Set a monthly spending cap for each category. The bar adds Journal entries, card spending and active fixed expenses for the current month.'
