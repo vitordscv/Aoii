@@ -407,10 +407,31 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 /* área de toque de 32px nas caixinhas de marcar, sem mudar o desenho */
 .item-check::before,.gasto-pago-check::before,.mini-check input::before,
 .month-fatura-check input::before,.item-cartao-toggle input::before,
+.gf-pago-check input::before,
 .gasto-checkbox-label input[type="checkbox"]::before{
   content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;
   transform:translate(-50%,-50%);border-radius:8px;
 }
+/* ── altura mínima dos controles ──
+   O app já tinha decidido 40 px em .add-item-row, mas onze controles ficaram
+   entre 30 e 38 espalhados por quatro telas. Mesma decisão, números
+   diferentes: é isso que faz a interface parecer montada aos pedaços.
+
+   Botão de ícone fica de fora — crescer mudaria o desenho da barra; esses
+   ganham área invisível pelo ::after, logo abaixo. */
+.csv-btn,.metas-add-btn,#metas-add,#add-month-btn,#calc-atualizar-taxas,
+.add-month-card select,.add-month-card input,
+.diario-search-row select,.diario-search-row input,
+.item-modo,.timeline-toolbar select{
+  min-height:40px;box-sizing:border-box;
+}
+/* o seletor de tema é ícone: área invisível em vez de tamanho novo */
+.theme-menu-btn::after{
+  content:'';position:absolute;top:50%;left:50%;width:40px;height:40px;
+  transform:translate(-50%,-50%);border-radius:50%;
+}
+.theme-menu-btn{position:relative;}
+
 /* botões baixinhos: altura mínima confortável, sem crescer visualmente */
 .gf-expand-toggle,.add-gasto-btn,.gastos-toggle-btn,.gfe-seg button,.cat-pill{
   min-height:32px;
