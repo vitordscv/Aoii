@@ -5,7 +5,7 @@ body{background:var(--cream);color:var(--ink-navy);font-family:'Nunito Sans',san
 .wrap{max-width:1080px;margin:0 auto;padding:76px 20px 80px;}
 @media(min-width:760px){ .wrap{padding-top:96px;} }
 button{font-family:inherit;cursor:pointer;}
-input,select,textarea{font-family:inherit;background:var(--white);color:var(--ink-navy);}
+input,select,textarea{font-family:inherit;background-color:var(--white);color:var(--ink-navy);}
 :focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
 

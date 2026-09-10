@@ -9,7 +9,7 @@
 }
 .topbar-title{flex:1;text-align:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink-navy);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;}
 .topbar-right{display:flex;align-items:center;gap:12px;}
-.theme-select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background:var(--white);color:var(--ink-navy);cursor:pointer;}
+.theme-select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);cursor:pointer;padding-right:26px;}
 .topbar-settings-btn{width:38px;height:38px;border-radius:50%;background:var(--white);border:1px solid var(--line);color:var(--ink-navy);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;box-shadow:0 4px 12px -4px rgba(11,24,48,0.15);flex:none;}
 .topbar-settings-btn:hover{background:var(--mist-lilac);transform:scale(1.05);}
 /* mesmo tamanho dos ícones da barra de baixo, pro par ficar coerente */
@@ -145,7 +145,7 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
   .item-row .item-valor{width:80px;}
   .gm-row{flex-wrap:wrap;row-gap:6px;}
   .gm-row .gm-nome{flex-basis:100%;order:-1;}
-  .gm-row select.cat-select{font-size:11.5px;padding:6px;}
+  .gm-row select.cat-select{font-size:11.5px;padding:6px;padding-right:26px;}
   .month-fatura-edit input[inputmode=decimal]{width:64px;}
 }
 
@@ -261,7 +261,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .add-gasto-form{display:none;flex-direction:column;gap:5px;margin-top:2px;}
 .add-gasto-form.visible{display:flex;}
 .add-gasto-form input[type=text],.add-gasto-form input[inputmode=decimal]{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;}
-.add-gasto-form select{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;background:var(--white);color:var(--ink-navy);}
+.add-gasto-form select{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .add-gasto-form input[inputmode=decimal]{font-family:'Nunito Sans',sans-serif;}
 .add-gasto-confirm{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;}
 .add-gasto-confirm:hover{background:var(--ink-navy);}
@@ -269,6 +269,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 /* ── ADD MONTH CARD ── */
 .add-month-card{background:transparent;border:2px dashed var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;justify-content:center;}
 .add-month-card select,.add-month-card input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;font-family:'Nunito Sans',sans-serif;width:100%;}
+.add-month-card select{padding-right:26px;}
 .add-month-card .num{font-family:'Nunito Sans',sans-serif;color:var(--num-color);}
 .add-month-card button{background:var(--ink-navy);color:var(--cream);border:none;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600;}
 .add-month-card button:hover{background:var(--disney-blue-deep);}
@@ -287,8 +288,8 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
   font-size:12.5px;font-family:'Nunito Sans',sans-serif;width:92px;flex:none;min-height:32px;
   background:var(--white);color:var(--num-color);}
 .item-recebi-form .add-gasto-confirm{flex:none;min-height:32px;padding:6px 12px;}
-.item-modo{border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--muted);
-  font-family:'Nunito Sans',sans-serif;font-size:11.5px;font-weight:600;padding:5px 7px;flex:none;min-height:30px;}
+.item-modo{border:1px solid var(--line);border-radius:8px;background-color:var(--white);color:var(--muted);
+  font-family:'Nunito Sans',sans-serif;font-size:11.5px;font-weight:600;padding:5px 7px;flex:none;min-height:30px;padding-right:26px;}
 @media(max-width:560px){
   .item-row{
     display:grid;
@@ -344,7 +345,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .add-item-row input[type=text]{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;}
 .add-item-row input[inputmode=decimal]{width:90px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:13px;}
 .add-item-row input[type=date]{width:132px;border:1px solid var(--line);border-radius:9px;padding:8px 8px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;color:var(--ink-navy);background:var(--white);}
-.add-item-row select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12.5px;background:var(--white);color:var(--ink-navy);}
+.add-item-row select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .add-item-row button{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;}
 .add-item-row button:hover{background:var(--ink-navy);}
 .mini-check{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--cream);white-space:nowrap;flex:none;}
@@ -361,7 +362,8 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 [hidden]{display:none !important;}
 .cartao-extra{display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:-2px;}
 .cartao-extra-campo{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:9px;padding:4px 6px 4px 10px;background:var(--white);}
-.cartao-extra-campo .parcelas-input,.cartao-extra-campo select{border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;background:var(--white);color:var(--ink-navy);}
+.cartao-extra-campo .parcelas-input,.cartao-extra-campo select{border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);}
+.cartao-extra-campo select{padding-right:26px;}
 .cartao-extra-campo .parcelas-input{width:52px;text-align:center;}
 .item-cartao-tag{font-size:11px;color:var(--accent-ink);font-weight:600;margin-top:1px;}
 .item-cartao-toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer;width:fit-content;}
@@ -492,6 +494,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .reserva-field{flex:1;min-width:132px;display:flex;flex-direction:column;gap:5px;}
 .reserva-field span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);}
 .reserva-field input,.reserva-field select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;min-height:36px;}
+.reserva-field select{padding-right:26px;}
 .reserva-field input{font-family:'Nunito Sans',sans-serif;}
 .reserva-onde-campo{flex-basis:100%;}
 .reserva-onde{width:100%;}
@@ -551,7 +554,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .meta-add-row button:hover{background:var(--ink-navy);}
 
 /* ── categoria select nos formulários ── */
-select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px;font-size:12.5px;background:var(--white);color:var(--ink-navy);flex:none;}
+select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);flex:none;}
 
 /* ── AVISO SALDO NEGATIVO / FATURA ── */
 .warn-banner{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;margin-top:16px;display:flex;align-items:center;gap:8px;}
@@ -599,6 +602,7 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .sheet-field{margin-top:14px;}
 .sheet-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
 .sheet-field input,.sheet-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;box-sizing:border-box;}
+.sheet-field select{padding-right:26px;}
 .gasto-alerta-media{margin:-8px 0 14px;text-align:center;font-size:12px;font-weight:600;color:var(--gold-ink);background:color-mix(in srgb,var(--gold),transparent 88%);border-radius:9px;padding:8px 10px;}
 /* classe repetida de propósito: .sheet-field label e .field-group label
    têm a mesma especificidade e vêm depois no arquivo, então impunham
@@ -732,7 +736,7 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .parcelamento-row:first-child{margin-top:0;}
 .parcelamento-row input[type=text]{flex:1;min-width:160px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;}
 .parcelamento-row input[inputmode=decimal]{width:110px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:13px;}
-.parcelamento-row select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background:var(--white);color:var(--ink-navy);}
+.parcelamento-row select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .parcelamento-row button{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;}
 .parcelamento-row button:hover{background:var(--ink-navy);}
 
@@ -783,10 +787,29 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .field-group{margin-bottom:16px;}
 .field-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;}
 .field-group input[inputmode=decimal]{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:13.5px;width:140px;}
-.field-group select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background:var(--white);color:var(--ink-navy);}
+.field-group select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .weekday-group{display:flex;gap:8px;flex-wrap:wrap;}
-.weekday-chip{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:12px;background:var(--cream);}
-.weekday-chip input{accent-color:var(--disney-blue-deep);}
+/* o dia da semana: a etiqueta inteira é o botão */
+.weekday-chip{display:flex;align-items:center;justify-content:center;min-width:52px;min-height:38px;
+  border:1px solid var(--line);border-radius:10px;padding:6px 12px;
+  font-size:12.5px;font-weight:600;color:var(--muted);background:var(--cream);
+  cursor:pointer;user-select:none;transition:background .15s,border-color .15s,color .15s;}
+.weekday-chip:hover{border-color:var(--disney-blue-deep);color:var(--ink-navy);}
+/* a caixa continua no HTML pra quem usa leitor de tela; só sai de vista */
+.weekday-chip input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;}
+.weekday-chip:has(input:checked){background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);color:var(--on-accent);}
+.weekday-chip:has(input:focus-visible){outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+
+/* ── select: um só desenho pros sete do app ──
+   A seta é um SVG embutido porque a do sistema muda de forma e de cor em cada
+   navegador, e era ela que denunciava o campo como "de fora". */
+select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9.5l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;background-size:14px;
+  padding-right:28px;
+}
+select:disabled{opacity:.55;}
 .reset-btn{background:none;border:1px solid var(--reset-border);color:var(--reset-text);border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:600;}
 .reset-btn:hover{background:var(--reset-hover);}
 .help-text{font-size:12px;color:var(--muted2);line-height:1.5;margin-top:4px;overflow-wrap:break-word;word-break:break-word;}

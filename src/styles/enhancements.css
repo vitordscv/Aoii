@@ -82,7 +82,7 @@
 /* busca e navegação por mês no Diário */
 .diario-search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .diario-search-row input[type=search]{flex:1;min-width:150px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;background:var(--white);color:var(--ink-navy);}
-.diario-search-row select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:var(--white);color:var(--ink-navy);}
+.diario-search-row select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .diario-search-row .csv-btn{border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--muted);font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;}
 .diario-search-row .csv-btn:hover{background:var(--mist-lilac);color:var(--ink-navy);}
 
