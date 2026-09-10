@@ -118,12 +118,12 @@ function setupOnboarding(){
   if(idiomaEl) idiomaEl.value=data.idioma||'pt';
   if(moedaEl) moedaEl.value=data.moeda||'BRL';
   idiomaEl?.addEventListener('change',async()=>{
-    data.idioma=idiomaEl.value;
+    if(!definirIdioma(idiomaEl.value)) return;
     await persist();
     applyIdioma();
   });
   moedaEl?.addEventListener('change',async()=>{
-    data.moeda=moedaEl.value;
+    if(!definirMoeda(moedaEl.value)) return;
     await persist();
     render();
   });

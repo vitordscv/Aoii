@@ -1,4 +1,19 @@
 /* ── preferências financeiras que afetam cálculos ── */
+function definirIdioma(idioma){
+  if(!['pt','en','es','fr','it'].includes(idioma)) return null;
+  data.idioma=idioma;
+  return idioma;
+}
+function definirMoeda(moeda){
+  if(!['BRL','USD','EUR','GBP'].includes(moeda)) return null;
+  data.moeda=moeda;
+  return moeda;
+}
+function definirTema(tema){
+  if(!['onda','noite','sakura','matcha','poupa','grafite','roxo','custom'].includes(tema)) return null;
+  data.tema=tema;
+  return tema;
+}
 function definirTipoRenda(tipo){
   if(tipo!=='diaria'&&tipo!=='mensal') return null;
   data.tipoRenda=tipo;

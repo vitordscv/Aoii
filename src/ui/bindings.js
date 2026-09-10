@@ -88,13 +88,13 @@ function bindStatic(){
     render();
   });
   document.getElementById('cfg-moeda').addEventListener('change',async e=>{
-    data.moeda=e.target.value; await persist(); render();
+    if(definirMoeda(e.target.value)){ await persist(); render(); }
   });
   document.getElementById('cfg-idioma')?.addEventListener('change',async e=>{
-    data.idioma=e.target.value; await persist(); render();
+    if(definirIdioma(e.target.value)){ await persist(); render(); }
   });
   document.getElementById('theme-select').addEventListener('change',async e=>{
-    data.tema=e.target.value;
+    if(!definirTema(e.target.value)) return;
     if(data.tema==='custom') customPanelHidden=false;
     applyTheme(data.tema); await persist();
   });

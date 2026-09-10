@@ -269,6 +269,12 @@ module.exports=function(t){
   console.log('\n\x1b[1mPreferências financeiras validam antes de recalcular\x1b[0m');
   const dadosPreferencias=base();
   const ctxPreferencias=criarAmbiente(dadosPreferencias,HOJE);
+  t.igual(ctxPreferencias.definirIdioma('de'),null,'idioma não suportado é recusado');
+  t.igual(ctxPreferencias.definirIdioma('es'),'es','idioma suportado é atualizado');
+  t.igual(ctxPreferencias.definirMoeda('CAD'),null,'moeda não suportada é recusada');
+  t.igual(ctxPreferencias.definirMoeda('USD'),'USD','moeda suportada é atualizada');
+  t.igual(ctxPreferencias.definirTema('inexistente'),null,'tema não suportado é recusado');
+  t.igual(ctxPreferencias.definirTema('grafite'),'grafite','tema suportado é atualizado');
   t.igual(ctxPreferencias.definirTipoRenda('outra'),null,'tipo de renda inválido é recusado');
   t.igual(ctxPreferencias.atualizarRendaDiaria(-1),null,'renda diária negativa é recusada');
   t.igual(ctxPreferencias.atualizarRendaMensal(1000,32),null,'dia de renda mensal inválido é recusado');
