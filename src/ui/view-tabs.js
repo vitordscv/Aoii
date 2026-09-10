@@ -34,6 +34,17 @@ function mostrarVisao(barra,alvo,moverFoco){
     if(painel) painel.hidden=!ativa;
   });
 
+  /* Iframe que só existe quando a visão é aberta: enquanto o painel está
+     escondido, o endereço fica em data-src e nada é buscado. Quem nunca abre
+     Investimentos nunca pede a faixa de cotações a ninguém. */
+  const painelAtivo=document.getElementById(escolhida.getAttribute('aria-controls'));
+  if(painelAtivo){
+    painelAtivo.querySelectorAll('iframe[data-src]').forEach(f=>{
+      f.src=f.getAttribute('data-src');
+      f.removeAttribute('data-src');
+    });
+  }
+
   const grupo=barra.getAttribute('data-grupo');
   const sub=document.querySelector('[data-abas-sub="'+grupo+'"]');
   if(sub){

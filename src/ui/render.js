@@ -112,6 +112,7 @@ const VIEW_RENDERERS={
     renderChips();
     renderNegativeWarning();
     renderFaturaWarning();
+    prepararFaixaCotacoes();
     renderRendaAtrasadaWarning();
     renderInsights();
     renderWeekSummary();

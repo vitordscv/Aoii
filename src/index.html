@@ -451,6 +451,14 @@
 
   </div>
   <div class="view-pane" id="pane-economias-investimentos" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-investimentos" hidden>
+  <div class="ticker-externo">
+    <iframe id="ticker-tape" class="ticker-frame"
+            data-simbolos="TVC:DXY,BINANCE:BTCUSD,OANDA:XAUUSD,NASDAQ:NVDA,CME_MINI:ES1!"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            referrerpolicy="no-referrer" loading="lazy"
+            data-i18n-title="inv.tickerTitulo" title="Cotações de mercado"></iframe>
+    <div class="ticker-nota" data-i18n="inv.tickerNota">Cotações do mercado, pela TradingView. Não fazem parte das suas contas — são só referência.</div>
+  </div>
   <!-- ══════ INVESTIMENTOS ══════ -->
   <div class="section" id="investimentos-section">
     <div class="section-head">

@@ -70,6 +70,7 @@
     "ui/warnings.js",
     "ui/settings-lists.js",
     "ui/view-tabs.js",
+    "ui/ticker.js",
     "core/health.js",
     "ui/health.js",
     "ui/charts.js",
