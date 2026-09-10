@@ -275,6 +275,9 @@ module.exports=function(t){
   t.igual(ctxPreferencias.definirMoeda('USD'),'USD','moeda suportada é atualizada');
   t.igual(ctxPreferencias.definirTema('inexistente'),null,'tema não suportado é recusado');
   t.igual(ctxPreferencias.definirTema('grafite'),'grafite','tema suportado é atualizado');
+  t.igual(ctxPreferencias.definirPreferenciaBooleana('temaAutoNoite','sim'),null,'preferência booleana inválida é recusada');
+  t.igual(ctxPreferencias.definirPreferenciaBooleana('temaAutoNoite',true),true,'preferência booleana válida é atualizada');
+  t.igual(ctxPreferencias.definirPreferenciaBooleana('campoInexistente',true),null,'preferência desconhecida é recusada');
   t.igual(ctxPreferencias.definirTipoRenda('outra'),null,'tipo de renda inválido é recusado');
   t.igual(ctxPreferencias.atualizarRendaDiaria(-1),null,'renda diária negativa é recusada');
   t.igual(ctxPreferencias.atualizarRendaMensal(1000,32),null,'dia de renda mensal inválido é recusado');

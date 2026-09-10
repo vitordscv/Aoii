@@ -14,6 +14,11 @@ function definirTema(tema){
   data.tema=tema;
   return tema;
 }
+function definirPreferenciaBooleana(chave,valor){
+  if(!['fundoIlustrado','temaAutoNoite','gastoDiario','iaAtiva'].includes(chave)||typeof valor!=='boolean') return null;
+  data[chave]=valor;
+  return valor;
+}
 function definirTipoRenda(tipo){
   if(tipo!=='diaria'&&tipo!=='mensal') return null;
   data.tipoRenda=tipo;

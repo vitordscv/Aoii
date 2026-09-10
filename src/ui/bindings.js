@@ -64,22 +64,22 @@ function bindStatic(){
     if(atualizarRendaMensal(data.rendaMensal.valor,parseInt(e.target.value,10))){ await persist(); render(); }
   });
   document.getElementById('cfg-fundo-ilustrado').addEventListener('change',async e=>{
-    data.fundoIlustrado=e.target.checked;
+    if(definirPreferenciaBooleana('fundoIlustrado',e.target.checked)===null) return;
     vibrate(8);
     await persist(); render();
   });
   document.getElementById('cfg-tema-auto-noite')?.addEventListener('change',async e=>{
-    data.temaAutoNoite=e.target.checked;
+    if(definirPreferenciaBooleana('temaAutoNoite',e.target.checked)===null) return;
     vibrate(8);
     await persist(); render();
   });
   document.getElementById('cfg-gasto-diario').addEventListener('change',async e=>{
-    data.gastoDiario=e.target.checked;
+    if(definirPreferenciaBooleana('gastoDiario',e.target.checked)===null) return;
     vibrate(8);
     await persist(); render();
   });
   document.getElementById('ia-ativa-check')?.addEventListener('change',async e=>{
-    data.iaAtiva=e.target.checked;
+    if(definirPreferenciaBooleana('iaAtiva',e.target.checked)===null) return;
     vibrate(8);
     await persist(); render();
   });
