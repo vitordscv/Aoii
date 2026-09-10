@@ -98,6 +98,7 @@ function renderMonths(){
 
         ${extras?`<div class="month-row"><span>${L('main.entradasExtras')}</span><span class="v">+${formatBRL(extras)}</span></div>`:''}
         ${compras?`<div class="month-row"><span>${L('main.comprasPlanejadas')}</span><span class="v">−${formatBRL(compras)}</span></div>`:''}
+        ${dividas?`<div class="month-row"><span>${L('main.dividas')}</span><span class="v">−${formatBRL(dividas)}</span></div>`:''}
         ${aportes?`<div class="month-row"><span>${L('cal.aporteMetas')}</span><span class="v">−${formatBRL(aportes)}</span></div>`:''}
 
         <div class="month-saldo">

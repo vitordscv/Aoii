@@ -104,6 +104,22 @@ const ITEM_ENTRADA_EXTRA = {
   aosPoucos: { tipo: 'booleano', legado: true },
 };
 
+const ITEM_DIVIDA = {
+  id: { tipo: 'id' },
+  nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
+  /* pra quem se deve; separado do nome porque a pessoa é o que se lembra */
+  credor: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
+  valor: { tipo: 'dinheiro', padrao: 0 },
+  pago: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  /* 'unica' quita numa data; 'aosPoucos' espalha até a data; 'semPrevisao'
+     é a dívida sem combinado — vale, mas fica fora da projeção. */
+  modo: { tipo: 'opcao', valores: ['unica', 'aosPoucos', 'semPrevisao'], padrao: 'semPrevisao' },
+  dataPrevista: { tipo: 'dia', nulo: true },
+  quitado: { tipo: 'booleano', padrao: false },
+  quitadoEm: { tipo: 'dia', nulo: true },
+  nota: { tipo: 'texto', max: LIMITES.nota, padrao: '' },
+};
+
 const ITEM_COMPRA = {
   id: { tipo: 'id' },
   nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
@@ -211,6 +227,7 @@ const ESQUEMA = {
   transacoes: { tipo: 'lista', item: ITEM_TRANSACAO },
   entradasExtras: { tipo: 'lista', item: ITEM_ENTRADA_EXTRA },
   comprasPlanejadas: { tipo: 'lista', item: ITEM_COMPRA },
+  dividas: { tipo: 'lista', item: ITEM_DIVIDA },
   metas: { tipo: 'lista', item: ITEM_META },
   cartoes: { tipo: 'lista', item: ITEM_CARTAO, idNamespace: 'cartoes' },
   investimentos: { tipo: 'lista', item: ITEM_INVESTIMENTO },

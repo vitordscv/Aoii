@@ -17,6 +17,7 @@ function montarResumoFinanceiroParaIA(){
     : 'sem gastos fixos cadastrados para calcular';
   const rendas=rendasRecorrentesAtivas().map(r=>`${r.nome||tipoRenda(r.tipo).label} ${formatBRL(r.valor)} (dia ${r.diaDoMes})`).join('; ')||'nenhuma';
   const aReceber=(data.entradasExtras||[]).filter(e=>!e.feito).map(e=>`${e.nome} ${formatBRL(e.valor)}`).join('; ')||'nenhuma';
+  const deve=(data.dividas||[]).filter(d=>!d.quitado).map(d=>`${d.nome}${d.credor?' (para '+d.credor+')':''}: falta ${formatBRL(restanteDivida(d))} de ${formatBRL(d.valor)}`).join('; ')||'nenhuma';
   const planejadas=(data.comprasPlanejadas||[]).filter(c=>!c.feito).map(c=>`${c.nome} ${formatBRL(c.valor)}${c.cartao?' (no cartão)':''}`).join('; ')||'nenhuma';
   const investimentos=(data.investimentos||[]).map(i=>`${i.nome} ${formatBRL(i.valorInvestido||0)}${i.tipo?` (${tipoInvest(i.tipo).label})`:''}`).join('; ')||'nenhum';
   const anoA=today().getFullYear(), mesA=today().getMonth()+1;
@@ -41,6 +42,7 @@ Metas de economia: ${metas}.
 Investimentos: ${investimentos}.
 Entradas extras a receber: ${aReceber}.
 Compras planejadas (ainda não compradas): ${planejadas}.
+Dívidas com pessoas (o que ainda falta pagar): ${deve}.
 Viagens/eventos com orçamento próprio: ${viagens}.`;
 }
 

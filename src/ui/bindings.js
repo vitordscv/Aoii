@@ -370,5 +370,17 @@ function bindStatic(){
       await persist(); render();
     });
   }
+  document.getElementById('dividas-add').addEventListener('click',async()=>{
+    const nEl=document.getElementById('dividas-nome');
+    const cEl=document.getElementById('dividas-credor');
+    const vEl=document.getElementById('dividas-valor');
+    const nome=nEl.value.trim(), valor=parseNum(vEl.value);
+    if(!nome||isNaN(valor)) return;
+    /* nasce sem previsão: prometer um mês que ninguém combinou seria
+       inventar número na projeção. A pessoa escolhe depois, na linha. */
+    if(!criarPlanejado('divida',{nome,credor:cEl.value.trim(),valor,modo:'semPrevisao',dataPrevista:null})) return;
+    nEl.value=''; cEl.value=''; vEl.value='';
+    await persist(); render();
+  });
   bindAdd('extras','entradasExtras','feito');
   bindAdd('purchases','comprasPlanejadas','feito');

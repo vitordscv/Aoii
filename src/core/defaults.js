@@ -18,6 +18,7 @@ function defaultData(){
     faturas:[],
     transacoes:[],
     entradasExtras:[],
+    dividas:[],
     comprasPlanejadas:[],
     limiteCartao:0,
     diaVencimentoFatura:10,
@@ -145,6 +146,15 @@ function migrateData(d){
     if(!t.categoria) t.categoria='Outros';
     if(!t.metodo) t.metodo='debito';
     if(!t.data) t.data=todayISO();
+  });
+  if(!d.dividas)              d.dividas=[];
+  d.dividas.forEach(x=>{
+    /* sem combinado é o padrão honesto: quem empresta raramente marca data.
+       Só cai na projeção quem escolher 'unica' ou 'aosPoucos'. */
+    if(!['unica','aosPoucos','semPrevisao'].includes(x.modo)) x.modo='semPrevisao';
+    const p=parseNum(x.pago); x.pago=isNaN(p)?0:Math.max(0,p);
+    if(typeof x.credor!=='string') x.credor='';
+    if(typeof x.quitado!=='boolean') x.quitado=false;
   });
   if(!d.comprasPlanejadas)    d.comprasPlanejadas=[];
   d.comprasPlanejadas.forEach(c=>{

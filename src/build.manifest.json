@@ -75,6 +75,7 @@
     "ui/trajectory.js",
     "ui/months.js",
     "ui/lists.js",
+    "ui/debts.js",
     "core/averages.js",
     "core/reserve.js",
     "ui/reserve.js",

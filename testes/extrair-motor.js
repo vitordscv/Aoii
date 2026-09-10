@@ -62,6 +62,7 @@ function recortarBloco(src,marcaInicio,ateFimDe){
 /* blocos inteiros: [marca de início, função que fecha o bloco] */
 const BLOCOS=[
   ['const SCHEMA_VERSAO','validateAndNormalizeData'], // data/schema.js + data/validation.js
+  ['const LISTAS_PLANEJADAS','listaPlanejada'], // core/planned.js: o const e a busca
   ['const CRIPTO_FORMATO','decifrarDaNuvem'],     // storage/encryption.js
   ['const sync = {','migrarParaCifrado'],         // storage/sync-ciclo.js
 ];
@@ -77,10 +78,10 @@ const FUNCOES=[
   'adicionarCategoria','removerCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','definirDiasTrabalho','diaCalendarioValido','adicionarDiaNaoTrabalhado','removerDiaNaoTrabalhado','daysBetweenInclusive','remainingWorkDaysUntil',
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','camposFatura','salvarFatura','atualizarValorFatura',
-  'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','fatiasAosPoucos',
+  'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','restanteDivida','fatiasAosPoucos',
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','camposCartao','criarCartao','atualizarCartao','removerCartao','nextMonth','ensureFatura','lancarParcelamento',
-  'dataPlanejadaValida','camposPlanejados','criarPlanejado','atualizarPlanejado','removerPlanejado','restaurarPlanejado','registrarRecebimentoEntrada','definirPlanejadoFeito',
+  'dataPlanejadaValida','camposPlanejados','criarPlanejado','atualizarPlanejado','removerPlanejado','restaurarPlanejado','registrarRecebimentoEntrada','registrarPagamentoDivida','definirPlanejadoFeito',
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',

@@ -140,6 +140,7 @@ const VIEW_RENDERERS={
   'view-entradas':()=>{
     renderRendas();
     renderList('entradasExtras','extras-list','extras-total','feito','recebido');
+    renderDividas();
     renderList('comprasPlanejadas','purchases-list','purchases-total','feito','comprado');
   },
   'view-economias':()=>{

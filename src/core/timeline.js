@@ -10,6 +10,8 @@ function chaveMes(ano,mes){ return ano*12+(mes-1); }
 
 /* o que ainda falta receber de uma entrada extra: o total menos o que já veio */
 function restanteEntrada(e){ return Math.max(0,(e&&e.valor||0)-(e&&e.recebido||0)); }
+/* mesma conta da entrada extra, do outro lado: o que ainda se deve */
+function restanteDivida(d){ return Math.max(0,(d&&d.valor||0)-(d&&d.pago||0)); }
 
 /* em quantos meses uma entrada "aos poucos" cai, e quanto por mês */
 function fatiasAosPoucos(item){
@@ -52,24 +54,33 @@ function _buildTimeline(opts){
     }
     return mesAtual;
   };
-  const extrasPorMes=new Map(), comprasPorMes=new Map();
+  const extrasPorMes=new Map(), comprasPorMes=new Map(), dividasPorMes=new Map();
   const soma=(map,k,v)=>map.set(k,(map.get(k)||0)+(v||0));
-  (data.entradasExtras||[]).forEach(e=>{
-    if(e.feito) return;
-    const modo=e.modo||'unica';
-    if(modo==='semPrevisao') return;   // continua a receber, mas não entra na projeção
-    const falta=restanteEntrada(e);
-    if(falta<=0) return;
-    if(modo==='aosPoucos'&&e.dataPrevista){
-      /* recebendo em pedaços: espalha o que falta do mês atual até o mês escolhido */
-      const kFim=mesDoItem(e);
-      const meses=Math.max(1,kFim-mesAtual+1);
-      const parte=falta/meses;
-      for(let k=mesAtual;k<=kFim;k++) soma(extrasPorMes,k,parte);
-    }else{
-      soma(extrasPorMes,mesDoItem(e),falta);
-    }
-  });
+
+  /* Entrada extra e dívida são o mesmo movimento com o sinal trocado: um
+     total combinado que vai caindo em pedaços, numa data, espalhado até uma
+     data, ou sem combinado nenhum. Passar os dois pela mesma função é o que
+     garante que a projeção use o mesmo critério dos dois lados. */
+  const espalhar=(itens,mapa,feito,restante)=>{
+    (itens||[]).forEach(it=>{
+      if(it[feito]) return;
+      const modo=it.modo||'unica';
+      if(modo==='semPrevisao') return;   // continua valendo, mas fica fora da projeção
+      const falta=restante(it);
+      if(falta<=0) return;
+      if(modo==='aosPoucos'&&it.dataPrevista){
+        /* em pedaços: espalha o que falta do mês atual até o mês escolhido */
+        const kFim=mesDoItem(it);
+        const meses=Math.max(1,kFim-mesAtual+1);
+        const parte=falta/meses;
+        for(let k=mesAtual;k<=kFim;k++) soma(mapa,k,parte);
+      }else{
+        soma(mapa,mesDoItem(it),falta);
+      }
+    });
+  };
+  espalhar(data.entradasExtras,extrasPorMes,'feito',restanteEntrada);
+  espalhar(data.dividas,dividasPorMes,'quitado',restanteDivida);
   (data.comprasPlanejadas||[]).forEach(c=>{ if(!c.feito&&c.id!==opts.exceto) soma(comprasPorMes,mesDoItem(c),c.valor); });
 
   /* aportes automáticos das metas saem da conta todo mês, até a meta encher */
@@ -82,6 +93,7 @@ function _buildTimeline(opts){
   porMes.forEach((fs,k)=>abrange(k));
   extrasPorMes.forEach((v,k)=>abrange(k));
   comprasPorMes.forEach((v,k)=>abrange(k));
+  dividasPorMes.forEach((v,k)=>abrange(k));
   if(fim-ini>600) fim=ini+600; // trava de segurança
 
   let cum=data.saldoAtual+(data.dinheiroVivo||0);
@@ -92,15 +104,16 @@ function _buildTimeline(opts){
     const m=fs?mesMetrics(fs):monthMetrics({ano,mes,valor:0,pago:true,gastos:[]});
     const extras=extrasPorMes.get(k)||0;
     const compras=comprasPorMes.get(k)||0;
+    const dividas=dividasPorMes.get(k)||0;
     let aportes=0;
     if(k>mesAtual) metasAtivas.forEach((mt,i)=>{ // o aporte do mês corrente já foi aplicado ao abrir o app
       if(!(restanteMeta[i]>0)) return;
       const v=Math.min(mt.aporteMensal,restanteMeta[i]);
       aportes+=v; restanteMeta[i]-=v;
     });
-    const delta=m.saldoMes+extras-compras-aportes;
+    const delta=m.saldoMes+extras-compras-aportes-dividas;
     cum+=delta;
-    pontos.push({k,ano,mes,fs,m,extras,compras,aportes,delta,value:cum,isPast:m.isPast,
+    pontos.push({k,ano,mes,fs,m,extras,compras,dividas,aportes,delta,value:cum,isPast:m.isPast,
       label:MONTH_ABBR[mes-1],monthLabel:MONTH_NAMES[mes-1]+'/'+ano});
   }
   return pontos;
@@ -136,9 +149,17 @@ function computeTotals(){
   const entradasSemPrevisao=aReceber.filter(e=>e.modo==='semPrevisao').reduce((s,e)=>s+restanteEntrada(e),0);
   const entradasNaProjecao=entradasPendentes-entradasSemPrevisao;
   const comprasPendentes=(data.comprasPlanejadas||[]).filter(c=>!c.feito).reduce((s,c)=>s+c.valor,0);
+
+  /* espelho do bloco de cima: o que se deve, e a parte dele que não tem
+     combinado e por isso não aparece na linha do tempo */
+  const aPagar=(data.dividas||[]).filter(d=>!d.quitado);
+  const dividasPendentes=aPagar.reduce((s,d)=>s+restanteDivida(d),0);
+  const dividasSemPrevisao=aPagar.filter(d=>d.modo==='semPrevisao').reduce((s,d)=>s+restanteDivida(d),0);
+  const dividasNaProjecao=dividasPendentes-dividasSemPrevisao;
   const projetado=saldoPrevistoEm(target,pontos);
   return {workDays,rendaTrabalho,gastosMensaisTotal,faturasPendentes,entradasPendentes,
           entradasSemPrevisao,entradasNaProjecao,comprasPendentes,
+          dividasPendentes,dividasSemPrevisao,dividasNaProjecao,
           aportesPrevistos,projetado,target};
 }
 
