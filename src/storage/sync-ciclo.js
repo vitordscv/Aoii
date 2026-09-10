@@ -32,6 +32,27 @@ const sync = {
 
 const CHAVE_SALT = 'financas-sync-salt';
 const CHAVE_APARELHO = 'financas-device-id';
+const COFRE_SYNC_DB = 'aoii-sync-device';
+
+function abrirCofreSync(){
+  if(typeof indexedDB==='undefined') return Promise.resolve(null);
+  return new Promise(resolve=>{
+    let pedido; try{ pedido=indexedDB.open(COFRE_SYNC_DB,1); }catch(e){ resolve(null); return; }
+    pedido.onupgradeneeded=()=>pedido.result.createObjectStore('sessao');
+    pedido.onsuccess=()=>resolve(pedido.result); pedido.onerror=()=>resolve(null);
+  });
+}
+async function guardarSessaoSync(){
+  const db=await abrirCofreSync(); if(!db||!sincronizacaoDestrancada()) return;
+  await new Promise(resolve=>{ const tx=db.transaction('sessao','readwrite'); tx.objectStore('sessao').put({codigo:sync.codigo,salt:sync.salt,chave:sync.chave,token:sync.token,revisao:sync.revisao},'atual'); tx.oncomplete=tx.onerror=()=>resolve(); });
+  db.close();
+}
+async function restaurarSessaoSync(){
+  const db=await abrirCofreSync(); if(!db) return false;
+  const valor=await new Promise(resolve=>{ const tx=db.transaction('sessao','readonly'); const p=tx.objectStore('sessao').get('atual'); p.onsuccess=()=>resolve(p.result||null); p.onerror=()=>resolve(null); }); db.close();
+  if(!valor||valor.codigo!==getSyncCode()||!ehChaveDeCifra(valor.chave)||typeof valor.token!=='string') return false;
+  sync.codigo=valor.codigo; sync.salt=valor.salt; sync.chave=valor.chave; sync.token=valor.token; sync.revisao=valor.revisao||0; sync.status='sincronizada'; return true;
+}
 
 function idDesteAparelho() {
   if (sync.aparelho) return sync.aparelho;
@@ -67,6 +88,7 @@ function sincronizacaoDestrancada() { return !!(sync.codigo && sync.chave && syn
 function esquecerSenha() {
   sync.chave = null; sync.token = null;
   sync.status = sync.codigo ? 'precisa-senha' : 'desligada';
+  abrirCofreSync().then(db=>{ if(!db)return; const tx=db.transaction('sessao','readwrite'); tx.objectStore('sessao').delete('atual'); tx.oncomplete=()=>db.close(); });
 }
 
 /* Consulta sem tocar na sessão. A interface usa isto para explicar se a
@@ -112,6 +134,7 @@ async function abrirSincronizacao(codigo, senha) {
     }catch(e){ return {resultado:'erro',motivo:e.message||'cripto'}; }
     sync.codigo = codigo; sync.salt = salt; sync.chave = chave; sync.token=token;
     sync.revisao = 0; sync.status = 'nova';
+    guardarSessaoSync();
     return { resultado: 'nova' };
   }
 
@@ -126,6 +149,7 @@ async function abrirSincronizacao(codigo, senha) {
     }catch(e){ return {resultado:'erro',motivo:e.message||'cripto'}; }
     sync.codigo = codigo; sync.salt = salt; sync.chave = chave; sync.token=token;
     sync.revisao = remoto.revision; sync.status = 'migrar';
+    guardarSessaoSync();
     return { resultado: 'migrar', dados: remoto.envelope };
   }
 
@@ -151,6 +175,7 @@ async function abrirSincronizacao(codigo, senha) {
   sync.token = token;
   sync.revisao = remoto.revision; sync.status = 'sincronizada';
   guardarSalt(salt);
+  guardarSessaoSync();
   return { resultado: 'aberta', dados };
 }
 

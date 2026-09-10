@@ -53,8 +53,8 @@ async function init(){
     /* Sem senha na sessão, não há o que ler nem o que escrever. Pergunta uma
        vez ao abrir; se a pessoa dispensar, o app segue inteiro em modo local e
        o status diz que está trancada. */
-    renderStatusSync();
-    destrancarSincronizacao();
+    if(await restaurarSessaoSync()) renderStatusSync();
+    else { renderStatusSync(); destrancarSincronizacao(); }
   }
   // O ciclo também atende quem ativar a sincronização depois de abrir o app.
   setInterval(async()=>{
