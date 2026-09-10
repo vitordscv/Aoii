@@ -26,6 +26,11 @@ const sync = {
   chave: null,         // CryptoKey AES-GCM não exportável
   token: null,         // token de escrita, hexadecimal
   revisao: 0,          // última revisão que este aparelho viu
+  /* O conteúdo da nuvem na última vez que este aparelho concordou com ela.
+     Serve pra saber se um conflito de revisão é real ou só contabilidade —
+     ver empurrarParaNuvem(). Só na sessão: sem ele, pergunta-se, que é o
+     desfecho seguro. */
+  ultimoConhecido: null,
   aparelho: null,
   status: 'desligada',
 };
@@ -128,7 +133,7 @@ async function armazenamentoEhDuravel(){
 }
 
 function esquecerSenha() {
-  sync.chave = null; sync.token = null;
+  sync.chave = null; sync.token = null; sync.ultimoConhecido = null;
   sync.status = sync.codigo ? 'precisa-senha' : 'desligada';
   abrirCofreSync().then(db=>{ if(!db)return; const tx=db.transaction('sessao','readwrite'); tx.objectStore('sessao').delete('atual'); tx.oncomplete=()=>db.close(); });
 }
@@ -216,6 +221,7 @@ async function abrirSincronizacao(codigo, senha) {
   sync.codigo = codigo; sync.salt = salt; sync.chave = chave;
   sync.token = token;
   sync.revisao = remoto.revision; sync.status = 'sincronizada';
+  sync.ultimoConhecido = JSON.stringify(dados);
   guardarSalt(salt);
   guardarSessaoSync();
   return { resultado: 'aberta', dados };
@@ -272,6 +278,8 @@ async function enviarParaNuvem(dados) {
       return {resultado:'conflito',revisao:volta.revision};
     }
     sync.revisao = r.revision;
+    /* o que acabou de subir é, agora, o que a nuvem tem */
+    sync.ultimoConhecido = JSON.stringify(envio.dados);
   } catch (e) {
     sync.status = 'erro';
     return { resultado: 'erro', motivo: 'releitura-' + (e.message || 'falhou') };
@@ -309,6 +317,7 @@ async function receberDaNuvem() {
   }
 
   sync.revisao = remoto.revision;
+  sync.ultimoConhecido = JSON.stringify(dados);
   sync.status = 'sincronizada';
   return { resultado: 'novidade', dados, revisao: remoto.revision };
 }

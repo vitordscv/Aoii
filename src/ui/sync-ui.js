@@ -260,6 +260,30 @@ async function empurrarParaNuvem(){
     }catch(e){ sync.status='erro'; }
     if(!remoto){ setSaveStatus(L('st.syncErro')); renderStatusSync(); return {resultado:'erro'}; }
 
+    /* Revisão divergente não é conteúdo divergente. Antes de tomar o tempo da
+       pessoa, vê se existe mesmo uma escolha a fazer. */
+    const remotoTexto=JSON.stringify(remoto);
+
+    if(remotoTexto===JSON.stringify(data)){
+      /* os dois lados são o mesmo texto: escolher entre eles não muda nada.
+         Acontece quando dois aparelhos aplicam o mesmo automático no mesmo
+         dia e chegam ao mesmo conteúdo por caminhos diferentes. */
+      sync.revisao=lido.revision;
+      sync.ultimoConhecido=remotoTexto;
+      sync.status='sincronizada';
+      renderStatusSync();
+      return {resultado:'enviado',revisao:lido.revision};
+    }
+
+    if(sync.ultimoConhecido&&remotoTexto===sync.ultimoConhecido){
+      /* a nuvem está como este aparelho a deixou: ninguém mexeu lá, só o nosso
+         contador ficou atrasado. Não há nada a perder ao mandar por cima. */
+      sync.revisao=lido.revision;
+      const reenvio=await enviarParaNuvem(data);
+      if(reenvio.resultado==='enviado'){ setSaveStatus(L('st.syncDados')); renderStatusSync(); }
+      return reenvio;
+    }
+
     const escolha=await mostrarConflitoSync(remoto);
     if(escolha==='nuvem'){
       const adotado=adotarDadosDeFora(remoto,'nuvem');

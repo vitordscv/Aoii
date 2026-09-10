@@ -94,8 +94,8 @@ const FUNCOES=[
   'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData','adotarDadosDeFora',
-  'sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
-  'computeInsights','invalidarTimeline'
+  'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
+  'empurrarParaNuvem','computeInsights','invalidarTimeline'
 ];
 
 function montarMotor(arquivo){
