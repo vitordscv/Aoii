@@ -505,7 +505,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .divida-progresso{font-size:11px;color:var(--muted2);margin-top:3px;line-height:1.3;}
 
 /* motivo e link da compra planejada */
-.item-link{display:inline-block;max-width:100%;margin-top:3px;font-size:11px;font-weight:600;color:var(--accent-ink);text-decoration:none;border-bottom:1px dotted currentColor;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.item-link{position:relative;display:inline-block;max-width:100%;margin-top:3px;font-size:11px;font-weight:600;color:var(--accent-ink);text-decoration:none;border-bottom:1px dotted currentColor;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .item-link:hover{color:var(--ink-navy);}
 .item-detalhes-btn{display:block;margin-top:5px;padding:5px 10px;width:auto;font-size:11px;}
 .item-detalhes-form.aberto{display:flex;}
@@ -605,7 +605,8 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .reserva-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;}
 .reserva-valor{font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:21px;color:var(--num-color);line-height:1.15;}
 .reserva-alvo{font-size:13px;font-weight:500;color:var(--muted2);}
-.reserva-badge{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 10px;white-space:nowrap;}
+/* 10,5 px é o menor tamanho usado no app; abaixo disso era só esta etiqueta */
+.reserva-badge{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 10px;white-space:nowrap;}
 .reserva-badge.ok{background:color-mix(in srgb,var(--pos),transparent 92%);color:var(--pos);}
 .reserva-badge.mid{background:color-mix(in srgb,var(--gold),transparent 92%);color:var(--gold-ink);}
 .reserva-badge.low{background:color-mix(in srgb,var(--neg),transparent 92%);color:var(--neg);}
@@ -618,7 +619,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .reserva-cobertura{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.45;}
 .reserva-controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
 .reserva-field{flex:1;min-width:132px;display:flex;flex-direction:column;gap:5px;}
-.reserva-field span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);}
+.reserva-field span{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);}
 .reserva-field input,.reserva-field select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;min-height:36px;}
 .reserva-field select{padding-right:26px;}
 .reserva-field input{font-family:'Nunito Sans',sans-serif;}
