@@ -79,7 +79,22 @@ function corrigirAbasVisiveisEm(raiz){
   (raiz||document).querySelectorAll('[role="tablist"][data-grupo]').forEach(barra=>{
     const ativa=barra.querySelector('[aria-selected="true"]');
     if(ativa) ativa.scrollIntoView({inline:'nearest',block:'nearest'});
+    atualizarSombraDeAbas(barra);
   });
+}
+
+/* A opacidade real das duas faixas (ver .tabs-fade em enhancements.css): 1 do
+   lado em que ainda há pílula escondida, 0 do lado em que não há mais nada
+   pra rolar. Calculada de novo a cada rolagem — não é um estado que se marca
+   uma vez, é a posição de agora. */
+function atualizarSombraDeAbas(barra){
+  const caixa=barra.closest('.tabs-scroll');
+  if(!caixa) return;
+  const esq=caixa.querySelector('.tabs-fade-l'), dir=caixa.querySelector('.tabs-fade-r');
+  if(!esq||!dir) return;
+  const folga=1; // arredondamento de subpixel não pode contar como "ainda há o que rolar"
+  esq.style.opacity=barra.scrollLeft>folga?'1':'0';
+  dir.style.opacity=(barra.scrollLeft+barra.clientWidth)<(barra.scrollWidth-folga)?'1':'0';
 }
 
 function ligarAbasDeVisao(){
@@ -90,6 +105,10 @@ function ligarAbasDeVisao(){
     const abas=_abasDoGrupo(barra);
 
     abas.forEach(a=>a.addEventListener('click',()=>mostrarVisao(barra,a.getAttribute('data-pane'))));
+
+    /* passive: só lê a posição, nunca impede o gesto de rolar */
+    barra.addEventListener('scroll',()=>atualizarSombraDeAbas(barra),{passive:true});
+    window.addEventListener('resize',()=>atualizarSombraDeAbas(barra));
 
     barra.addEventListener('keydown',e=>{
       const i=abas.indexOf(document.activeElement);
@@ -107,5 +126,27 @@ function ligarAbasDeVisao(){
     let guardada=null;
     try{ guardada=localStorage.getItem('financas-visao-'+grupo); }catch(e){}
     mostrarVisao(barra,guardada);
+    atualizarSombraDeAbas(barra);
+  });
+}
+
+/* Sombra de rolagem pra qualquer fileira horizontal, não só as abas: as
+   pílulas de filtro por categoria (Diário, Investimentos) rolam do mesmo
+   jeito e tinham o mesmo silêncio — "arrasto aqui e nada avisa". O conteúdo
+   delas nasce depois, via render(), então um observador de mutação
+   recalcula sempre que uma pílula entra ou sai, sem exigir que cada lugar
+   que popula a lista lembre de chamar isto. */
+function iniciarSombraDeRolagemGenerica(){
+  document.querySelectorAll('.tabs-scroll').forEach(caixa=>{
+    if(caixa.dataset.sombraLigada) return;
+    const alvo=caixa.querySelector('[role="tablist"]')||caixa.querySelector('.cat-filter-pills');
+    if(!alvo) return;
+    caixa.dataset.sombraLigada='1';
+    if(alvo.getAttribute('role')==='tablist') return; // já ligado por ligarAbasDeVisao
+    const atualizar=()=>atualizarSombraDeAbas(alvo);
+    alvo.addEventListener('scroll',atualizar,{passive:true});
+    window.addEventListener('resize',atualizar);
+    new MutationObserver(atualizar).observe(alvo,{childList:true});
+    atualizar();
   });
 }

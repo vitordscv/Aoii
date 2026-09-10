@@ -9,6 +9,7 @@ function bindStatic(){
   refreshSyncUI();
   ligarBotaoEsquecerSenha();
   ligarAbasDeVisao();
+  iniciarSombraDeRolagemGenerica();
   /* Ligar a sincronização pela primeira vez. A ordem aqui É a proteção:
      backup local exigido → senha (duas vezes) → só então o código nasce.
      Não existe recuperar senha; se ela se perder, o arquivo baixado é o que

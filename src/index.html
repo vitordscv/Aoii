@@ -270,18 +270,24 @@
       <button type="button" class="csv-btn" id="export-csv-btn" title="Baixar transações em CSV" data-i18n-title="tt.baixarCsv">⬇ CSV</button>
       <button type="button" class="csv-btn" id="repetir-gasto-btn" title="Repetir o último gasto lançado" data-i18n-title="tt.repeatLast" data-i18n="main.repetirUltimo">↻ Repetir último</button>
     </div>
+    <div class="tabs-scroll">
+    <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
+    <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
     <div id="transacoes-filter" class="cat-filter-pills" style="padding-top:2px;"></div>
+    </div>
     <div class="diario-history-card"><div id="transacoes-list"><div class="skeleton sk-line" style="margin:16px 0;"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line" style="width:70%;margin-bottom:16px;"></div></div></div>
   </div>
 
   </div><!-- /view-diario -->
 
   <div class="tab-view" id="view-fixos" style="display:none;">
+  <div class="tabs-scroll">
   <div class="view-tabs" role="tablist" data-grupo="fixos" data-i18n-aria-label="fixos.abasAria" aria-label="Visões dos gastos fixos">
     <button type="button" class="view-tab" id="tab-fixos-contas" role="tab" aria-controls="pane-fixos-contas" aria-selected="false" tabindex="-1" data-pane="contas" data-sub="fixos.abaContasSub"><span data-i18n="fixos.abaContas">Contas fixas</span></button>
     <button type="button" class="view-tab" id="tab-fixos-evolucao" role="tab" aria-controls="pane-fixos-evolucao" aria-selected="false" tabindex="-1" data-pane="evolucao" data-sub="fixos.abaEvolucaoSub"><span data-i18n="fixos.abaEvolucao">Evolução</span></button>
     <button type="button" class="view-tab" id="tab-fixos-trajetoria" role="tab" aria-controls="pane-fixos-trajetoria" aria-selected="false" tabindex="-1" data-pane="trajetoria" data-sub="fixos.abaTrajetoriaSub"><span data-i18n="fixos.abaTrajetoria">Trajetória</span></button>
     <button type="button" class="view-tab" id="tab-fixos-linha" role="tab" aria-controls="pane-fixos-linha" aria-selected="false" tabindex="-1" data-pane="linha" data-sub="fixos.abaLinhaSub"><span data-i18n="fixos.abaLinha">Linha do tempo</span></button>
+  </div>
   </div>
   <div class="view-tab-sub" data-abas-sub="fixos"></div>
   <div class="view-pane" id="pane-fixos-contas" role="tabpanel" tabindex="0" aria-labelledby="tab-fixos-contas" hidden>
@@ -338,11 +344,15 @@
   </div><!-- /view-fixos -->
 
   <div class="tab-view" id="view-entradas" style="display:none;">
+  <div class="tabs-scroll">
+  <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
+  <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
   <div class="view-tabs" role="tablist" data-grupo="entradas" data-i18n-aria-label="entradas.abasAria" aria-label="Visões das entradas">
     <button type="button" class="view-tab" id="tab-entradas-rendas" role="tab" aria-controls="pane-entradas-rendas" aria-selected="false" tabindex="-1" data-pane="rendas" data-sub="entradas.abaRendasSub"><span data-i18n="main.rendasRecorrentes">Rendas recorrentes</span></button>
     <button type="button" class="view-tab" id="tab-entradas-extras" role="tab" aria-controls="pane-entradas-extras" aria-selected="false" tabindex="-1" data-pane="extras" data-sub="entradas.abaExtrasSub"><span data-i18n="main.entradasExtras">Entradas extras</span></button>
     <button type="button" class="view-tab" id="tab-entradas-dividas" role="tab" aria-controls="pane-entradas-dividas" aria-selected="false" tabindex="-1" data-pane="dividas" data-sub="entradas.abaDividasSub"><span data-i18n="main.dividas">Dívidas</span></button>
     <button type="button" class="view-tab" id="tab-entradas-compras" role="tab" aria-controls="pane-entradas-compras" aria-selected="false" tabindex="-1" data-pane="compras" data-sub="entradas.abaComprasSub"><span data-i18n="main.comprasPlanejadas">Compras planejadas</span></button>
+  </div>
   </div>
   <div class="view-tab-sub" data-abas-sub="entradas"></div>
   <div class="view-pane" id="pane-entradas-rendas" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-rendas" hidden>
@@ -422,10 +432,14 @@
   </div><!-- /view-entradas -->
 
   <div class="tab-view" id="view-economias" style="display:none;">
+  <div class="tabs-scroll">
+  <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
+  <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
   <div class="view-tabs" role="tablist" data-grupo="economias" data-i18n-aria-label="economias.abasAria" aria-label="Visões das economias">
     <button type="button" class="view-tab" id="tab-economias-patrimonio" role="tab" aria-controls="pane-economias-patrimonio" aria-selected="false" tabindex="-1" data-pane="patrimonio" data-sub="economias.abaPatrimonioSub"><span data-i18n="main.patrimonio">Patrimônio</span></button>
     <button type="button" class="view-tab" id="tab-economias-metas" role="tab" aria-controls="pane-economias-metas" aria-selected="false" tabindex="-1" data-pane="metas" data-sub="economias.abaMetasSub"><span data-i18n="main.metasEconomia">Metas</span></button>
     <button type="button" class="view-tab" id="tab-economias-investimentos" role="tab" aria-controls="pane-economias-investimentos" aria-selected="false" tabindex="-1" data-pane="investimentos" data-sub="economias.abaInvestimentosSub"><span data-i18n="main.investimentos">Investimentos</span></button>
+  </div>
   </div>
   <div class="view-tab-sub" data-abas-sub="economias"></div>
   <div class="view-pane" id="pane-economias-patrimonio" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-patrimonio" hidden>
@@ -485,7 +499,11 @@
       <div class="section-note" data-i18n="main.investimentosNote">Registre seus ativos, acompanhe dividendos e simule juros simples e compostos com o CDI/Selic atual.</div>
     </div>
     <div class="list-panel">
+      <div class="tabs-scroll">
+      <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
+      <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
       <div class="cat-filter-pills" id="inv-filter" style="padding-top:2px;"></div>
+      </div>
       <div id="inv-list"></div>
       <button type="button" class="gf-new-btn" id="inv-new-btn" data-i18n="sheet.novoinvestimentoBtn">+ Novo investimento</button>
     </div>
@@ -549,6 +567,9 @@
       <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
+      <div class="tabs-scroll tabs-scroll-settings">
+      <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
+      <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
       <div class="view-tabs settings-tabs" role="tablist" data-grupo="settings" data-i18n-aria-label="settings.abasAria" aria-label="Seções das configurações">
         <button type="button" class="view-tab settings-tab" id="settings-tab-renda" data-sub="settings.rendaSub" role="tab" aria-controls="settings-pane-renda" aria-selected="false" tabindex="-1" data-pane="renda"><span data-i18n="settings.renda">Renda</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-dados" data-sub="settings.dadosSub" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
@@ -556,6 +577,7 @@
         <button type="button" class="view-tab settings-tab" id="settings-tab-personalizacao" data-sub="settings.personalizacaoSub" role="tab" aria-controls="settings-pane-personalizacao" aria-selected="false" tabindex="-1" data-pane="personalizacao"><span data-i18n="settings.personalizacao">Personalização</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-ia" data-sub="settings.iaSub" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-zona" data-sub="settings.zonaSub" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
+      </div>
       </div>
       <div class="view-tab-sub settings-tab-sub" data-abas-sub="settings"></div>
       <div class="view-pane settings-pane" id="settings-pane-renda" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-renda" hidden>

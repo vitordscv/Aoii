@@ -504,36 +504,7 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
    de rolagem (a sombra visível). Rolar o conteúdo desliza o primeiro par e
    revela ou esconde o segundo — no início não há sombra à esquerda, no fim
    não há à direita, sem uma linha de JavaScript. */
-@media(max-width:559.98px){
-  /* A primeira versão usava o mesmo tamanho pro véu e pra sombra — os dois
-     bordos coincidiam e a sombra cortava seca, como uma linha, em vez de
-     esmaecer. Aqui o véu (que esconde a sombra enquanto ainda dá pra rolar
-     mais pra esse lado) é bem mais largo que a sombra, e a sombra é radial —
-     mais parecida com o vinheteamento suave de uma borda de verdade do que
-     com uma faixa reta. */
-  .tab-view>.view-tabs{
-    background-image:
-      linear-gradient(to right,var(--cream) 65%,rgba(0,0,0,0) 100%),
-      linear-gradient(to left,var(--cream) 65%,rgba(0,0,0,0) 100%),
-      radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.14),rgba(0,0,0,0)),
-      radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.14),rgba(0,0,0,0));
-    background-repeat:no-repeat;
-    background-size:34px 100%,34px 100%,16px 100%,16px 100%;
-    background-position:left center,right center,left center,right center;
-    background-attachment:local,local,scroll,scroll;
-  }
-  .settings-tabs{
-    background-image:
-      linear-gradient(to right,var(--surface,var(--white)) 65%,rgba(0,0,0,0) 100%),
-      linear-gradient(to left,var(--surface,var(--white)) 65%,rgba(0,0,0,0) 100%),
-      radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.14),rgba(0,0,0,0)),
-      radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.14),rgba(0,0,0,0));
-    background-repeat:no-repeat;
-    background-size:34px 100%,34px 100%,16px 100%,16px 100%;
-    background-position:left center,right center,left center,right center;
-    background-attachment:local,local,scroll,scroll;
-  }
-}
+
 
 /* ═══ ferramentas do topo: calculadora e conversor ═══ */
 
@@ -578,3 +549,25 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
   background:var(--white);color:var(--accent-ink);font-size:12px;font-weight:700;
   padding:9px 12px;cursor:pointer;}
 .fx-atualizar-btn:hover{background:var(--mist-lilac);}
+
+/* ═══ sombra de rolagem: uma camada por cima, não o fundo da fileira ═══
+   A primeira versão pintava a sombra no FUNDO da fileira de pílulas. Com
+   pílulas arredondadas e vãos entre elas, o fundo aparecia nos vãos e nas
+   pontas curvas em vez de esmaecer diante da última pílula inteira — a
+   sombra furava por trás em vez de cobrir por cima.
+
+   Aqui são duas faixas finas, por cima de tudo (z-index maior que as
+   pílulas), com pointer-events:none pra não roubar nenhum toque. A opacidade
+   real é calculada em JS a cada rolagem (ligarAbasDeVisao, em view-tabs.js):
+   1 quando ainda há pílula escondida daquele lado, 0 quando não há mais o
+   que ver — por isso elas nascem com opacity:0 e uma transição suave. */
+.tabs-scroll{position:relative;}
+.tabs-fade{position:absolute;top:0;bottom:0;width:28px;pointer-events:none;
+  opacity:0;transition:opacity .15s;z-index:3;}
+.tabs-fade-l{left:0;background:linear-gradient(to right,var(--cream),rgba(0,0,0,0));}
+.tabs-fade-r{right:0;background:linear-gradient(to left,var(--cream),rgba(0,0,0,0));}
+.tabs-scroll-settings .tabs-fade-l{background:linear-gradient(to right,var(--surface,var(--white)),rgba(0,0,0,0));}
+.tabs-scroll-settings .tabs-fade-r{background:linear-gradient(to left,var(--surface,var(--white)),rgba(0,0,0,0));}
+/* acima de 560px as barras quebram linha e não rolam mais (ver .view-tabs em
+   components.css) — a sombra não tem o que indicar */
+@media(min-width:560px){.tabs-fade{display:none;}}
