@@ -310,6 +310,11 @@ module.exports=function(t){
   ctxListas.removerViagem('v');
   t.igual(dadosListas.transacoes[0].viagemId,null,'remover viagem preserva a transação sem referência quebrada');
 
+  t.igual(ctxListas.definirOrcamento('Ausente',100),null,'orçamento de categoria inexistente é recusado');
+  t.igual(ctxListas.definirOrcamento('Outros',-1),null,'orçamento negativo é recusado');
+  ctxListas.definirOrcamento('Outros',250);
+  t.valor(dadosListas.orcamentos.Outros,250,'orçamento válido é salvo na categoria correta');
+
   console.log('\n\x1b[1mPlanejamento registra recebimento e compra no cartão\x1b[0m');
   const dadosPlano=base();
   const ctxPlano=criarAmbiente(dadosPlano,HOJE);

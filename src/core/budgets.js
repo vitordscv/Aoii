@@ -13,3 +13,12 @@ function computeGastoMesPorCategoria(){
   (data.gastosMensais||[]).forEach(g=>{ if(gastoFixoAtivoEm(g,y,m+1)) add(g.categoria,g.valor); });
   return map;
 }
+
+function definirOrcamento(categoria,valor){
+  if(!CATS().includes(categoria)) return null;
+  valor=Number(valor);
+  if(!Number.isFinite(valor)||valor<0) return null;
+  if(!data.orcamentos) data.orcamentos={};
+  data.orcamentos[categoria]=valor;
+  return valor;
+}

@@ -87,7 +87,7 @@ const FUNCOES=[
   'camposGastoFixo','criarGastoFixo','atualizarGastoFixo','removerGastoFixo','restaurarGastoFixo',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','camposRendaRecorrente','criarRendaRecorrente','atualizarRendaRecorrente',
   'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown',
-  'computeGastoMesPorCategoria','computeMonthSpend','computeWeekSummary','computeDailyBudget',
+  'computeGastoMesPorCategoria','definirOrcamento','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',

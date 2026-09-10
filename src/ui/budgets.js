@@ -25,9 +25,8 @@ function renderOrcamentos(){
   estouradas.map(e2=>`<div class="warn-banner">⚠️ ${L('budget.warning').replace('{cat}',catIcon(e2.cat)+' '+esc(categoriaLabel(e2.cat))).replace('{spent}',formatBRL(e2.gasto)).replace('{cap}',formatBRL(e2.teto))}</div>`).join('')+
   `<div class="orc-hint">${L('orc.hint')}</div>`;
   el.querySelectorAll('.orc-teto-input').forEach(inp=>inp.addEventListener('change',async e=>{
-    if(!data.orcamentos) data.orcamentos={};
     const v=parseNum(e.target.value);
-    data.orcamentos[e.target.getAttribute('data-cat')]=isNaN(v)||v<=0?0:v;
+    if(definirOrcamento(e.target.getAttribute('data-cat'),isNaN(v)||v<=0?0:v)===null) return;
     vibrate(8);
     await persist(); render();
   }));
