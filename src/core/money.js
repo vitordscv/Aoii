@@ -35,6 +35,14 @@ function parseNum(v){
   return neg?-n:n;
 }
 
+/* Percentual no idioma da pessoa. O número cru do JavaScript escreve sempre
+   com ponto: um brasileiro lia "14.9%" onde escreve 14,9%, e a calculadora
+   era o único canto do app com esse ponto. */
+function formatPct(n,casas){
+  if(!Number.isFinite(n)) return '—';
+  return n.toLocaleString(localeAtual(),
+    {minimumFractionDigits:0,maximumFractionDigits:casas==null?2:casas})+'%';
+}
 function formatBRL(n){
   const neg=n<-0.004, abs=Math.abs(n);
   const cfg=CURRENCY_INFO[data.moeda]||CURRENCY_INFO.BRL;

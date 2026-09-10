@@ -25,16 +25,26 @@ function atualizarTaxasManuais(taxas,atualizadoEm){
   return true;
 }
 
-/* juros simples e compostos, com aporte mensal opcional */
+/* Juros simples e compostos, com aporte mensal opcional.
+
+   Os dois lados usam A MESMA taxa mensal. Isso não é detalhe: antes o simples
+   usava a taxa proporcional (rAno/12) e o composto a equivalente
+   ((1+rAno)^(1/12)-1), que é sempre menor. Com aporte mensal, o simples
+   passava na frente do composto em qualquer prazo de até um ano — a tela
+   dizia que juros simples rendem mais que compostos, o que ninguém acredita
+   e com razão: não eram dois regimes comparados, eram duas taxas diferentes.
+
+   Com a mesma taxa mensal a comparação é honesta: iguais no primeiro mês,
+   composto à frente daí em diante, sempre. O preço é que "12% a.a." no
+   simples fecha o ano em 11,39% — que é o que juros simples de fato dão
+   quando a taxa mensal é a equivalente da anual. */
 function jurosProjetados(principal,aporteMensal,taxaAnualPct,meses){
-  const rAno=taxaAnualPct/100;
-  const rMes=Math.pow(1+rAno,1/12)-1; // equivalente mensal (composto)
-  const rMesSimples=rAno/12;          // proporcional (simples)
+  const rMes=Math.pow(1+taxaAnualPct/100,1/12)-1; // equivalente mensal
   let composto=principal*Math.pow(1+rMes,meses);
-  let simples=principal*(1+rMesSimples*meses);
+  let simples=principal*(1+rMes*meses);
   for(let i=1;i<=meses;i++){
     composto+=aporteMensal*Math.pow(1+rMes,meses-i);
-    simples+=aporteMensal*(1+rMesSimples*(meses-i));
+    simples+=aporteMensal*(1+rMes*(meses-i));
   }
   const investido=principal+aporteMensal*meses;
   return {simples,composto,investido};

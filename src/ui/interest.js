@@ -19,7 +19,8 @@ function refreshTaxasUI(){
   if(st){
     if(tm.cdi||tm.selic){
       const quando=tm.atualizadoEm?' · '+new Date(tm.atualizadoEm).toLocaleDateString(localeAtual()):'';
-      st.textContent=`CDI ${tm.cdi?tm.cdi+'% a.a.':'—'} · Selic ${tm.selic?tm.selic+'% a.a.':'—'}${quando}`;
+      const aa=L('inv.aoAno');
+      st.textContent=`CDI ${tm.cdi?formatPct(tm.cdi)+' '+aa:'—'} · Selic ${tm.selic?formatPct(tm.selic)+' '+aa:'—'}${quando}`;
     }else st.textContent=L('calc.taxasIndisponivel');
   }
   const ci=document.getElementById('taxa-cdi-manual'), si=document.getElementById('taxa-selic-manual');
@@ -45,11 +46,15 @@ function renderCalcResult(){
   let taxa=null,taxaLabel='';
   if(idx==='fixa'){
     const tf=parseNum((document.getElementById('calc-taxa-fixa')||{}).value)||0;
-    if(tf>0){ taxa=tf; taxaLabel=tf.toFixed(2)+'% a.a.'; }
+    if(tf>0){ taxa=tf; taxaLabel=formatPct(tf)+' '+L('inv.aoAno'); }
   }else{
     const base=taxaAnualDisponivel(idx);
     const pct=(parseNum((document.getElementById('calc-percent')||{}).value)||100)/100;
-    if(base!==null){ taxa=base*pct; taxaLabel=`${(pct*100).toFixed(0)}% do ${idx.toUpperCase()} (${base}% a.a.) = ${taxa.toFixed(2)}% a.a.`; }
+    if(base!==null){
+      taxa=base*pct;
+      const aa=L('inv.aoAno');
+      taxaLabel=`${formatPct(pct*100,0)} ${L('inv.doIndexador')} ${idx.toUpperCase()} (${formatPct(base)} ${aa}) = ${formatPct(taxa)} ${aa}`;
+    }
   }
   if(!P&&!A){ out.innerHTML=`<div class="inv-result-item"><div class="sub">${L('calc.preenchaValor')}</div></div>`; return; }
   if(taxa===null){ out.innerHTML=`<div class="inv-result-item"><div class="sub">${L('calc.semTaxa')}</div></div>`; return; }

@@ -18,19 +18,34 @@ module.exports=function(t){
   t.valor(semTaxa.simples,2200,'taxa zero não cria rendimento simples');
   t.valor(semTaxa.composto,2200,'taxa zero não cria rendimento composto');
 
+  /* A taxa mensal é a equivalente da anual, e vale para os dois regimes.
+     Antes o simples usava a proporcional (rAno/12), maior — e por isso ele
+     aparecia rendendo mais que o composto em prazos curtos com aporte. */
+  const rMes=Math.pow(1.12,1/12)-1;
+
   const umAno=ctx.jurosProjetados(1000,0,12,12);
-  t.valor(umAno.simples,1120,'12% ao ano rende 12% em um ano no cálculo simples');
   t.valor(umAno.composto,1120,'taxa mensal equivalente fecha 12% em um ano composto');
+  t.valor(umAno.simples,1000*(1+rMes*12),'o simples usa a mesma taxa mensal, sem capitalizar');
 
   const doisAnos=ctx.jurosProjetados(1000,0,12,24);
-  t.valor(doisAnos.simples,1240,'juros simples mantêm a base original por dois anos');
+  t.valor(doisAnos.simples,1000*(1+rMes*24),'juros simples mantêm a base original por dois anos');
   t.valor(doisAnos.composto,1254.4,'juros compostos acumulam rendimento no segundo ano');
-  t.verdadeiro(doisAnos.composto>doisAnos.simples,
-    'composto supera simples quando há mais de um período anual');
 
   const comAporte=ctx.jurosProjetados(1000,100,12,1);
   t.valor(comAporte.investido,1100,'aporte do mês entra no total investido');
-  t.valor(comAporte.simples,1110,'aporte feito no fim do mês ainda não rende no cálculo simples');
-  t.valor(comAporte.composto,1000*Math.pow(1.12,1/12)+100,
-    'aporte feito no fim do mês ainda não rende no cálculo composto');
+  t.valor(comAporte.simples,1000*(1+rMes)+100,'aporte feito no fim do mês ainda não rende no simples');
+  t.valor(comAporte.composto,1000*(1+rMes)+100,'nem no composto — e no primeiro mês os dois empatam');
+
+  /* O que a tela não pode voltar a dizer: que juros simples rendem mais.
+     O caso que quebrava era justamente este, com aporte e prazo curto. */
+  let inversoes=0, empates=0;
+  for(const aporte of [0,100,500]){
+    for(let n=1;n<=120;n++){
+      const r=ctx.jurosProjetados(1000,aporte,12,n);
+      if(r.composto<r.simples-1e-9) inversoes++;
+      else if(Math.abs(r.composto-r.simples)<1e-9) empates++;
+    }
+  }
+  t.igual(inversoes,0,'composto nunca fica atrás do simples, em prazo nenhum');
+  t.igual(empates,3,'os dois só empatam no primeiro mês');
 };

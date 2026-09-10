@@ -113,7 +113,7 @@
 .orc-top{display:flex;align-items:center;gap:8px;}
 .orc-nome{flex:1;font-size:12.5px;font-weight:600;color:var(--ink-navy);}
 .orc-gasto{font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted);}
-.orc-teto-input{width:86px;border:1px solid transparent;background:none;font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--num-color);text-align:right;padding:9px 5px;border-radius:6px;}
+.orc-teto-input{width:86px;min-height:40px;border:1px solid transparent;background:none;font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--num-color);text-align:right;padding:9px 5px;border-radius:6px;}
 .orc-teto-input:hover,.orc-teto-input:focus{border-color:var(--line);background:var(--cream);}
 .orc-bar-track{width:100%;height:8px;background:var(--mist-lilac);border-radius:6px;overflow:hidden;margin-top:7px;}
 .orc-bar-fill{height:100%;border-radius:6px;background:var(--pos);transition:width .6s cubic-bezier(.25,.8,.3,1);}
@@ -149,8 +149,19 @@
 .inv-item-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
 .inv-yield-tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;margin-top:4px;background:var(--mist-lilac);color:var(--ink-navy);}
 .inv-yield-tag.pos{background:color-mix(in srgb,var(--pos),transparent 92%);color:var(--pos);}
-.inv-calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px;}
+/* Alinhado pelo fim: "Aporte mensal (opcional)" ocupa duas linhas de rótulo e
+   "Valor investido" uma só. Alinhados pelo começo, as duas caixas de digitar
+   ficavam em alturas diferentes lado a lado — e o que a pessoa compara na
+   horizontal são as caixas, não os rótulos. */
+.inv-calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px;align-items:end;}
 .inv-calc-grid .sheet-field{margin-top:0;}
+/* o seletor de meses/anos pede a largura dele; o número fica com o resto */
+.calc-prazo-row{display:flex;gap:8px;}
+.calc-prazo-row input{flex:1;min-width:0;}
+.calc-prazo-row select{flex:0 0 auto;width:auto;min-width:96px;}
+/* são cinco campos: numa grade de duas colunas o prazo sobra sozinho e deixa
+   um buraco do lado. Ocupando a linha, ele fica proposital em vez de resto. */
+@media(max-width:560px){.inv-calc-grid .calc-prazo-field{grid-column:1/-1;}}
 .inv-result{background:var(--cream);border-radius:14px;padding:14px 16px;margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
 .inv-result-item .lbl{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted2);}
 .inv-result-item .val{font-family:'Nunito Sans',sans-serif;font-size:17px;font-weight:700;color:var(--num-color);margin-top:3px;}
@@ -159,7 +170,7 @@
 .inv-taxa-row button{border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--accent-ink);font-size:12px;font-weight:700;padding:7px 12px;cursor:pointer;}
 .inv-taxa-row button:hover{background:var(--mist-lilac);}
 .inv-taxa-manual{display:flex;gap:6px;align-items:center;}
-.inv-taxa-manual input{width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:'Nunito Sans',sans-serif;font-size:12px;}
+.inv-taxa-manual input{width:76px;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:'Nunito Sans',sans-serif;font-size:12px;}
 .div-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px;}
 .div-row:first-child{border-top:none;}
 .div-row .d-data{font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted2);flex:none;}
@@ -223,7 +234,7 @@ details[open]>.det-toggle{background:var(--mist-lilac);border-color:var(--disney
 .cal-row{border-bottom:1px solid var(--line);font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted);}
 .cal-row:last-child{border-bottom:none;}
 .cal-dia{font-weight:700;color:var(--ink-navy);font-size:13px;line-height:1.1;}
-.cal-dia small{display:block;font-size:9.5px;font-weight:600;color:var(--muted2);text-transform:uppercase;}
+.cal-dia small{display:block;font-size:10.5px;font-weight:600;color:var(--muted2);text-transform:uppercase;}
 .cal-gasto,.cal-plan{text-align:right;}
 .cal-gasto.ok{color:var(--pos);font-weight:600;}
 .cal-gasto.over{color:var(--neg);font-weight:700;}
@@ -402,7 +413,7 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 .ob-confirm{background:var(--disney-blue-deep);border:none;color:var(--on-accent);border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700;cursor:pointer;}
 
 /* botãozinho de ajuda contextual ── */
-.info-tip-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--mist-lilac);color:var(--muted);border:none;font-size:10px;font-weight:700;position:relative;}
+.info-tip-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--mist-lilac);color:var(--muted);border:none;font-size:10.5px;font-weight:700;position:relative;}
 /* área de toque de 32px sem mudar o tamanho desenhado */
 /* área de toque de 32px nas caixinhas de marcar, sem mudar o desenho */
 .item-check::before,.gasto-pago-check::before,.mini-check input::before,
@@ -439,10 +450,11 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 
 /* ÁREA DE TOQUE de 32 px em alvos pequenos, sem mudar o desenho.
    Acrescentou um controle miúdo (ícone, chip, caixinha)? O nome dele entra
-   aqui. Já esqueci duas vezes — a caixinha da conta paga e o chip do link. */
+   aqui. Já esqueci três vezes — a caixinha da conta paga, o chip do link e o X
+   das configurações. */
 .info-tip-btn::after,.revisao-close::after,.item-del::after,.gasto-del::after,
 .gasto-del-parc::after,.month-del::after,.cat-manage-del::after,.gm-del::after,
-.item-link::after{
+.item-link::after,.settings-close-btn::after{
   content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;transform:translate(-50%,-50%);
 }
 .revisao-close,.item-del,.gasto-del,.gasto-del-parc,.month-del,.cat-manage-del,.gm-del{position:relative;}

@@ -118,7 +118,7 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 @media(max-width:560px){
   .hero-eyebrow-row{row-gap:8px;}
   .hero-eyebrow{white-space:nowrap;}
-  .hero-date-input{font-size:11px;padding:3px 6px;letter-spacing:0;}
+  .hero-date-input{font-size:11px;padding:8px 8px;letter-spacing:0;}
 }
 .hero-eyebrow-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .hero-icon{width:34px;height:34px;border-radius:9px;object-fit:cover;margin-right:2px;flex-shrink:0;}
@@ -130,7 +130,7 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
      do hero dá ~3:1, e a data fica quase invisível */
   border-radius:7px;color:var(--hero-text);
   font-family:'Nunito Sans',sans-serif;font-size:11.5px;font-weight:600;
-  letter-spacing:.04em;padding:3px 8px;cursor:pointer;
+  letter-spacing:.04em;padding:8px 10px;cursor:pointer;
 border-color:rgba(255,255,255,.42);}
 .hero-date-input::-webkit-calendar-picker-indicator{filter:invert(.65) sepia(.5) hue-rotate(200deg);cursor:pointer;margin-left:4px;padding:0;}
 .hero-number{font-family:'Sora',sans-serif;font-weight:600;font-size:clamp(38px,7vw,72px);line-height:1.04;margin:10px 0 2px;}
@@ -620,7 +620,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .reserva-controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
 .reserva-field{flex:1;min-width:132px;display:flex;flex-direction:column;gap:5px;}
 .reserva-field span{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);}
-.reserva-field input,.reserva-field select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;min-height:36px;}
+.reserva-field input,.reserva-field select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;min-height:40px;}
 .reserva-field select{padding-right:26px;}
 .reserva-field input{font-family:'Nunito Sans',sans-serif;}
 .reserva-onde-campo{flex-basis:100%;}
@@ -631,7 +631,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .reserva-sugestao b{color:var(--ink-navy);font-weight:700;}
 .meta-simulador-title{font-size:12.5px;font-weight:700;margin-bottom:10px;}
 .meta-simulador-row{display:flex;gap:8px;flex-wrap:wrap;}
-.meta-simulador-row input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;}
+.meta-simulador-row input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;min-height:40px;}
 .meta-simulador-resultado{margin-top:10px;font-size:13px;font-weight:600;color:var(--ink-navy);}
 /* Embaixo do card, no mesmo plano dele: mesma superfície e mesma sombra do
    .cat-card acima. Transparente e sem sombra, encostado num card elevado, ele
@@ -813,7 +813,8 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .gf-item-row.paused .gf-item-valor{text-decoration:line-through;}
 .gf-empty-state{text-align:center;padding:34px 18px;color:var(--muted2);font-size:13px;}
 .gf-empty-icon{font-size:26px;margin-bottom:8px;}
-.gf-empty-add-link{background:none;border:none;color:var(--accent-ink);font-weight:700;font-size:13px;cursor:pointer;margin-top:6px;}
+/* é o único caminho de saída de um estado vazio: tinha 20 px de altura */
+.gf-empty-add-link{background:none;border:none;color:var(--accent-ink);font-weight:700;font-size:13px;cursor:pointer;margin-top:2px;padding:8px 4px;}
 .gf-new-btn{width:100%;background:var(--mist-lilac);color:var(--ink-navy);border:none;border-radius:14px;padding:13px;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;}
 .gf-new-btn:hover{background:var(--line);}
 .gf-ativo-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;background:var(--cream);border-radius:12px;}
@@ -923,7 +924,9 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
   border-bottom:1px solid var(--line);
 }
 .settings-modal-head{padding-bottom:16px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--white);}
-.settings-close-btn{background:none;border:1px solid var(--line);border-radius:9px;width:30px;height:30px;font-size:14px;color:var(--muted);cursor:pointer;}
+/* 30x30 desenhados, 32x32 de toque (a regra dos alvos pequenos): é o botão de
+   fechar as configurações e fica no canto, onde o polegar erra fácil. */
+.settings-close-btn{position:relative;background:none;border:1px solid var(--line);border-radius:9px;width:30px;height:30px;font-size:14px;color:var(--muted);cursor:pointer;}
 .settings-close-btn:hover{background:var(--mist-lilac);color:var(--ink-navy);}
 
 .settings-body{padding:10px 0 28px;}

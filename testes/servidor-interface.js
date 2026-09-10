@@ -79,6 +79,21 @@ async function atender(req,res){
     res.setHeader('Content-Security-Policy',"connect-src 'self'; worker-src 'none'");
     return responder(res,200,'text/html; charset=utf-8',html);
   }
+  /* O resto do que está em dist/: logo, ícones, a página da faixa de
+     cotações. Sem isto o ensaio mostrava um app sem logo e sem faixa — e um
+     ensaio que não parece o app não serve para conferir o app. Só dist/, e
+     só o que estiver mesmo dentro dela. */
+  const alvo=path.resolve(raiz,'dist',url.pathname.replace(/^[/]+/,''));
+  const dentro=path.resolve(raiz,'dist')+path.sep;
+  if(alvo.startsWith(dentro)&&fs.existsSync(alvo)&&fs.statSync(alvo).isFile()){
+    const tipos={'.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon',
+      '.js':'text/javascript','.css':'text/css','.json':'application/json',
+      '.webmanifest':'application/manifest+json','.woff2':'font/woff2',
+      '.html':'text/html; charset=utf-8'};
+    const tipo=tipos[path.extname(alvo).toLowerCase()]||'application/octet-stream';
+    res.writeHead(200,{'Content-Type':tipo,'Cache-Control':'no-store'});
+    return res.end(fs.readFileSync(alvo));
+  }
   return responder(res,404,'text/plain','Não encontrado');
 }
 for(const porta of [4173,4174]){

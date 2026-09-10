@@ -500,11 +500,11 @@
           <label data-i18n="calc.fixedRate">Taxa fixa (% a.a.)</label>
           <input type="text" inputmode="decimal" step="0.01" min="0" id="calc-taxa-fixa" placeholder="10">
         </div>
-        <div class="sheet-field">
+        <div class="sheet-field calc-prazo-field">
           <label data-i18n="calc.prazo">Prazo</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" inputmode="decimal" min="1" id="calc-prazo" value="12" style="width:80px;">
-            <select id="calc-prazo-unidade" style="flex:1;">
+          <div class="calc-prazo-row">
+            <input type="text" inputmode="decimal" min="1" id="calc-prazo" value="12">
+            <select id="calc-prazo-unidade">
               <option value="meses" data-i18n="inv.meses">meses</option>
               <option value="anos" data-i18n="common.years">anos</option>
             </select>
