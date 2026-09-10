@@ -15,6 +15,7 @@ function aparelho(storage=criarArmazenamentoFalso()){
     document:{getElementById:()=>null},setTimeout:(fn,ms)=>{timers.set(++id,{fn,ms});return id;},
     clearTimeout:n=>timers.delete(n),adotarDadosDeFora:d=>({ok:true,data:d}),
     pedirSenhaSync:async()=> 'senha-teste',alertDialog:async()=>{},
+    consultarSincronizacao:async()=>({resultado:'cifrada'}),
     esquecerSenha:()=>{c.esqueceuSenha=true;},
   };
   c.window={addEventListener:(nome,fn)=>{eventos[nome]=fn;}};
@@ -92,6 +93,7 @@ module.exports=async t=>{
   t.igual(h.c.sync.revisao,1,'dados recusados não avançam a revisão local');
 
   const legado=aparelho();let migrou=false;
+  legado.c.consultarSincronizacao=async()=>({resultado:'migrar'});
   legado.c.abrirSincronizacao=async()=>({resultado:'migrar',dados:{saldoAtual:4321}});
   legado.c.exigirBackupAntesDeCifrar=async()=>false;
   legado.c.conduzirMigracao=async()=>{migrou=true;return true;};
@@ -101,6 +103,7 @@ module.exports=async t=>{
   t.igual(legado.c.sync.revisao,1,'cancelar o backup restaura a sessão anterior');
 
   const inexistente=aparelho();inexistente.c.abrirSincronizacao=async()=>({resultado:'nova'});
+  inexistente.c.consultarSincronizacao=async()=>({resultado:'nova'});
   inexistente.c.exigirBackupAntesDeCifrar=async()=>false;
   t.igual(await inexistente.c.destrancarSincronizacao('CODIGONOVO12'),false,'código inexistente também exige backup antes do primeiro envio');
   t.igual(inexistente.c.code,'FILA12345','cancelar a criação restaura o código anterior');

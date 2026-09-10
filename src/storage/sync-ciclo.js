@@ -69,6 +69,19 @@ function esquecerSenha() {
   sync.status = sync.codigo ? 'precisa-senha' : 'desligada';
 }
 
+/* Consulta sem tocar na sessão. A interface usa isto para explicar se a
+   pessoa vai criar uma senha ou destrancar uma cópia que já existe. */
+async function consultarSincronizacao(codigo) {
+  if (!codigo) return { resultado: 'erro', motivo: 'sem-codigo' };
+  let remoto;
+  try { remoto = await nuvemLer(codigo); }
+  catch (e) { return { resultado: 'erro', motivo: 'rede' }; }
+  if (!remoto) return { resultado: 'nova' };
+  return ehEnvelopeCifrado(remoto.envelope)
+    ? { resultado: 'cifrada' }
+    : { resultado: 'migrar' };
+}
+
 /* ── abrir ──────────────────────────────────────────────────────────────────
    Liga a sincronização de um código com uma senha. Descobre sozinha em qual
    dos três mundos está: código novo, cópia já cifrada, ou registro antigo em

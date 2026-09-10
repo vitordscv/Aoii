@@ -82,7 +82,21 @@ async function abrirSyncPelaInterface(codigo){
     renderStatusSync();
   };
 
-  const senha=await pedirSenhaSync({
+  const consulta=await consultarSincronizacao(codigo);
+  if(consulta.resultado==='erro'){
+    sync.status='erro';
+    setSaveStatus(L('st.syncErro'));
+    renderStatusSync();
+    return false;
+  }
+  const criando=consulta.resultado==='nova'||consulta.resultado==='migrar';
+  if(criando&&!await exigirBackupAntesDeCifrar()) return false;
+  const senha=await pedirSenhaSync(criando?{
+    titulo:consulta.resultado==='migrar'?L('senha.migrarTitulo'):L('senha.novaTitulo'),
+    texto:consulta.resultado==='migrar'?L('senha.migrarTexto'):L('senha.novaTexto'),
+    confirmar:true,
+    okLabel:consulta.resultado==='migrar'?L('senha.migrarOk'):L('senha.criarOk'),
+  }:{
     titulo:L('senha.destrancarTitulo'),
     texto:L('senha.destrancarTexto').replace('{codigo}',codigo),
   });
@@ -111,17 +125,11 @@ async function abrirSyncPelaInterface(codigo){
   const pendente=codigo===anterior&&espelhoPendente();
   setSyncCode(codigo);
   if(r.resultado==='migrar'){
-    if(!await exigirBackupAntesDeCifrar()){
-      restaurarAnterior(); return false;
-    }
     const concluiu=await conduzirMigracao(r.dados);
     if(!concluiu) restaurarAnterior();
     return concluiu;
   }
   if(r.resultado==='nova'){
-    if(!await exigirBackupAntesDeCifrar()){
-      restaurarAnterior(); return false;
-    }
     confirmarRevisaoLocal(0);
     agendarEspelho();
     return true;

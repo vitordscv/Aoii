@@ -47,6 +47,14 @@ module.exports=async function(t){
   t.igual(nuvem.linhas.get(CODIGO).write_token_hash,null,
     'registro antigo não tem token de escrita — qualquer um grava nele');
 
+  const sessaoAntesDaConsulta=JSON.stringify(A.sync);
+  t.igual((await A.consultarSincronizacao(CODIGO)).resultado,'migrar',
+    'a consulta identifica a cópia antiga antes de pedir uma senha');
+  t.igual(JSON.stringify(A.sync),sessaoAntesDaConsulta,
+    'a consulta não altera a sessão antes da pessoa confirmar a criação');
+  t.igual((await A.consultarSincronizacao('CODIGO-NOVO')).resultado,'nova',
+    'código ausente é identificado como uma criação nova');
+
   /* ── 2. o aparelho A abre com uma senha e reconhece que é migração ── */
   const abrir=await A.abrirSincronizacao(CODIGO,SENHA);
   t.igual(abrir.resultado,'migrar','registro em texto puro é reconhecido como "a migrar"');
