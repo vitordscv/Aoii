@@ -34,8 +34,9 @@ function renderSettings(){
       ${nm}
     </label>`).join('');
   document.querySelectorAll('#cfg-dias-trabalho input').forEach(el=>el.addEventListener('change',async()=>{
-    data.diasTrabalho=[...document.querySelectorAll('#cfg-dias-trabalho input')]
+    const dias=[...document.querySelectorAll('#cfg-dias-trabalho input')]
       .filter(c=>c.checked).map(c=>parseInt(c.getAttribute('data-weekday'),10));
+    if(!definirDiasTrabalho(dias)) return;
     await persist(); render();
   }));
   renderSkipDays();
@@ -54,7 +55,7 @@ function renderSkipDays(){
   }).join('');
   el.querySelectorAll('[data-action="del-skip"]').forEach(btn=>btn.addEventListener('click',async e=>{
     const date=e.target.getAttribute('data-date');
-    data.diasNaoTrabalhados=(data.diasNaoTrabalhados||[]).filter(d=>d!==date);
+    if(!removerDiaNaoTrabalhado(date)) return;
     await persist(); render();
   }));
 }

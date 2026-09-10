@@ -21,6 +21,31 @@ function getTargetDate(){
   const t=today(); return new Date(t.getFullYear(),11,31,23,59,59);
 }
 
+function definirDiasTrabalho(dias){
+  if(!Array.isArray(dias)) return null;
+  const unicos=[...new Set(dias)];
+  if(unicos.some(dia=>!Number.isInteger(dia)||dia<0||dia>6)) return null;
+  data.diasTrabalho=unicos.sort((a,b)=>a-b);
+  return data.diasTrabalho;
+}
+function diaCalendarioValido(valor){
+  if(typeof valor!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
+  const dataTeste=new Date(valor+'T12:00:00');
+  return !isNaN(dataTeste)&&dataTeste.toISOString().slice(0,10)===valor;
+}
+function adicionarDiaNaoTrabalhado(valor){
+  if(!diaCalendarioValido(valor)) return false;
+  if(!data.diasNaoTrabalhados) data.diasNaoTrabalhados=[];
+  if(data.diasNaoTrabalhados.includes(valor)) return false;
+  data.diasNaoTrabalhados.push(valor);
+  return true;
+}
+function removerDiaNaoTrabalhado(valor){
+  if(!data.diasNaoTrabalhados||!data.diasNaoTrabalhados.includes(valor)) return false;
+  data.diasNaoTrabalhados=data.diasNaoTrabalhados.filter(dia=>dia!==valor);
+  return true;
+}
+
 /* ─── work day calculations ─── */
 
 function daysBetweenInclusive(start,end,weekdaySet,skipSet=new Set()){
@@ -88,4 +113,3 @@ function monthMetrics(fatura){
   const isAtual=ano===t.getFullYear()&&mes===t.getMonth()+1;
   return {renda,gastosCusto,gastosMensaisDetalhe,gastosMensaisCusto,despesas,saldoMes,isPast,isAtual};
 }
-

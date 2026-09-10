@@ -340,10 +340,7 @@ function bindStatic(){
   document.getElementById('skip-day-add').addEventListener('click',async()=>{
     const input=document.getElementById('skip-day-input');
     const ds=input.value; if(!ds) return;
-    if(!data.diasNaoTrabalhados) data.diasNaoTrabalhados=[];
-    if(!data.diasNaoTrabalhados.includes(ds)){
-      data.diasNaoTrabalhados.push(ds); await persist(); render();
-    }
+    if(adicionarDiaNaoTrabalhado(ds)){ await persist(); render(); }
     input.value='';
   });
 

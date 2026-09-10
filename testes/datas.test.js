@@ -42,6 +42,14 @@ module.exports=function(t){
   t.valor(c4.monthMetrics({ano:2026,mes:9,valor:0,pago:true,gastos:[]}).renda,8*100,
     'dias marcados como não trabalhados saem da conta');
 
+  t.igual(c4.definirDiasTrabalho([6,4,6,5]).join(','),'4,5,6',
+    'dias de trabalho são ordenados e não se repetem');
+  t.igual(c4.definirDiasTrabalho([7]),null,'dia da semana inválido é recusado');
+  t.verdadeiro(c4.adicionarDiaNaoTrabalhado('2026-09-12'),'aceita uma folga em data real');
+  t.igual(c4.adicionarDiaNaoTrabalhado('2026-02-30'),false,'recusa uma data de folga impossível');
+  t.igual(c4.adicionarDiaNaoTrabalhado('2026-09-12'),false,'não duplica uma folga');
+  t.verdadeiro(c4.removerDiaNaoTrabalhado('2026-09-12'),'remove a folga existente');
+
   console.log('\n\x1b[1mMês já encerrado\x1b[0m');
   const d5=base();
   d5.faturas=[{id:'fp',mes:7,ano:2026,valor:300,pago:false,gastos:[],cartaoId:null}];
