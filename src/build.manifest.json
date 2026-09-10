@@ -35,6 +35,7 @@
     "core/transactions.js",
     "core/fixed-expenses.js",
     "core/metrics.js",
+    "core/daily-budget.js",
     "core/defaults.js",
     "storage/local-storage.js",
     "ui/effects.js",
