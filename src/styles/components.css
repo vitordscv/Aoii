@@ -7,8 +7,11 @@
   box-shadow:0 6px 20px -8px rgba(0,0,0,.12);
   gap:10px;
 }
-.topbar-title{flex:1;text-align:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink-navy);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;}
-.topbar-right{display:flex;align-items:center;gap:12px;}
+/* base zero e crescimento igual nos dois lados: cada um fica com metade do
+   espaço livre, e o título no meio deles é o meio da barra. Com flex:1 no
+   título ele se centrava no que sobrava — que nunca foi simétrico. */
+.topbar-title{flex:0 1 auto;text-align:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink-navy);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;}
+.topbar-right{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex:1 1 0;}
 .theme-select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);cursor:pointer;padding-right:26px;}
 /* mesma cor dos ícones da barra de baixo (.bn-item usa --muted): os dois
    são navegação, e navegação em duas cores parece dois apps. */
@@ -16,6 +19,14 @@
 .topbar-settings-btn:hover{background:var(--mist-lilac);color:var(--ink-navy);transform:scale(1.05);}
 /* mesmo tamanho dos ícones da barra de baixo, pro par ficar coerente */
 .topbar-settings-btn svg{width:20px;height:20px;}
+/* Telas de 320 px: três botões de 38 com 12 de vão ocupam 138, mais do que a
+   metade do que sobra — e aí o lado direito manda no meio, e o título sai do
+   centro outra vez. Vão e recuo menores devolvem a simetria sem encolher
+   nenhum alvo de toque. */
+@media(max-width:400px){
+  .topbar{padding-left:12px;padding-right:12px;}
+  .topbar-right{gap:8px;}
+}
 @media(min-width:760px){
   .topbar{max-width:1080px;left:50%;transform:translateX(-50%);top:16px;border-radius:22px;border:1px solid var(--line);padding:12px 20px;}
 }
@@ -33,7 +44,7 @@
 .ct-item input[type=color]{width:32px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:none;}
 .ct-preset{font-size:11.5px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:var(--cream);color:var(--muted);cursor:pointer;}
 .ct-preset:hover{background:var(--mist-lilac);}
-.brand{display:flex;align-items:center;gap:10px;}
+.brand{display:flex;align-items:center;gap:10px;flex:1 1 0;}
 .brand-mark{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;}
 .brand-mark-img{width:100%;height:100%;object-fit:contain;display:block;transition:filter .2s;}
 /* matiz da logo acompanha o tema (a arte original é azul — Onda/Noite ficam como estão) */
