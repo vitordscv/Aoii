@@ -309,6 +309,16 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
   .item-texts{gap:3px;}
   .item-cartao-tag{line-height:1.35;}
 }
+/* a dívida usa a grade em qualquer largura: ver acima */
+.divida-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px 10px;align-items:start;}
+.divida-row>.item-check{grid-column:1;grid-row:1;margin-top:3px;}
+.divida-row>.item-texts{grid-column:2;grid-row:1;min-width:0;}
+.divida-row>.item-del{grid-column:3;grid-row:1;}
+.divida-row>.item-modo{grid-column:1/3;grid-row:2;justify-self:start;max-width:100%;}
+.divida-row>.item-valor{grid-column:3;grid-row:2;justify-self:end;align-self:center;}
+.divida-row>.item-data{grid-column:1/4;grid-row:3;width:100%;text-align:left;border-color:var(--line);min-height:32px;}
+/* quitada: sem seletor nem data, o valor sobe pra faixa 2 sozinho */
+.divida-row:not(:has(.item-modo))>.item-valor{grid-column:2/4;grid-row:2;}
 .item-row:first-of-type{border-top:none;}
 .item-row.feito .item-nome{text-decoration:line-through;color:var(--muted3);}
 .item-row.feito .item-valor{color:var(--muted3);}
