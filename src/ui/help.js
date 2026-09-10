@@ -83,6 +83,8 @@ async function init(){
     }
   });
   setupSettingsModal();
+  setupCalculadoraSheet();
+  setupConversorSheet();
   setupGastoSheet();
   setupIaChatSheet();
   setupGastoFixoSheet();

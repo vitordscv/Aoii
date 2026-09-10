@@ -498,3 +498,41 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 .conflito-acoes{display:flex;flex-direction:column;gap:8px;}
 .conflito-acoes button{width:100%;text-align:center;}
 @media(max-width:420px){ .conflito-lados{grid-template-columns:1fr;} }
+
+/* ═══ ferramentas do topo: calculadora e conversor ═══ */
+
+/* O visor cresce de baixo para cima: a conta digitada fica acima, pequena, e o
+   resultado embaixo, grande. É a ordem em que se lê uma conta no papel. */
+.calcz-visor{background:var(--cream);border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;margin-top:12px;min-height:76px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:3px;}
+.calcz-expr{font-family:'Nunito Sans',sans-serif;font-size:13px;color:var(--muted);
+  min-height:18px;text-align:right;word-break:break-all;}
+.calcz-resultado{display:block;font-family:'Sora',sans-serif;font-weight:600;
+  font-size:clamp(26px,7vw,34px);line-height:1.12;color:var(--num-color);
+  text-align:right;word-break:break-all;}
+.calcz-resultado.erro{font-family:'Nunito Sans',sans-serif;font-size:13.5px;
+  font-weight:600;color:var(--muted);}
+
+.calcz-teclas{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.calcz-tecla{min-height:52px;border:1px solid var(--line);border-radius:12px;
+  background:var(--white);color:var(--ink-navy);font-family:'Nunito Sans',sans-serif;
+  font-size:18px;font-weight:700;cursor:pointer;}
+.calcz-tecla:hover{background:var(--mist-lilac);}
+.calcz-tecla:active{transform:translateY(1px);}
+.calcz-aux{font-size:15px;color:var(--muted);}
+.calcz-op{color:var(--accent-ink);}
+.calcz-igual{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);color:var(--on-accent);}
+.calcz-igual:hover{background:var(--ink-navy);border-color:var(--ink-navy);}
+
+/* O botão de inverter fica ENTRE os dois seletores e alinhado com eles, não
+   com os rótulos — por isso o align-items:end e a margem de baixo. */
+.fx-par{display:flex;align-items:end;gap:10px;margin-top:12px;}
+.fx-par .sheet-field{flex:1;min-width:0;margin-top:0;}
+.fx-trocar{flex:none;width:40px;height:40px;margin-bottom:1px;border:1px solid var(--line);
+  border-radius:11px;background:var(--white);color:var(--accent-ink);
+  font-size:16px;line-height:1;cursor:pointer;}
+.fx-trocar:hover{background:var(--mist-lilac);}
+.fx-resultado{display:block;margin-top:14px;font-family:'Sora',sans-serif;font-weight:600;
+  font-size:clamp(24px,6.5vw,32px);line-height:1.12;color:var(--num-color);word-break:break-all;}
+.fx-nota{margin-top:6px;font-size:12px;color:var(--muted);}

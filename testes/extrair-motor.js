@@ -95,7 +95,9 @@ const FUNCOES=[
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
-  'empurrarParaNuvem','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline'
+  'empurrarParaNuvem','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',
+  'avaliarExpressao','calcAceita',
+  'taxaEntre','converterMoeda','moedasDaTabela','tabelaDeCambioValida'
 ];
 
 function montarMotor(arquivo){

@@ -40,6 +40,24 @@
   </div>
   <div class="topbar-title">Aoii</div>
   <div class="topbar-right">
+  <!-- Ferramentas: a calculadora e o conversor de moedas. Ficam no topo, e não
+       dentro de uma aba, porque não pertencem a nenhuma — são para usar NO MEIO
+       de outra coisa, com o número que se está digitando na cabeça. Mesmo
+       traço da engrenagem e dos ícones de baixo: viewBox 24, sem preenchimento,
+       contorno em currentColor. -->
+  <button type="button" id="topbar-calc-btn" class="topbar-settings-btn" title="Calculadora" data-i18n-title="tools.calcTitulo" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <rect x="4.2" y="2.8" width="15.6" height="18.4" rx="2.6"></rect>
+      <rect x="7.4" y="6" width="9.2" height="3.2" rx="1"></rect>
+      <path d="M8.2 13h.01M12 13h.01M15.8 13h.01M8.2 17h.01M12 17h.01M15.8 17h.01"></path>
+    </svg>
+  </button>
+  <button type="button" id="topbar-fx-btn" class="topbar-settings-btn" title="Conversor de moedas" data-i18n-title="tools.fxTitulo" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="M4 8.6h13.4"></path><path d="M14.2 5.2 17.6 8.6 14.2 12"></path>
+      <path d="M20 15.4H6.6"></path><path d="M9.8 12 6.4 15.4 9.8 18.8"></path>
+    </svg>
+  </button>
   <!-- Engrenagem desenhada no mesmo traço dos ícones da barra de baixo:
        viewBox 24, sem preenchimento, contorno em currentColor, espessura 2.
        Antes era o emoji ⚙️, que cada sistema operacional desenha do seu jeito
@@ -874,6 +892,72 @@
   </div>
 
   <!-- ══════ BOTTOM SHEET: Novo cartão (Configurações) ══════ -->
+  <!-- ══════ FERRAMENTAS: calculadora e conversor de moedas ══════ -->
+  <div class="sheet-backdrop" id="calc-sheet-backdrop" style="display:none;"></div>
+  <div class="bottom-sheet" id="calc-sheet" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="calc-sheet-title">
+    <div class="sheet-grab" data-sheet-grab=""><div class="sheet-handle"></div></div>
+    <div class="sheet-title" id="calc-sheet-title" data-i18n="tools.calcTitulo">Calculadora</div>
+    <div class="sheet-subtitle" data-i18n="tools.calcSub">Conferir uma conta sem sair do que você estava fazendo.</div>
+    <div class="calcz-visor">
+      <div class="calcz-expr" id="calcz-expr"></div>
+      <output class="calcz-resultado" id="calcz-resultado" for="calcz-expr" aria-live="polite">0</output>
+    </div>
+    <div class="calcz-teclas" id="calcz-teclas">
+      <button type="button" class="calcz-tecla calcz-aux" data-tecla="limpar" aria-label="Limpar" data-i18n-aria-label="tools.limpar">C</button>
+      <button type="button" class="calcz-tecla calcz-aux" data-tecla="paren" aria-label="Parênteses" data-i18n-aria-label="tools.parenteses">( )</button>
+      <button type="button" class="calcz-tecla calcz-aux" data-tecla="%" aria-label="Por cento" data-i18n-aria-label="tools.porCento">%</button>
+      <button type="button" class="calcz-tecla calcz-op" data-tecla="÷" aria-label="Dividir" data-i18n-aria-label="tools.dividir">÷</button>
+      <button type="button" class="calcz-tecla" data-tecla="7">7</button>
+      <button type="button" class="calcz-tecla" data-tecla="8">8</button>
+      <button type="button" class="calcz-tecla" data-tecla="9">9</button>
+      <button type="button" class="calcz-tecla calcz-op" data-tecla="×" aria-label="Multiplicar" data-i18n-aria-label="tools.multiplicar">×</button>
+      <button type="button" class="calcz-tecla" data-tecla="4">4</button>
+      <button type="button" class="calcz-tecla" data-tecla="5">5</button>
+      <button type="button" class="calcz-tecla" data-tecla="6">6</button>
+      <button type="button" class="calcz-tecla calcz-op" data-tecla="−" aria-label="Subtrair" data-i18n-aria-label="tools.subtrair">−</button>
+      <button type="button" class="calcz-tecla" data-tecla="1">1</button>
+      <button type="button" class="calcz-tecla" data-tecla="2">2</button>
+      <button type="button" class="calcz-tecla" data-tecla="3">3</button>
+      <button type="button" class="calcz-tecla calcz-op" data-tecla="+" aria-label="Somar" data-i18n-aria-label="tools.somar">+</button>
+      <button type="button" class="calcz-tecla" data-tecla="0">0</button>
+      <button type="button" class="calcz-tecla" data-tecla="sep" id="calcz-tecla-sep">,</button>
+      <button type="button" class="calcz-tecla calcz-aux" data-tecla="apagar" aria-label="Apagar" data-i18n-aria-label="tools.apagar">⌫</button>
+      <button type="button" class="calcz-tecla calcz-igual" data-tecla="igual" aria-label="Igual" data-i18n-aria-label="tools.igual">=</button>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="sheet-cancel-btn" id="calc-sheet-cancel" data-i18n="tools.fechar">Fechar</button>
+      <button type="button" class="sheet-submit-btn" id="calcz-copiar" data-i18n="tools.copiar">Copiar resultado</button>
+    </div>
+  </div>
+
+  <div class="sheet-backdrop" id="fx-sheet-backdrop" style="display:none;"></div>
+  <div class="bottom-sheet" id="fx-sheet" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="fx-sheet-title">
+    <div class="sheet-grab" data-sheet-grab=""><div class="sheet-handle"></div></div>
+    <div class="sheet-title" id="fx-sheet-title" data-i18n="tools.fxTitulo">Conversor de moedas</div>
+    <div class="sheet-subtitle" data-i18n="tools.fxSub">Taxas de referência do Banco Central Europeu, publicadas uma vez por dia útil.</div>
+    <div class="sheet-field">
+      <label for="fx-valor" data-i18n="tools.fxValor">Valor</label>
+      <input type="text" inputmode="decimal" id="fx-valor" placeholder="0,00">
+    </div>
+    <div class="fx-par">
+      <div class="sheet-field">
+        <label for="fx-de" data-i18n="tools.fxDe">De</label>
+        <select id="fx-de"></select>
+      </div>
+      <button type="button" class="fx-trocar" id="fx-trocar" title="Inverter" data-i18n-title="tools.fxInverter" aria-label="Inverter as moedas" data-i18n-aria-label="tools.fxInverter">⇄</button>
+      <div class="sheet-field">
+        <label for="fx-para" data-i18n="tools.fxPara">Para</label>
+        <select id="fx-para"></select>
+      </div>
+    </div>
+    <output class="fx-resultado" id="fx-resultado" aria-live="polite">—</output>
+    <div class="fx-nota" id="fx-nota" data-i18n="tools.fxSemTabela">Ainda não busquei as cotações neste aparelho.</div>
+    <div class="sheet-actions">
+      <button type="button" class="sheet-cancel-btn" id="fx-sheet-cancel" data-i18n="tools.fechar">Fechar</button>
+      <button type="button" class="sheet-submit-btn" id="fx-atualizar" data-i18n="tools.fxAtualizar">↻ Atualizar cotações</button>
+    </div>
+  </div>
+
   <div class="sheet-backdrop" id="cartao-sheet-backdrop" style="display:none;"></div>
   <div class="bottom-sheet" id="cartao-sheet" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="cartao-sheet-title">
     <div class="sheet-grab" data-sheet-grab=""><div class="sheet-handle"></div></div>

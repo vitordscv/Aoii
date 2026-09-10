@@ -531,3 +531,32 @@ antes da persistência.
 O onboarding usa `configurarPerfilFinanceiro()` em `core/preferences.js`, a mesma
 regra que atualiza renda e saldo nas configurações. Assim, o primeiro acesso não
 abre uma exceção para dados inválidos ou estado parcial.
+
+
+## Retomada em 10/09/2026 — calculadora e conversor de moedas
+
+Duas ferramentas no topo, ao lado das configurações. Nenhuma delas escreve em
+`data`, e essa foi a decisão que precisava ser tomada.
+
+A calculadora não guarda nada. Ela avalia a expressão em `core/calculator.js`,
+com uma gramática de vinte linhas — **não existe `eval()`**, e é de propósito:
+o app guarda dinheiro, e "só desta vez" é como essa porta costuma se abrir. O
+avaliador devolve `NaN` para tudo que não fecha (expressão pela metade,
+parêntese solto, divisão por zero) em vez de chutar um número.
+
+O conversor guarda a tabela de cotações em `localStorage` (`aoii-cambio`), não
+em `data`. Dois motivos: a tabela muda todo dia e faria a sincronização gravar
+na nuvem por causa de um dado público que qualquer aparelho busca sozinho; e ela
+não é informação do usuário — perdê-la custa uma ida à rede, não custa um dado
+dele. Por isso ela também não passa pelo esquema nem pela migração; quem valida
+é `tabelaDeCambioValida()` em `core/fx.js`, na entrada.
+
+A fonte é a api.frankfurter.dev, que republica as taxas de referência do Banco
+Central Europeu: sem chave, sem cadastro, CORS aberto. São taxas de referência
+publicadas uma vez por dia útil, não cotação de mercado ao vivo — a tela mostra
+a data de cada uma para que as duas coisas não sejam confundidas. Sem rede, a
+tabela guardada continua respondendo e a nota passa a dizer de quando ela é.
+
+A conversão entre duas moedas que não são a base é uma divisão só
+(`taxas[para]/taxas[de]`), não dois saltos pela base — dois saltos dariam o
+mesmo número arredondando duas vezes.

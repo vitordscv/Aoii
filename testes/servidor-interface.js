@@ -76,7 +76,11 @@ async function atender(req,res){
     </script>`;
     html=html.replace('<head>','<head>'+boot);
     html=html.replace('</body>',`<aside style="position:fixed;bottom:0;left:0;z-index:1;background:#fff;color:#000;font:12px monospace">ENSAIO ${porta} · Novo: ${codigo} · Legado: ${codigoLegado}</aside></body>`);
-    res.setHeader('Content-Security-Policy',"connect-src 'self'; worker-src 'none'");
+    /* A CSP do ensaio existe pra impedir que ele fale com o Supabase de
+       PRODUÇÃO. As duas APIs públicas de cotação (taxas do BC brasileiro e
+       câmbio do BCE) não são esse risco e o app as usa de verdade — sem elas
+       aqui, o ensaio mostra uma tela de erro que a pessoa nunca vai ver. */
+    res.setHeader('Content-Security-Policy',"connect-src 'self' https://brasilapi.com.br https://api.frankfurter.dev; worker-src 'none'");
     return responder(res,200,'text/html; charset=utf-8',html);
   }
   /* O resto do que está em dist/: logo, ícones, a página da faixa de

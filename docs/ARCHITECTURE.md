@@ -47,7 +47,7 @@ e usados em cada arquivo, monta o grafo e reprova quem aponta para cima.
 | `i18n` | dicionários e `L()` | `data` |
 | `core` | regras e cálculos: defaults, migração, dinheiro, datas, projeção, cartão e métricas | `data`, `i18n` |
 | `storage` | localStorage e sincronização | + `core` |
-| `integrations` | Gemini, BrasilAPI | + `storage` |
+| `integrations` | Gemini, BrasilAPI, câmbio (BCE) | + `storage` |
 | `ui` | desenho, eventos, DOM | tudo |
 
 ### Fronteiras sem exceções
