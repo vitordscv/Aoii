@@ -10,7 +10,7 @@
 /* base zero e crescimento igual nos dois lados: cada um fica com metade do
    espaço livre, e o título no meio deles é o meio da barra. Com flex:1 no
    título ele se centrava no que sobrava — que nunca foi simétrico. */
-.topbar-title{display:none;}
+.topbar-title{flex:0 1 auto;text-align:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink-navy);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;}
 .topbar-right{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex:1 1 0;}
 .theme-select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);cursor:pointer;padding-right:26px;}
 /* mesma cor dos ícones da barra de baixo (.bn-item usa --muted): os dois
