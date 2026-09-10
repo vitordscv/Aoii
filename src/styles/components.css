@@ -342,6 +342,13 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .mini-check input:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
 .mini-check input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:10px;font-weight:800;line-height:1;}
 .add-item-row .parcelas-input{width:56px;}
+/* a caixa marcada tem que parecer marcada: ela comanda o bloco de baixo */
+.mini-check{cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+.mini-check:has(input:checked){background:var(--mist-lilac);border-color:var(--disney-blue-deep);color:var(--accent-ink);font-weight:600;}
+.cartao-extra{display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:-2px;}
+.cartao-extra-campo{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:9px;padding:4px 6px 4px 10px;background:var(--white);}
+.cartao-extra-campo .parcelas-input,.cartao-extra-campo select{border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;background:var(--white);color:var(--ink-navy);}
+.cartao-extra-campo .parcelas-input{width:52px;text-align:center;}
 .item-cartao-tag{font-size:11px;color:var(--accent-ink);font-weight:600;margin-top:1px;}
 .item-cartao-toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer;width:fit-content;}
 .item-cartao-toggle input{appearance:none;-webkit-appearance:none;width:14px;height:14px;flex:none;border:1.5px solid var(--line);border-radius:4px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
@@ -579,7 +586,11 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .sheet-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
 .sheet-field input,.sheet-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;box-sizing:border-box;}
 .gasto-alerta-media{margin:-8px 0 14px;text-align:center;font-size:12px;font-weight:600;color:var(--gold-ink);background:color-mix(in srgb,var(--gold),transparent 88%);border-radius:9px;padding:8px 10px;}
-.gasto-checkbox-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-navy);text-transform:none;letter-spacing:0;cursor:pointer;}
+/* classe repetida de propósito: .sheet-field label e .field-group label
+   têm a mesma especificidade e vêm depois no arquivo, então impunham
+   display:block e caixa-alta aqui dentro — a caixinha ficava na linha
+   de base do texto em vez do centro. Duas classes ganham das duas. */
+.gasto-checkbox-label.gasto-checkbox-label{display:flex;align-items:center;gap:9px;margin-bottom:0;min-height:32px;font-size:13px;font-weight:600;color:var(--ink-navy);text-transform:none;letter-spacing:0;cursor:pointer;}
 .gasto-checkbox-label input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:18px;height:18px;flex:none;border:1.5px solid var(--line);border-radius:6px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
 .gasto-checkbox-label input[type="checkbox"]:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
 .gasto-checkbox-label input[type="checkbox"]:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:12px;font-weight:800;line-height:1;}

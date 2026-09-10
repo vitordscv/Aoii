@@ -348,8 +348,16 @@ function bindStatic(){
     const cartaoSelEl=document.getElementById(prefix+'-cartao-select');
     if(cartaoSelEl){
       cartaoSelEl.innerHTML=(data.cartoes||[]).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
-      cartaoSelEl.style.display=(data.cartoes||[]).length>1?'':'none';
+      /* com um cartão só não há o que escolher: some o campo inteiro, não só
+         o select, pra não deixar um rótulo órfão */
+      const rotulo=document.getElementById(prefix+'-cartao-select-label');
+      if(rotulo) rotulo.hidden=(data.cartoes||[]).length<2;
     }
+    /* parcelas e cartão só fazem sentido depois do sim */
+    const marcaCartao=document.getElementById(prefix+'-cartao');
+    const extraCartao=document.getElementById(prefix+'-cartao-extra');
+    const mostrarExtra=()=>{ if(extraCartao) extraCartao.hidden=!(marcaCartao&&marcaCartao.checked); };
+    if(marcaCartao&&extraCartao){ marcaCartao.addEventListener('change',mostrarExtra); mostrarExtra(); }
     document.getElementById(prefix+'-add').addEventListener('click',async()=>{
       const nEl=document.getElementById(prefix+'-nome');
       const vEl=document.getElementById(prefix+'-valor');
@@ -367,6 +375,7 @@ function bindStatic(){
       if(!item) return;
       nEl.value=''; vEl.value=''; if(dEl) dEl.value='';
       if(cEl) cEl.checked=false; if(pEl) pEl.value='1';
+      mostrarExtra();   // a caixa voltou pro não; o bloco tem que voltar junto
       await persist(); render();
     });
   }

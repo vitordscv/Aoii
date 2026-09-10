@@ -46,7 +46,7 @@
        (colorido no Windows, chapado no Android) e nunca combinava com o resto. -->
   <button type="button" id="topbar-settings-btn" class="topbar-settings-btn" title="Configurações" data-i18n-title="settings.title" aria-haspopup="dialog">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-      <path d="M21.06 10.4A9.2 9.2 0 0 1 21.06 13.6L19.02 14.01A7.3 7.3 0 0 1 18.38 15.54L19.54 17.28A9.2 9.2 0 0 1 17.28 19.54L15.54 18.38A7.3 7.3 0 0 1 14.01 19.02L13.6 21.06A9.2 9.2 0 0 1 10.4 21.06L9.99 19.02A7.3 7.3 0 0 1 8.46 18.38L6.72 19.54A9.2 9.2 0 0 1 4.46 17.28L5.62 15.54A7.3 7.3 0 0 1 4.98 14.01L2.94 13.6A9.2 9.2 0 0 1 2.94 10.4L4.98 9.99A7.3 7.3 0 0 1 5.62 8.46L4.46 6.72A9.2 9.2 0 0 1 6.72 4.46L8.46 5.62A7.3 7.3 0 0 1 9.99 4.98L10.4 2.94A9.2 9.2 0 0 1 13.6 2.94L14.01 4.98A7.3 7.3 0 0 1 15.54 5.62L17.28 4.46A9.2 9.2 0 0 1 19.54 6.72L18.38 8.46A7.3 7.3 0 0 1 19.02 9.99L21.06 10.4Z"></path>
+      <path d="M21.07 10.48A9.2 9.2 0 0 1 21.07 13.52L18.54 13.87A6.8 6.8 0 0 1 17.95 15.3L19.49 17.34A9.2 9.2 0 0 1 17.34 19.49L15.3 17.95A6.8 6.8 0 0 1 13.87 18.54L13.52 21.07A9.2 9.2 0 0 1 10.48 21.07L10.13 18.54A6.8 6.8 0 0 1 8.7 17.95L6.66 19.49A9.2 9.2 0 0 1 4.51 17.34L6.05 15.3A6.8 6.8 0 0 1 5.46 13.87L2.93 13.52A9.2 9.2 0 0 1 2.93 10.48L5.46 10.13A6.8 6.8 0 0 1 6.05 8.7L4.51 6.66A9.2 9.2 0 0 1 6.66 4.51L8.7 6.05A6.8 6.8 0 0 1 10.13 5.46L10.48 2.93A9.2 9.2 0 0 1 13.52 2.93L13.87 5.46A6.8 6.8 0 0 1 15.3 6.05L17.34 4.51A9.2 9.2 0 0 1 19.49 6.66L17.95 8.7A6.8 6.8 0 0 1 18.54 10.13L21.07 10.48Z"></path>
       <circle cx="12" cy="12" r="3.3"></circle>
     </svg>
   </button>
@@ -191,7 +191,13 @@
   </div>
 
   <details class="resumo-planejamento">
-    <summary><span data-i18n="resumo.planejamento">Planejamento e análises</span><span aria-hidden="true">⌄</span></summary>
+    <summary class="det-toggle">
+      <span class="det-toggle-texto">
+        <span class="det-toggle-titulo" data-i18n="resumo.planejamento">Planejamento e análises</span>
+        <span class="det-toggle-sub" data-i18n="resumo.planejamentoSub">Orçamento por categoria, revisão do mês, resumo da semana e conselhos</span>
+      </span>
+      <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+    </summary>
   <!-- ══════ ORÇAMENTO POR CATEGORIA ══════ -->
   <div class="section">
     <div class="section-head">
@@ -222,7 +228,12 @@
       <div class="section-note" data-i18n="main.calendarioNote">Gasto real × planejado × saldo projetado, dia a dia — veja exatamente como o mês caminha.</div>
     </div>
     <details class="calendario-detalhes">
-      <summary data-i18n="cal.verDetalhes">Ver detalhes</summary>
+      <summary class="det-toggle">
+        <span class="det-toggle-texto">
+          <span class="det-toggle-titulo" data-i18n="cal.abrirCalendario">Ver o calendário dia a dia</span>
+        </span>
+        <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+      </summary>
       <div class="cal-card" id="calendario-card"></div>
     </details>
   </div>
@@ -346,8 +357,14 @@
           <label class="mini-check" title="Marque se essa compra vai ser parcelada no cartão" data-i18n-title="tt.marqueCartao">
             <input type="checkbox" id="purchases-cartao"> <span data-i18n="gasto.cartaoLabel">Cartão</span>
           </label>
-          <input type="text" inputmode="decimal" class="parcelas-input" id="purchases-parcelas" placeholder="1x" min="1" value="1" title="Número de parcelas" data-i18n-title="tt.numeroParcelas">
-          <select id="purchases-cartao-select" title="Em qual cartão" data-i18n-title="tt.emQualCartao"></select>
+          <div class="cartao-extra" id="purchases-cartao-extra" hidden>
+            <label class="cartao-extra-campo" for="purchases-parcelas"><span data-i18n="planned.emQuantas">Em quantas</span>
+              <input type="text" inputmode="decimal" class="parcelas-input" id="purchases-parcelas" placeholder="1x" min="1" value="1" title="Número de parcelas" data-i18n-title="tt.numeroParcelas">
+            </label>
+            <label class="cartao-extra-campo" for="purchases-cartao-select" id="purchases-cartao-select-label"><span data-i18n="planned.emQual">Em qual</span>
+              <select id="purchases-cartao-select" title="Em qual cartão" data-i18n-title="tt.emQualCartao"></select>
+            </label>
+          </div>
           <button id="purchases-add" data-i18n="btn.adicionarSimples">Adicionar</button>
         </div>
         <div class="help-text" data-i18n="planned.cardHelp">Marcando "Cartão", ao dar como comprada essa compra é dividida automaticamente nas faturas dos próximos meses.</div>
@@ -1034,10 +1051,7 @@
 <!-- ══════ NAVEGAÇÃO FIXA (abas de verdade) ══════ -->
 <nav class="bottom-nav" id="bottom-nav" aria-label="Navegação principal" data-i18n-aria-label="nav.principal">
   <button type="button" class="bn-item" data-target="view-entradas" aria-controls="view-entradas">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-      <path d="M21.07 10.48A9.2 9.2 0 0 1 21.07 13.52L18.54 13.87A6.8 6.8 0 0 1 17.95 15.3L19.49 17.34A9.2 9.2 0 0 1 17.34 19.49L15.3 17.95A6.8 6.8 0 0 1 13.87 18.54L13.52 21.07A9.2 9.2 0 0 1 10.48 21.07L10.13 18.54A6.8 6.8 0 0 1 8.7 17.95L6.66 19.49A9.2 9.2 0 0 1 4.51 17.34L6.05 15.3A6.8 6.8 0 0 1 5.46 13.87L2.93 13.52A9.2 9.2 0 0 1 2.93 10.48L5.46 10.13A6.8 6.8 0 0 1 6.05 8.7L4.51 6.66A9.2 9.2 0 0 1 6.66 4.51L8.7 6.05A6.8 6.8 0 0 1 10.13 5.46L10.48 2.93A9.2 9.2 0 0 1 13.52 2.93L13.87 5.46A6.8 6.8 0 0 1 15.3 6.05L17.34 4.51A9.2 9.2 0 0 1 19.49 6.66L17.95 8.7A6.8 6.8 0 0 1 18.54 10.13L21.07 10.48Z"></path>
-      <circle cx="12" cy="12" r="3.3"></circle>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M6 6h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"></path></svg>
     <span data-i18n="nav.entradas">Entradas</span>
   </button>
   <button type="button" class="bn-item" data-target="view-fixos" aria-controls="view-fixos">

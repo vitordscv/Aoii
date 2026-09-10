@@ -22,7 +22,11 @@ function registrarMovimento(campos){
   const categoria=campos.categoria||'Outros';
   const item={
     id:uid(),
-    nome:String(campos.nome||categoria).trim()||categoria,
+    /* sem descrição, o nome vira a categoria — e aí tem que ser a categoria
+       traduzida: senão quem usa o app em inglês fica com "Mercado" no extrato
+       pra sempre. O nome é dado do usuário, editável; o rótulo do idioma de
+       quando lançou é o melhor palpite. */
+    nome:String(campos.nome||categoriaLabel(categoria)).trim()||categoriaLabel(categoria),
     valor,
     categoria,
     metodo:campos.metodo,
