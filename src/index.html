@@ -483,14 +483,16 @@
       <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
-      <details class="settings-section">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.renda">Renda</span>
-            <span class="det-toggle-sub" data-i18n="settings.rendaSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      <div class="settings-tabs" role="tablist" data-i18n-aria-label="settings.abasAria" aria-label="Seções das configurações">
+        <button type="button" class="settings-tab" id="settings-tab-renda" role="tab" aria-controls="settings-pane-renda" aria-selected="false" tabindex="-1" data-pane="renda"><span data-i18n="settings.renda">Renda</span></button>
+        <button type="button" class="settings-tab" id="settings-tab-dados" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
+        <button type="button" class="settings-tab" id="settings-tab-preferencias" role="tab" aria-controls="settings-pane-preferencias" aria-selected="false" tabindex="-1" data-pane="preferencias"><span data-i18n="settings.preferencias">Preferências</span></button>
+        <button type="button" class="settings-tab" id="settings-tab-personalizacao" role="tab" aria-controls="settings-pane-personalizacao" aria-selected="false" tabindex="-1" data-pane="personalizacao"><span data-i18n="settings.personalizacao">Personalização</span></button>
+        <button type="button" class="settings-tab" id="settings-tab-ia" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
+        <button type="button" class="settings-tab" id="settings-tab-zona" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
+      </div>
+      <div class="settings-tab-sub" id="settings-tab-sub"></div>
+      <div class="settings-pane" id="settings-pane-renda" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-renda" hidden>
         <div class="field-group">
           <label data-i18n="settings.rendaPergunta">Como você recebe sua renda?</label>
           <div class="segmented" id="cfg-tipo-renda">
@@ -530,15 +532,8 @@
           <div class="help-text" data-i18n="settings.rendaFixaHelp">Renda fixa, lançada automaticamente todo mês nesse dia.</div>
         </div>
 
-      </details>
-      <details class="settings-section">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.dados">Dados e sincronização</span>
-            <span class="det-toggle-sub" data-i18n="settings.dadosSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      </div>
+      <div class="settings-pane" id="settings-pane-dados" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-dados" hidden>
         <div class="field-group">
           <label data-i18n="settings.backupLocal">Backup local</label>
           <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
@@ -575,15 +570,8 @@
           <textarea id="import-input" class="code-box" placeholder="Cole aqui o código recebido" data-i18n-placeholder="ph.colaCodigo" data-i18n-aria-label="ph.colaCodigo"></textarea>
           <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
         </div>
-      </details>
-      <details class="settings-section">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.preferencias">Preferências</span>
-            <span class="det-toggle-sub" data-i18n="settings.preferenciasSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      </div>
+      <div class="settings-pane" id="settings-pane-preferencias" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-preferencias" hidden>
         <div class="field-group">
           <label for="cfg-idioma" data-i18n="settings.idioma">Idioma</label>
           <select id="cfg-idioma">
@@ -632,15 +620,8 @@
           </div>
         </div>
 
-      </details>
-      <details class="settings-section">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.personalizacao">Personalização</span>
-            <span class="det-toggle-sub" data-i18n="settings.personalizacaoSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      </div>
+      <div class="settings-pane" id="settings-pane-personalizacao" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-personalizacao" hidden>
         <div class="field-group">
           <label data-i18n="settings.viagens">Viagens / eventos com orçamento próprio</label>
           <div id="viagens-list" class="cat-manage-list"></div>
@@ -670,15 +651,8 @@
           <div class="help-text" data-i18n="settings.cartoesHelp">Cadastre um ou mais cartões. Usado pra calcular quanto do limite de cada um já está comprometido com as faturas em aberto.</div>
         </div>
 
-      </details>
-      <details class="settings-section">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.ia">Assistente com IA</span>
-            <span class="det-toggle-sub" data-i18n="settings.iaSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      </div>
+      <div class="settings-pane" id="settings-pane-ia" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-ia" hidden>
         <div class="field-group" id="ia-section">
           <label class="gasto-checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="ia-ativa-check"> <span data-i18n="settings.ativarIA">Ativar conselheiro com IA</span></label>
           <div id="ia-fields" style="display:none;">
@@ -687,20 +661,13 @@
           </div>
         </div>
 
-      </details>
-      <details class="settings-section settings-danger-zone">
-        <summary class="det-toggle">
-          <span class="det-toggle-texto">
-            <span class="det-toggle-titulo" data-i18n="settings.zona">Zona de risco</span>
-            <span class="det-toggle-sub" data-i18n="settings.zonaSub"></span>
-          </span>
-          <span class="det-toggle-acao"><span class="det-abrir" data-i18n="btn.abrir">abrir</span><span class="det-fechar" data-i18n="btn.fechar">fechar</span><svg class="det-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-        </summary>
+      </div>
+      <div class="settings-pane settings-danger-zone" id="settings-pane-zona" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-zona" hidden>
         <div class="field-group">
           <button class="reset-btn" id="reset-btn" data-i18n="btn.resetarDados">Resetar todos os dados</button>
           <div class="help-text" data-i18n="settings.resetHelp">Apaga tudo e volta ao ponto de partida.</div>
         </div>
-      </details>
+      </div>
     </div>
   </div>
 

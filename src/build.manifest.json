@@ -69,6 +69,7 @@
     "ui/hero.js",
     "ui/warnings.js",
     "ui/settings-lists.js",
+    "ui/settings-tabs.js",
     "core/health.js",
     "ui/health.js",
     "ui/charts.js",

@@ -374,6 +374,31 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .month-card-erro{border-color:var(--neg);}
 .month-erro-msg{font-size:11.5px;color:var(--neg);font-weight:600;padding:8px 0;}
 
+/* ── abas das Configurações ──
+   A barra rola no eixo x porque seis rótulos não cabem em 375 px sem virar
+   duas letras cada. Ela gruda no topo: com o painel rolando, a escolha
+   continua ao alcance sem voltar tudo. */
+.settings-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:2px;
+  position:sticky;top:0;z-index:2;background:var(--surface,var(--white));
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.settings-tabs::-webkit-scrollbar{display:none;}
+/* onde cabe, a barra quebra em vez de rolar: rolagem lateral esconde opções,
+   e a sexta aba escondida é justamente a Zona de risco. No celular não cabe
+   sem virar três fileiras de pílulas, então lá ela rola mesmo. */
+@media(min-width:560px){.settings-tabs{flex-wrap:wrap;overflow-x:visible;}}
+.settings-tab{flex:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;
+  font-size:12.5px;font-weight:600;background:var(--white);color:var(--muted);
+  white-space:nowrap;cursor:pointer;min-height:36px;
+  transition:background .15s,color .15s,border-color .15s;}
+.settings-tab:hover{background:var(--mist-lilac);color:var(--ink-navy);}
+.settings-tab.ativa{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);color:var(--on-accent);}
+.settings-tab:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+/* a zona de risco se anuncia antes de ser aberta */
+.settings-tab[data-pane="zona"]{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 35%,var(--line));}
+.settings-tab[data-pane="zona"].ativa{background:var(--neg);border-color:var(--neg);color:var(--white);}
+.settings-tab-sub{font-size:11.5px;line-height:1.4;color:var(--muted);margin:0 2px 16px;}
+.settings-pane:focus{outline:none;}
+
 /* as gavetas das Configurações: seis linhas em vez de quatro telas */
 .settings-section{margin-bottom:10px;}
 .settings-section>.det-toggle{background:var(--cream);}
@@ -795,18 +820,15 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .settings-close-btn{background:none;border:1px solid var(--line);border-radius:9px;width:30px;height:30px;font-size:14px;color:var(--muted);cursor:pointer;}
 .settings-close-btn:hover{background:var(--mist-lilac);color:var(--ink-navy);}
 
-.settings-body{padding:10px 0 28px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:32px;}
+.settings-body{padding:10px 0 28px;}
 .settings-section-title{font-family:'Sora',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--accent-ink);margin:28px 0 14px;padding-top:20px;border-top:1px solid var(--line);}
 .settings-body .field-group{border-radius:14px;}
-.settings-body>div{min-width:0;}
 .settings-body select,.settings-body input[type=text]{min-height:42px;box-sizing:border-box;}
 .settings-body #sync-section,.settings-body #share-section{padding:16px;background:var(--cream);border:1px solid var(--line);box-shadow:0 8px 20px -16px rgba(11,24,48,.45);}
 .settings-body #sync-section>label,.settings-body #share-section>label{display:block;font-family:'Sora',sans-serif;font-size:14px;color:var(--ink-navy);margin-bottom:7px;}
 .settings-body #sync-section .help-text,.settings-body #share-section .help-text{line-height:1.5;}
-.settings-body>div>.settings-section-title:first-child{margin-top:0;padding-top:0;border-top:none;}
 .settings-danger-zone{grid-column:1/-1;margin-top:8px;padding:16px 18px;border-radius:14px;background:color-mix(in srgb, var(--neg) 8%, transparent);border:1px solid color-mix(in srgb, var(--neg) 30%, transparent);}
 .settings-danger-zone .settings-section-title{color:var(--neg);margin-top:0;padding-top:0;border-top:none;}
-@media(max-width:760px){.settings-body{grid-template-columns:1fr;}}
 .field-group{margin-bottom:16px;}
 .field-group label:not([class]){display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;}
 .field-group input[inputmode=decimal]{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:'Nunito Sans',sans-serif;font-size:13.5px;width:140px;}
