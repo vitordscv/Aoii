@@ -25,6 +25,15 @@
 
 const TICKER_LOCALES = { pt: 'br', en: 'en', es: 'es', fr: 'fr', it: 'it' };
 
+/* O código do provedor não é nome de nada: "USDX" e "SPX500USD" só dizem
+   alguma coisa pra quem já vive nisso. O rótulo é o instrumento. */
+const TICKER_NOMES = {
+  'PEPPERSTONE:USDX': 'Dólar (DXY)',
+  'OANDA:SPX500USD': 'S&P 500',
+  'OANDA:XAUUSD': 'Ouro',
+  'BINANCE:BTCUSD': 'Bitcoin',
+};
+
 /* Claro ou escuro? Lido de --cream, o fundo declarado pelo tema, em vez de
    uma lista de nomes — assim o tema personalizado também acerta. A variável
    vale assim que o atributo data-theme é posto; o fundo pintado do body só
@@ -49,7 +58,7 @@ function faixaPrefereEscuro(){
 function enderecoDaFaixa(simbolos){
   const config={
     symbols:simbolos.split(',').map(s=>s.trim()).filter(Boolean)
-      .map(s=>({proName:s,title:s.split(':').pop().replace(/[0-9]!$/,'')})),
+      .map(s=>({proName:s,title:TICKER_NOMES[s]||s.split(':').pop()})),
     showSymbolLogo:true,
     /* fundo próprio, não transparente: sobre o papel de parede do app a
        fita transparente ficava sem contorno e os números pareciam soltos */

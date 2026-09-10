@@ -423,12 +423,17 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .diario-mais-btn:hover{background:var(--mist-lilac);border-color:var(--disney-blue-deep);}
 .diario-mais-btn:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
 
-/* faixa de cotações (iframe isolado — ver public/ticker.html) */
-.ticker-externo{margin-bottom:18px;}
+/* Faixa de cotações: um cartão como os outros, e não uma tira solta sobre o
+   papel de parede. A fita ocupa a largura toda por dentro (o overflow do
+   cartão é quem arredonda os cantos dela) e a legenda fica num rodapé
+   separado por um filete — ela explica o cartão, não flutua embaixo dele. */
+.ticker-externo{margin-bottom:18px;background:var(--white);
+  border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  box-shadow:0 12px 30px -20px rgba(11,24,48,.48);}
 /* altura da página que a TradingView serve pra este widget */
-.ticker-frame{display:block;width:100%;height:82px;border:0;background:transparent;
-  border-radius:12px;overflow:hidden;}
-.ticker-nota{margin-top:6px;padding:0 2px;font-size:10.5px;line-height:1.4;color:var(--muted2);}
+.ticker-frame{display:block;width:100%;height:82px;border:0;background:transparent;}
+.ticker-nota{padding:9px 16px 11px;border-top:1px solid var(--line);
+  background:var(--cream);font-size:10.5px;line-height:1.45;color:var(--muted2);}
 
 /* conta fixa já paga neste mês */
 .gf-pago-check{display:flex;align-items:center;flex:none;padding:0 10px 0 0;cursor:pointer;}
