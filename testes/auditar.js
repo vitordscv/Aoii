@@ -134,6 +134,17 @@ titulo('Tradução');
 
 titulo('Acessibilidade estrutural');
 {
+  /* Região viva com data-i18n é uma armadilha silenciosa: applyIdioma()
+     reescreve todo elemento que tenha o atributo, e o render() vem logo depois
+     de quase toda ação. A mensagem escrita em tempo de execução ("salvo",
+     "sem conexão", "conflito") era apagada antes de alguém ler. */
+  const vivas=[...src.matchAll(/<[^>]+\brole="(?:status|alert|log)"[^>]*>/g)].map(m=>m[0]);
+  const comI18n=vivas.filter(tag=>/\bdata-i18n=/.test(tag));
+  comI18n.length
+    ? ruim(comI18n.length+' região viva com data-i18n — applyIdioma vai apagar a mensagem',
+        comI18n.map(t=>(/id="([^"]+)"/.exec(t)||[,'?'])[1]).join(', '))
+    : ok(vivas.length+' regiões vivas, nenhuma sobrescrita pela tradução');
+
   const aberturas=[...src.matchAll(/<[^>]+\brole="(?:dialog|alertdialog)"[^>]*>/g)].map(m=>m[0]);
   const modaisInvalidos=aberturas.filter(tag=>!tag.includes('aria-modal="true"')||!/(?:aria-labelledby|aria-label)=/.test(tag));
   modaisInvalidos.length ? ruim('diálogo sem modalidade ou nome acessível',modaisInvalidos.join('\n'))

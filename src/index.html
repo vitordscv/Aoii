@@ -127,7 +127,14 @@
         <option value="custom" data-i18n="theme.customizeOption">✏️ Personalizar</option>
       </select>
       <button type="button" id="ct-reopen-btn" class="ct-reopen-btn" style="display:none;" title="Editar as cores personalizadas" data-i18n-title="tt.editarCores"><span>🎨 </span><span data-i18n="btn.editarCores">Editar cores</span></button>
-      <span class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="common.loading">carregando…</span>
+      <!-- Sem data-i18n de propósito: applyIdioma() reescreve todo elemento que
+           o tenha, e este aqui recebe mensagens em tempo de execução ("salvo
+           neste aparelho", "sem conexão", "conflito"). Com o atributo, o
+           render() logo depois de cada ação apagava a mensagem e devolvia o
+           texto inicial — o app ficava escrito "carregando…" para sempre e
+           nenhuma confirmação de salvamento chegava a ser vista. O texto
+           inicial é definido em código, por setSaveStatus(). -->
+      <span class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true"></span>
     </div>
 
     <!-- conteúdo dinâmico -->
