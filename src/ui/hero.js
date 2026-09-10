@@ -35,7 +35,7 @@ function renderHero(){
       <span class="hero-eyebrow">${L('hero.saldoEstimado')}</span>
       <input type="date" class="hero-date-input" id="hero-date-input" value="${esc(targetVal)}" aria-label="${esc(L('hero.saldoEstimado'))}">
     </div>
-    <div class="hero-number${neg?' negativo':''}" data-countup="${t.projetado}" data-countkey="hero-projetado">${formatBRL(t.projetado)}<button type="button" class="info-tip-btn hero-tip-btn" data-tip="${esc(subDoHero())}" aria-label="${esc(L('hero.comoCalcula'))}">?</button></div>
+    <div class="hero-number${neg?' negativo':''}" data-countup="${t.projetado}" data-countkey="hero-projetado">${formatBRL(t.projetado)}<button type="button" class="info-tip-btn hero-tip-btn" data-tip="${esc(subDoHero())}" aria-label="${esc(L('hero.comoCalcula'))}">i</button></div>
 
     <div class="saldo-row">
       <div class="saldo-field">

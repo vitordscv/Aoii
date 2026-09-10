@@ -133,7 +133,7 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 }
 .hero-eyebrow-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .hero-icon{width:34px;height:34px;border-radius:9px;object-fit:cover;margin-right:2px;flex-shrink:0;}
-.hero-eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--gold-ink);}
+.hero-eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--hero-text);opacity:.88;}
 .hero-date-input{
   appearance:none;-webkit-appearance:none;
   background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);
@@ -167,6 +167,8 @@ border-color:rgba(255,255,255,.42);}
     border-top:1px solid rgba(255,255,255,.16);padding-top:12px;margin-top:4px;}
   .saldo-total-field label{margin-bottom:0;}
 }
+.hero-tip-btn{width:22px;height:22px;margin-left:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.38);color:var(--hero-text);font-size:12px;vertical-align:middle;opacity:.9;}
+.hero-tip-btn:hover,.hero-tip-btn:focus-visible{background:rgba(255,255,255,.28);color:var(--hero-text);}
 .saldo-field label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(251,244,232,.62);margin-bottom:6px;font-weight:600;}
 .saldo-field input{font-family:'Nunito Sans',sans-serif;font-size:19px;font-weight:500;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);color:var(--hero-text);border-radius:10px;padding:9px 12px;width:160px;}
 .saldo-field input:focus{background:rgba(255,255,255,0.18);}
