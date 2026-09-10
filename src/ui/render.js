@@ -19,6 +19,11 @@ function applyTheme(tema){
     if(noiteAgora && tema!=='custom') tema='grafite';
   }
   document.documentElement.setAttribute('data-theme', tema==='custom'?'':tema);
+  /* o endereço da faixa de cotações carrega o tema dentro dele, então é aqui
+     que ele se monta — depois do tema decidido, e em toda troca, inclusive a
+     automática das 19h. Nunca no renderizador da aba: lá ele roda uma vez e
+     congela no tema que estava valendo. */
+  prepararFaixaCotacoes();
   // fundo ilustrado: opcional; hoje os temas onda e matcha têm arte, outros virão
   document.documentElement.classList.toggle('bg-ilustrado', data.fundoIlustrado!==false);
   applyBgArt(tema, data.fundoIlustrado!==false);
@@ -112,7 +117,6 @@ const VIEW_RENDERERS={
     renderChips();
     renderNegativeWarning();
     renderFaturaWarning();
-    prepararFaixaCotacoes();
     renderRendaAtrasadaWarning();
     renderInsights();
     renderWeekSummary();

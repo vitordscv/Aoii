@@ -25,15 +25,23 @@
 
 const TICKER_LOCALES = { pt: 'br', en: 'en', es: 'es', fr: 'fr', it: 'it' };
 
-/* Claro ou escuro? Lido do fundo que o tema realmente pinta, em vez de uma
-   lista de nomes de tema — assim o tema personalizado também acerta. */
+/* Claro ou escuro? Lido de --cream, o fundo declarado pelo tema, em vez de
+   uma lista de nomes — assim o tema personalizado também acerta. A variável
+   vale assim que o atributo data-theme é posto; o fundo pintado do body só
+   vale depois, e essa diferença já deixou a faixa clara num tema escuro. */
 function faixaPrefereEscuro(){
   try{
-    const cor=getComputedStyle(document.body).backgroundColor||'';
-    const m=/rgba?\(([^)]+)\)/.exec(cor);
-    if(!m) return false;
-    const [r,g,b]=m[1].split(',').map(n=>parseFloat(n));
-    /* luminância aproximada, na mesma conta que a auditoria de contraste usa */
+    const cor=getComputedStyle(document.documentElement).getPropertyValue('--cream').trim();
+    let r,g,b;
+    const hex=/^#([0-9a-f]{6})$/i.exec(cor);
+    if(hex){
+      r=parseInt(hex[1].slice(0,2),16); g=parseInt(hex[1].slice(2,4),16); b=parseInt(hex[1].slice(4,6),16);
+    }else{
+      const m=/rgba?\(([^)]+)\)/.exec(cor);
+      if(!m) return false;
+      [r,g,b]=m[1].split(',').map(n=>parseFloat(n));
+    }
+    /* luminância aproximada, a mesma conta da auditoria de contraste */
     return (0.2126*r+0.7152*g+0.0722*b)/255 < 0.5;
   }catch(e){ return false; }
 }
@@ -43,7 +51,9 @@ function enderecoDaFaixa(simbolos){
     symbols:simbolos.split(',').map(s=>s.trim()).filter(Boolean)
       .map(s=>({proName:s,title:s.split(':').pop().replace(/[0-9]!$/,'')})),
     showSymbolLogo:true,
-    isTransparent:true,
+    /* fundo próprio, não transparente: sobre o papel de parede do app a
+       fita transparente ficava sem contorno e os números pareciam soltos */
+    isTransparent:false,
     displayMode:'adaptive',
     colorTheme:faixaPrefereEscuro()?'dark':'light',
     locale:TICKER_LOCALES[data&&data.idioma]||'br',
