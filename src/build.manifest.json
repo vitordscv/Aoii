@@ -30,6 +30,7 @@
     "core/timeline.js",
     "core/cards.js",
     "core/transactions.js",
+    "core/fixed-expenses.js",
     "core/metrics.js",
     "core/defaults.js",
     "storage/local-storage.js",

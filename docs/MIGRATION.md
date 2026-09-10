@@ -480,3 +480,10 @@ assim como editar ou remover seus gastos e excluir todas as parcelas de uma
 compra. Quitar uma fatura marca seus gastos como pagos na mesma operação. Datas,
 valores e referências são validados antes de alterar o estado; uma fatura
 existente também pode ser zerada de forma explícita.
+
+## Retomada em 09/09/2026 — comandos de gastos fixos
+
+Criação, edição, remoção e restauração de gastos fixos passaram para
+`core/fixed-expenses.js`. Valor, dia, início, categoria e estado ativo são
+validados juntos antes da alteração. A exclusão por gesto e seu desfazer agora
+usam os mesmos comandos da ficha de edição.

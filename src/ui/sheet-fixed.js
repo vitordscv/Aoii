@@ -62,7 +62,7 @@ function setupGastoFixoSheet(){
 
   delBtn.addEventListener('click',async()=>{
     if(!editingId) return;
-    data.gastosMensais=(data.gastosMensais||[]).filter(g=>g.id!==editingId);
+    if(!removerGastoFixo(editingId)) return;
     await persist(); render();
     close();
   });
@@ -77,13 +77,9 @@ function setupGastoFixoSheet(){
     const ativo=document.getElementById('gf-ativo').checked;
     const categoria=categoriaAtual||'Outros';
 
-    if(editingId){
-      const g=(data.gastosMensais||[]).find(x=>x.id===editingId);
-      if(g){ Object.assign(g,{nome,valor,diaDoMes:dia,categoria,ativo,inicioAno,inicioMes}); }
-    }else{
-      if(!data.gastosMensais) data.gastosMensais=[];
-      data.gastosMensais.push({id:uid(),nome,valor,diaDoMes:dia,categoria,ativo,inicioAno,inicioMes,criadoEm:new Date().toISOString()});
-    }
+    const campos={nome,valor,diaDoMes:dia,categoria,ativo,inicioAno,inicioMes};
+    const salvo=editingId?atualizarGastoFixo(editingId,campos):criarGastoFixo(campos);
+    if(!salvo) return;
     await persist(); render();
     close();
   });

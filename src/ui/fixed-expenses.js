@@ -100,10 +100,9 @@ function renderGastosFixosTab(){
     attachSwipe(item,{
       onEdit:()=>openGastoFixoSheet(id),
       onDelete:()=>{
-        const idx=(data.gastosMensais||[]).findIndex(g=>g.id===id); if(idx<0) return;
-        const removed=data.gastosMensais.splice(idx,1)[0];
+        const removido=removerGastoFixo(id); if(!removido) return;
         vibrate(15); render();
-        showUndoToast(L('undo.removido').replace('{nome}',removed.nome),()=>{ data.gastosMensais.splice(Math.min(idx,data.gastosMensais.length),0,removed); });
+        showUndoToast(L('undo.removido').replace('{nome}',removido.item.nome),()=>{ restaurarGastoFixo(removido.item,removido.indice); });
       },
     });
   });

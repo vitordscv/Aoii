@@ -218,6 +218,30 @@ module.exports=function(t){
   t.igual(ctxFatura.removerFaturas([fatura.id]).length,1,'remoção devolve a fatura afetada');
   t.igual(dadosFatura.faturas.length,0,'fatura escolhida é removida');
 
+  console.log('\n\x1b[1mComandos de gastos fixos validam o conjunto inteiro\x1b[0m');
+  const dadosFixo=base();
+  const ctxFixo=criarAmbiente(dadosFixo,HOJE);
+  const camposFixo={nome:'Aluguel',valor:1200,diaDoMes:10,categoria:'Casa',ativo:true,inicioAno:2026,inicioMes:9};
+  t.igual(ctxFixo.criarGastoFixo({...camposFixo,valor:0}),null,'gasto fixo sem valor é recusado');
+  t.igual(ctxFixo.criarGastoFixo({...camposFixo,diaDoMes:32}),null,'dia inválido é recusado');
+  t.igual(ctxFixo.criarGastoFixo({...camposFixo,inicioMes:13}),null,'início inválido é recusado');
+  t.igual(dadosFixo.gastosMensais.length,0,'criações recusadas não deixam gasto parcial');
+  const fixo=ctxFixo.criarGastoFixo(camposFixo);
+  t.igual(fixo.nome,'Aluguel','gasto fixo válido é criado');
+  t.verdadeiro(Boolean(fixo.criadoEm),'data de criação é registrada');
+  const criadoEm=fixo.criadoEm;
+  t.igual(ctxFixo.atualizarGastoFixo(fixo.id,{nome:'Condomínio',valor:-1}),null,'edição inválida é recusada inteira');
+  t.igual(fixo.nome,'Aluguel','recusa conserva os demais campos');
+  ctxFixo.atualizarGastoFixo(fixo.id,{nome:'Moradia',valor:1300,ativo:false});
+  t.igual(fixo.nome,'Moradia','edição parcial válida preserva e atualiza campos');
+  t.valor(fixo.valor,1300,'valor do gasto fixo é atualizado');
+  t.igual(fixo.ativo,false,'gasto fixo pode ser pausado');
+  t.igual(fixo.criadoEm,criadoEm,'edição preserva a data de criação');
+  const fixoRemovido=ctxFixo.removerGastoFixo(fixo.id);
+  t.igual(dadosFixo.gastosMensais.length,0,'remoção tira o gasto fixo');
+  ctxFixo.restaurarGastoFixo(fixoRemovido.item,fixoRemovido.indice);
+  t.igual(dadosFixo.gastosMensais[0].id,fixo.id,'desfazer restaura o gasto na posição');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();
