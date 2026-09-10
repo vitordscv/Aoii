@@ -1,5 +1,30 @@
 /* ═══ MELHORIAS: animações, swipe, undo, orçamento, investimentos ═══ */
 
+/* Linguagem visual comum: as telas passam a usar o mesmo ritmo, superfícies
+   mais leves e ações fáceis de reconhecer tanto no mouse quanto no toque. */
+.section{margin-top:38px;}
+.section-head{gap:7px;}
+.section-title{letter-spacing:-.015em;}
+.section-note{max-width:62ch;line-height:1.5;}
+.list-panel,.limit-card,.cat-card,.month-card,.chart-card,.patrimonio-card{
+  box-shadow:0 12px 30px -20px rgba(11,24,48,.48);
+}
+.list-panel{padding:20px 18px 16px;}
+.add-item-row{gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);}
+.add-item-row input,.add-item-row select{min-height:40px;box-sizing:border-box;}
+.add-item-row button{min-height:40px;padding-inline:16px;}
+.item-row,.gasto-row,.gf-item-row{padding-block:11px;}
+@media(max-width:600px){
+  .wrap{padding-inline:14px;}
+  .section{margin-top:30px;}
+  .section-title{font-size:17px!important;}
+  .list-panel{padding:16px 14px 12px;border-radius:16px;}
+  .add-item-row{display:grid;grid-template-columns:1fr 1fr;}
+  .add-item-row input[type=text]{grid-column:1/-1;}
+  .add-item-row button{grid-column:1/-1;}
+  .bottom-nav{padding-inline:8px;}
+}
+
 /* tooltip interativo dos gráficos */
 .chart-card,.patrimonio-chart-wrap{position:relative;}
 .chart-tooltip{position:absolute;pointer-events:none;background:var(--ink-navy);color:var(--cream);font-family:'Nunito Sans',sans-serif;font-size:11px;padding:6px 9px;border-radius:8px;box-shadow:0 8px 20px -6px rgba(11,24,48,.4);white-space:nowrap;transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;z-index:5;}
