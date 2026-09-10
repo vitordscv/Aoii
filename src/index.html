@@ -138,6 +138,19 @@
 
   <div id="daily-card"></div>
 
+  <section class="resumo-agora" aria-labelledby="resumo-agora-titulo">
+    <div>
+      <div class="resumo-agora-kicker" data-i18n="resumo.agoraKicker">PAINEL DO MÊS</div>
+      <h2 id="resumo-agora-titulo" data-i18n="resumo.agoraTitulo">Decida o que fazer hoje</h2>
+      <p data-i18n="resumo.agoraTexto">Acompanhe seus limites, gastos e próximos passos sem procurar em várias telas.</p>
+    </div>
+    <nav class="resumo-atalhos" aria-label="Atalhos do resumo">
+      <a href="#daily-card" data-i18n="gasto.hoje">Hoje</a>
+      <a href="#limit-card" data-i18n="main.limiteCartao">Limite do cartão</a>
+      <a href="#orcamento-card" data-i18n="main.orcamentoPorCategoria">Orçamento por categoria</a>
+    </nav>
+  </section>
+
   <div id="negative-warning"></div>
   <div id="fatura-warning"></div>
   <div id="renda-atrasada-warning"></div>
@@ -146,7 +159,7 @@
   <div id="saude-financeira-card"></div>
 
   <!-- ══════ CARTÃO + CATEGORIAS ══════ -->
-  <div class="section">
+  <div class="section resumo-prioridades">
     <div class="lists-grid">
       <div>
         <div class="section-head" style="margin-bottom:12px;">

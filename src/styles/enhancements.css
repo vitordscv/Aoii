@@ -3,6 +3,14 @@
 /* Linguagem visual comum: as telas passam a usar o mesmo ritmo, superfícies
    mais leves e ações fáceis de reconhecer tanto no mouse quanto no toque. */
 .section{margin-top:38px;}
+.resumo-agora{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-top:34px;padding:22px 24px;border-radius:20px;background:linear-gradient(135deg,var(--white),color-mix(in srgb,var(--mist-lilac),var(--white) 55%));border:1px solid var(--line);box-shadow:0 16px 34px -24px rgba(11,24,48,.5);}
+.resumo-agora-kicker{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--accent-ink);}
+.resumo-agora h2{margin:5px 0 4px;font-family:'Sora',sans-serif;font-size:22px;letter-spacing:-.03em;color:var(--ink-navy);}
+.resumo-agora p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;max-width:520px;}
+.resumo-atalhos{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.resumo-atalhos a{padding:9px 12px;border-radius:999px;background:var(--white);border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--ink-navy);text-decoration:none;white-space:nowrap;}
+.resumo-atalhos a:hover{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);color:var(--on-accent);}
+.resumo-prioridades{padding:22px;border-radius:22px;background:color-mix(in srgb,var(--white),transparent 7%);border:1px solid var(--line);}
 .section-head{gap:7px;}
 .section-title{letter-spacing:-.015em;}
 .section-note{max-width:62ch;line-height:1.5;}
@@ -16,6 +24,9 @@
 .item-row,.gasto-row,.gf-item-row{padding-block:11px;}
 @media(max-width:600px){
   .wrap{padding-inline:14px;}
+  .resumo-agora{display:block;margin-top:24px;padding:18px;border-radius:18px;}
+  .resumo-agora h2{font-size:20px;}
+  .resumo-atalhos{justify-content:flex-start;margin-top:15px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;}
   .section{margin-top:30px;}
   .section-title{font-size:17px!important;}
   .list-panel{padding:16px 14px 12px;border-radius:16px;}
