@@ -130,23 +130,13 @@ function setupCalculadoraSheet(){
 }
 
 /* ═══ conversor de moedas ═══ */
-const FX_PAR_CHAVE='aoii-cambio-par';
 /* Enquanto não houver tabela, o seletor precisa mostrar alguma coisa. São as
    quatro moedas que o app já conhece — a lista real vem da tabela. */
 const FX_MOEDAS_INICIAIS=['BRL','EUR','GBP','USD'];
-
-function parDeMoedasGuardado(){
-  try{
-    const bruto=localStorage.getItem(FX_PAR_CHAVE);
-    if(!bruto) return null;
-    const p=JSON.parse(bruto);
-    if(!/^[A-Z]{3}$/.test(p&&p.de)||!/^[A-Z]{3}$/.test(p&&p.para)) return null;
-    return p;
-  }catch(e){ return null; }
-}
-function guardarParDeMoedas(de,para){
-  try{ localStorage.setItem(FX_PAR_CHAVE,JSON.stringify({de,para})); }catch(e){}
-}
+/* O par de sempre. O conversor abre nele todas as vezes, e não no último par
+   usado: lembrar parecia gentileza, mas quem converteu ienes uma vez achava
+   ienes na abertura seguinte sem entender por quê. Trocar são dois toques. */
+const FX_PADRAO_DE='BRL', FX_PADRAO_PARA='USD';
 
 function formatarNaMoeda(valor,codigo){
   try{ return valor.toLocaleString(localeAtual(),{style:'currency',currency:codigo}); }
@@ -165,6 +155,7 @@ function setupConversorSheet(){
   const resEl=document.getElementById('fx-resultado');
   const notaEl=document.getElementById('fx-nota');
   const atualizarBtn=document.getElementById('fx-atualizar');
+  const copiarBtn=document.getElementById('fx-copiar');
   if(!backdrop||!sheet||!deEl||!paraEl||!resEl) return;
 
   let tabela=null;
@@ -190,13 +181,22 @@ function setupConversorSheet(){
     notaEl.textContent=texto;
   }
 
+  /* o número sozinho, sem símbolo: quem copia uma conversão está quase sempre
+     indo colar num campo de valor — inclusive aqui dentro, num lançamento.
+     "US$ 48,79" não entra num campo de número; "48,79" entra. */
+  let paraCopiar='';
+
   function calcular(){
     const de=deEl.value, para=paraEl.value;
     const valor=parseNum(valorEl.value);
+    paraCopiar='';
+    if(copiarBtn) copiarBtn.disabled=true;
     if(de===para){ resEl.textContent='—'; nota('tools.fxIgual'); return; }
     const convertido=converterMoeda(Number.isFinite(valor)?valor:0,de,para,tabela);
     if(convertido===null){ resEl.textContent='—'; return; }
     resEl.textContent=formatarNaMoeda(convertido,para);
+    paraCopiar=convertido.toLocaleString(localeAtual(),{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(copiarBtn) copiarBtn.disabled=false;
     const taxa=taxaEntre(de,para,tabela);
     nota('tools.fxCotacao',{de,para,
       taxa:taxa.toLocaleString(localeAtual(),{minimumFractionDigits:2,maximumFractionDigits:6}),
@@ -224,23 +224,28 @@ function setupConversorSheet(){
   [valorEl,deEl,paraEl].forEach(el=>{
     if(!el) return;
     el.addEventListener('input',calcular);
-    el.addEventListener('change',()=>{ guardarParDeMoedas(deEl.value,paraEl.value); calcular(); });
+    el.addEventListener('change',calcular);
   });
   document.getElementById('fx-trocar')?.addEventListener('click',()=>{
     const a=deEl.value; deEl.value=paraEl.value; paraEl.value=a;
-    vibrate(8); guardarParDeMoedas(deEl.value,paraEl.value); calcular();
+    vibrate(8); calcular();
   });
   atualizarBtn?.addEventListener('click',()=>{ vibrate(10); atualizar(false); });
+  copiarBtn?.addEventListener('click',async()=>{
+    if(!paraCopiar) return;
+    try{ await navigator.clipboard.writeText(paraCopiar); setSaveStatus(L('tools.copiado')); }
+    catch(e){ /* sem permissão de área de transferência: não há o que fazer */ }
+  });
 
   function open(){
+    /* limpeza da chave que a versão anterior gravava; some sozinha na primeira
+       abertura e esta linha pode sair daqui a algumas versões */
+    try{ localStorage.removeItem('aoii-cambio-par'); }catch(e){}
     tabela=cambioGuardado();
     encherSeletores();
-    const guardado=parDeMoedasGuardado();
     const moedas=tabela?moedasDaTabela(tabela):FX_MOEDAS_INICIAIS;
-    const padraoDe=(guardado&&guardado.de)||data.moeda||'BRL';
-    const padraoPara=(guardado&&guardado.para)||(padraoDe==='BRL'?'USD':'BRL');
-    if(moedas.includes(padraoDe)) deEl.value=padraoDe;
-    if(moedas.includes(padraoPara)) paraEl.value=padraoPara;
+    if(moedas.includes(FX_PADRAO_DE)) deEl.value=FX_PADRAO_DE;
+    if(moedas.includes(FX_PADRAO_PARA)) paraEl.value=FX_PADRAO_PARA;
     if(tabela){
       calcular();
       /* tabela do dia anterior ainda serve para responder na hora; a busca
@@ -248,6 +253,7 @@ function setupConversorSheet(){
       if(cambioEstaVelho(tabela)) atualizar(true);
     }else{
       resEl.textContent='—';
+      if(copiarBtn) copiarBtn.disabled=true;
       atualizar(false);
     }
     backdrop.classList.remove('closing'); sheet.classList.remove('closing');
