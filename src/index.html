@@ -720,10 +720,16 @@
       </div>
       <div class="view-pane settings-pane" id="settings-pane-ia" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-ia" hidden>
         <div class="field-group" id="ia-section">
-          <label class="gasto-checkbox-label" style="margin-bottom:8px;"><input type="checkbox" id="ia-ativa-check"> <span data-i18n="settings.ativarIA">Ativar conselheiro com IA</span></label>
+          <div class="rr-toggle-row">
+            <div>
+              <div class="t-txt" id="ia-ativa-check-label" data-i18n="settings.ativarIA">Ativar conselheiro com IA</div>
+              <div class="t-sub" data-i18n="settings.ativarIASub">Analisa saldo, gastos, cartões e metas para responder perguntas sobre suas finanças.</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" id="ia-ativa-check" aria-labelledby="ia-ativa-check-label"><span class="toggle-slider"></span></label>
+          </div>
           <div id="ia-fields" style="display:none;">
-            <input type="text" id="ia-chave-input" placeholder="Cole sua chave da API do Google Gemini" data-i18n-placeholder="ph.colaChaveGemini" data-i18n-aria-label="ph.colaChaveGemini" style="font-family:'Nunito Sans',sans-serif;">
-            <div class="help-text"><span data-i18n="settings.iaHelp">Sua chave fica salva só neste aparelho (nunca sai daqui, exceto pra falar direto com o Google). Pegue a sua grátis em</span> <span style="font-weight:700;">aistudio.google.com/apikey</span>.</div>
+            <input type="text" id="ia-chave-input" class="ia-chave-input" placeholder="Cole sua chave da API do Google Gemini" data-i18n-placeholder="ph.colaChaveGemini" data-i18n-aria-label="ph.colaChaveGemini">
+            <div class="help-text"><span data-i18n="settings.iaHelp">Sua chave fica salva só neste aparelho (nunca sai daqui, exceto pra falar direto com o Google). Pegue a sua grátis em</span> <a class="help-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.</div>
           </div>
         </div>
 

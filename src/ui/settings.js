@@ -10,6 +10,7 @@ function setupSettingsModal(){
     renderSettings();
     panel.classList.remove('closing'); backdrop.classList.remove('closing');
     panel.style.display='block'; backdrop.style.display='block';
+    corrigirAbasVisiveisEm(panel);
     restaurar=ativarDialogo(panel,backdrop,closeBtn,close);
   }
   function close(){

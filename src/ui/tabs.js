@@ -20,6 +20,7 @@ function setupBottomNav(){
     if(view){
       renderView(id);
       animateBars(view);
+      corrigirAbasVisiveisEm(view);
     }
   }
   items.forEach(a=>{

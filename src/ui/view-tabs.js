@@ -34,6 +34,13 @@ function mostrarVisao(barra,alvo,moverFoco){
     if(painel) painel.hidden=!ativa;
   });
 
+  /* A barra de abas rola na horizontal quando não cabe tudo. A aba ativa pode
+     nascer fora da parte visível — a memória por grupo costuma restaurar a
+     última aba usada, que é frequentemente a mais à direita. Sem isto, a
+     pessoa abre "Entradas" e vê três abas sem nenhuma marcada: a selecionada
+     está ali, só que fora da tela. */
+  escolhida.scrollIntoView({inline:'nearest',block:'nearest'});
+
   /* Iframe que só existe quando a visão é aberta: enquanto o painel está
      escondido, o endereço fica em data-src e nada é buscado. Quem nunca abre
      Investimentos nunca pede a faixa de cotações a ninguém. */
@@ -61,6 +68,18 @@ function mostrarVisao(barra,alvo,moverFoco){
 
   if(moverFoco) escolhida.focus();
   try{ localStorage.setItem('financas-visao-'+grupo,escolhida.getAttribute('data-pane')); }catch(e){}
+}
+
+/* Chamado sempre que algo que estava escondido passa a aparecer: trocar de
+   visão pela barra de baixo, ou abrir o modal de configurações. Uma rolagem
+   calculada com o contêiner ainda em display:none não rola nada (o elemento
+   não tem tamanho); repetir já visível é o que garante a aba certa aparecer
+   marcada, e não só as primeiras da fileira. */
+function corrigirAbasVisiveisEm(raiz){
+  (raiz||document).querySelectorAll('[role="tablist"][data-grupo]').forEach(barra=>{
+    const ativa=barra.querySelector('[aria-selected="true"]');
+    if(ativa) ativa.scrollIntoView({inline:'nearest',block:'nearest'});
+  });
 }
 
 function ligarAbasDeVisao(){

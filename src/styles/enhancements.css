@@ -499,6 +499,42 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 .conflito-acoes button{width:100%;text-align:center;}
 @media(max-width:420px){ .conflito-lados{grid-template-columns:1fr;} }
 
+/* Sombra de rolagem: um par de gradientes presos ao CONTEÚDO (que cobrem a
+   sombra enquanto ainda há pílula por baixo) e um par preso à BORDA da janela
+   de rolagem (a sombra visível). Rolar o conteúdo desliza o primeiro par e
+   revela ou esconde o segundo — no início não há sombra à esquerda, no fim
+   não há à direita, sem uma linha de JavaScript. */
+@media(max-width:559.98px){
+  /* A primeira versão usava o mesmo tamanho pro véu e pra sombra — os dois
+     bordos coincidiam e a sombra cortava seca, como uma linha, em vez de
+     esmaecer. Aqui o véu (que esconde a sombra enquanto ainda dá pra rolar
+     mais pra esse lado) é bem mais largo que a sombra, e a sombra é radial —
+     mais parecida com o vinheteamento suave de uma borda de verdade do que
+     com uma faixa reta. */
+  .tab-view>.view-tabs{
+    background-image:
+      linear-gradient(to right,var(--cream) 65%,rgba(0,0,0,0) 100%),
+      linear-gradient(to left,var(--cream) 65%,rgba(0,0,0,0) 100%),
+      radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.14),rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.14),rgba(0,0,0,0));
+    background-repeat:no-repeat;
+    background-size:34px 100%,34px 100%,16px 100%,16px 100%;
+    background-position:left center,right center,left center,right center;
+    background-attachment:local,local,scroll,scroll;
+  }
+  .settings-tabs{
+    background-image:
+      linear-gradient(to right,var(--surface,var(--white)) 65%,rgba(0,0,0,0) 100%),
+      linear-gradient(to left,var(--surface,var(--white)) 65%,rgba(0,0,0,0) 100%),
+      radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.14),rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.14),rgba(0,0,0,0));
+    background-repeat:no-repeat;
+    background-size:34px 100%,34px 100%,16px 100%,16px 100%;
+    background-position:left center,right center,left center,right center;
+    background-attachment:local,local,scroll,scroll;
+  }
+}
+
 /* ═══ ferramentas do topo: calculadora e conversor ═══ */
 
 /* O visor cresce de baixo para cima: a conta digitada fica acima, pequena, e o
