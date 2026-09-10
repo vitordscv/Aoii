@@ -12,7 +12,7 @@ a fonte; agora é gerado a partir de `src/`.
 src/index.html          esqueleto com três marcadores
   <!--build:fonts-->      → src/styles/fonts.css
   <!--build:styles-->     → os outros 5 CSS, na ordem do manifesto
-  <!--build:scripts-->    → os 78 módulos JS, na ordem do manifesto,
+  <!--build:scripts-->    → os módulos JS, na ordem do manifesto,
                             embrulhados num único (function(){ "use strict"; … })()
 ```
 
@@ -121,7 +121,7 @@ cifra o objeto com AES-GCM antes do envio e usa revisão otimista para detectar
 conflitos. O fechamento do acesso REST direto à tabela ainda depende do rollout
 coordenado descrito em [SECURITY.md](SECURITY.md).
 
-## O que ainda não existe
+## Comandos de domínio
 
 Os lançamentos do Diário já passam por comandos em `core/transactions.js`.
 Metas passam por `core/goals.js`; editar o valor guardado, remover e desfazer
@@ -133,5 +133,11 @@ agora também usa `core/investments.js` para investimentos. Restam diretamente a
 preferências visuais e de idioma; saldo, renda, data-alvo e reserva passam por
 `core/preferences.js`.
 
-Expandir esse padrão domínio por domínio é a mudança estrutural seguinte — ver
-[MIGRATION.md](MIGRATION.md).
+Entradas extras e compras planejadas também passam por `core/planned.js`;
+categorias e viagens por `core/settings-lists.js`; limites por categoria por
+`core/budgets.js`; taxas financeiras por `core/interest.js`; e agenda de trabalho
+e folgas por `core/dates.js`. O onboarding usa a mesma validação de perfil de
+`core/preferences.js` usada nas configurações.
+
+Preferências visuais e de idioma continuam na interface, pois não participam dos
+cálculos. O histórico das extrações está em [MIGRATION.md](MIGRATION.md).

@@ -501,3 +501,30 @@ Saldo, dinheiro vivo, renda principal, data-alvo e reserva agora passam por
 `core/preferences.js`. Entradas inválidas são recusadas antes de alterar a
 projeção; valores de saldo registram sua data de atualização e a data-alvo exige
 um dia real do calendário.
+
+## Retomada em 09/09/2026 — listas e planejamento
+
+Categorias e viagens passaram para `core/settings-lists.js`. Ao excluir uma
+categoria, os registros que a usavam são migrados para uma categoria existente e
+o limite de orçamento correspondente sai junto. Ao excluir uma viagem, os
+lançamentos continuam preservados sem uma referência inválida.
+
+Entradas extras e compras planejadas passaram para `core/planned.js`. A criação,
+edição, conclusão, remoção e restauração validam o conjunto de campos antes de
+alterar a lista. Registrar parte de uma entrada também cria a receita no Diário;
+concluir uma compra no cartão lança suas parcelas uma única vez.
+
+## Retomada em 09/09/2026 — regras de cálculo na origem
+
+Os limites de orçamento por categoria são validados em `core/budgets.js`, e as
+taxas CDI e Selic em `core/interest.js`. Atualizações inválidas são recusadas sem
+misturar valores novos e antigos.
+
+`core/dates.js` passou a controlar os dias de trabalho e as folgas. Dias da
+semana são ordenados sem repetição; folgas exigem datas reais no formato ISO.
+Como a projeção de renda diária depende dessas listas, essa validação agora fica
+antes da persistência.
+
+O onboarding usa `configurarPerfilFinanceiro()` em `core/preferences.js`, a mesma
+regra que atualiza renda e saldo nas configurações. Assim, o primeiro acesso não
+abre uma exceção para dados inválidos ou estado parcial.
