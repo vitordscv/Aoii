@@ -31,6 +31,7 @@
     "core/goals.js",
     "core/timeline.js",
     "core/cards.js",
+    "core/planned.js",
     "core/transactions.js",
     "core/fixed-expenses.js",
     "core/metrics.js",

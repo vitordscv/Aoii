@@ -362,15 +362,12 @@ function bindStatic(){
       const cartaoSelEl2=document.getElementById(prefix+'-cartao-select');
       const nome=nEl.value.trim(), valor=parseNum(vEl.value);
       if(!nome||isNaN(valor)) return;
-      const item={id:uid(),nome,valor,nota:'',[doneField]:false};
-      if(dEl && dEl.value) item.dataPrevista=dEl.value;
-      if(cEl){
-        item.cartao=cEl.checked;
-        item.parcelas=Math.max(1,parseInt(pEl&&pEl.value,10)||1);
-        item.parcelasLancadas=false;
-        item.cartaoId=cartaoSelEl2?cartaoSelEl2.value:(data.cartoes[0]&&data.cartoes[0].id);
-      }
-      data[key].push(item);
+      const entrada={nome,valor,nota:'',feito:false,dataPrevista:dEl&&dEl.value?dEl.value:null};
+      const item=key==='entradasExtras'?criarPlanejado('entrada',entrada):criarPlanejado('compra',{
+        ...entrada,cartao:cEl&&cEl.checked,parcelas:Math.max(1,parseInt(pEl&&pEl.value,10)||1),parcelasLancadas:false,
+        cartaoId:cartaoSelEl2?cartaoSelEl2.value:(data.cartoes[0]&&data.cartoes[0].id),
+      });
+      if(!item) return;
       nEl.value=''; vEl.value=''; if(dEl) dEl.value='';
       if(cEl) cEl.checked=false; if(pEl) pEl.value='1';
       await persist(); render();

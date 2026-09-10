@@ -80,6 +80,7 @@ const FUNCOES=[
   'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','fatiasAosPoucos',
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
   'computeTotals','computeCartao','camposCartao','criarCartao','atualizarCartao','removerCartao','nextMonth','ensureFatura','lancarParcelamento',
+  'dataPlanejadaValida','camposPlanejados','criarPlanejado','atualizarPlanejado','removerPlanejado','restaurarPlanejado','registrarRecebimentoEntrada','definirPlanejadoFeito',
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',

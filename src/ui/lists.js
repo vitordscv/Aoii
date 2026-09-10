@@ -50,68 +50,45 @@ function renderList(key,listElId,totalElId,doneField,doneLabel){
   }));
   el.querySelectorAll('[data-action="registrar-recebi"]').forEach(b=>b.addEventListener('click',async()=>{
     const id=b.getAttribute('data-id');
-    const it=(data.entradasExtras||[]).find(x=>x.id===id); if(!it) return;
     const campo=document.querySelector('[data-role="recebi-valor"][data-id="'+id+'"]');
     const v=parseNum(campo&&campo.value);
     if(isNaN(v)||v<=0){ campo&&campo.focus(); return; }
-    const falta=restanteEntrada(it);
-    const valor=Math.min(v,falta);           // nunca registra mais do que falta
-    /* entra no saldo e aparece no Diário — é dinheiro que chegou */
-    registrarReceita(it.nome||L('rp.entradaExtra'),valor,'Outros','pix');
-    it.recebido=(it.recebido||0)+valor;
-    if(restanteEntrada(it)<=0){ it.feito=true; it.feitoEm=todayISO(); }
+    if(!registrarRecebimentoEntrada(id,v)) return;
     vibrate(12);
     await persist(); render();
   }));
   el.querySelectorAll('[data-action="edit-modo"]').forEach(x=>x.addEventListener('change',async e=>{
-    const it=data[e.target.getAttribute('data-key')].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){ it.modo=e.target.value; vibrate(8); await persist(); render(); }
+    const it=atualizarPlanejado('entrada',e.target.getAttribute('data-id'),{modo:e.target.value});
+    if(it){ vibrate(8); await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="toggle-cartao-item"]').forEach(x=>x.addEventListener('change',async e=>{
     const k=e.target.getAttribute('data-key');
-    const it=data[k].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){
-      it.cartao=e.target.checked;
-      if(it.cartao){
-        if(!it.parcelas) it.parcelas=1;
-        if(!it.cartaoId) it.cartaoId=data.cartoes[0]&&data.cartoes[0].id;
-        it.parcelasLancadas=false;
-      }
-      await persist(); render();
-    }
+    const atual=(data[k]||[]).find(x=>x.id===e.target.getAttribute('data-id'));
+    const it=atual&&atualizarPlanejado('compra',atual.id,{cartao:e.target.checked,cartaoId:atual.cartaoId||(data.cartoes[0]&&data.cartoes[0].id),parcelasLancadas:false});
+    if(it){ await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="toggle-feito"]').forEach(x=>x.addEventListener('change',async e=>{
     const k=e.target.getAttribute('data-key');
-    const it=data[k].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){
-      it[doneField]=e.target.checked;
-      if(it[doneField]) it.feitoEm=todayISO(); else delete it.feitoEm;
-      if(k==='comprasPlanejadas'&&it.cartao&&it[doneField]&&!it.parcelasLancadas){
-        const start=it.dataPrevista?new Date(it.dataPrevista+'T12:00:00'):new Date();
-        lancarParcelamento(it.nome,it.valor,it.parcelas||1,start.getFullYear(),start.getMonth()+1,'Outros',it.cartaoId);
-        it.parcelasLancadas=true;
-      }
-      await persist(); render();
-    }
+    const tipo=k==='entradasExtras'?'entrada':'compra';
+    if(definirPlanejadoFeito(tipo,e.target.getAttribute('data-id'),e.target.checked)){ await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="edit-nome"]').forEach(x=>x.addEventListener('change',async e=>{
-    const it=data[e.target.getAttribute('data-key')].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){ it.nome=e.target.value; await persist(); render(); }
+    const tipo=e.target.getAttribute('data-key')==='entradasExtras'?'entrada':'compra';
+    if(atualizarPlanejado(tipo,e.target.getAttribute('data-id'),{nome:e.target.value})){ await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="edit-valor"]').forEach(x=>x.addEventListener('change',async e=>{
-    const it=data[e.target.getAttribute('data-key')].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){ it.valor=parseNum(e.target.value)||0; await persist(); render(); }
+    const tipo=e.target.getAttribute('data-key')==='entradasExtras'?'entrada':'compra';
+    if(atualizarPlanejado(tipo,e.target.getAttribute('data-id'),{valor:parseNum(e.target.value)})){ await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="edit-data"]').forEach(x=>x.addEventListener('change',async e=>{
-    const it=data[e.target.getAttribute('data-key')].find(x=>x.id===e.target.getAttribute('data-id'));
-    if(it){ it.dataPrevista=e.target.value||null; await persist(); render(); }
+    const tipo=e.target.getAttribute('data-key')==='entradasExtras'?'entrada':'compra';
+    if(atualizarPlanejado(tipo,e.target.getAttribute('data-id'),{dataPrevista:e.target.value||null})){ await persist(); render(); }
   }));
   el.querySelectorAll('[data-action="del-item"]').forEach(x=>x.addEventListener('click',e=>{
     const k=e.target.getAttribute('data-key'), id=e.target.getAttribute('data-id');
-    const idx=data[k].findIndex(x=>x.id===id); if(idx<0) return;
-    const removed=data[k].splice(idx,1)[0];
+    const tipo=k==='entradasExtras'?'entrada':'compra';
+    const removed=removerPlanejado(tipo,id); if(!removed) return;
     vibrate(15); render();
-    showUndoToast(L('undo.removido').replace('{nome}',removed.nome),()=>{ data[k].splice(Math.min(idx,data[k].length),0,removed); });
+    showUndoToast(L('undo.removido').replace('{nome}',removed.item.nome),()=>{ restaurarPlanejado(tipo,removed.item,removed.indice); });
   }));
 }
-

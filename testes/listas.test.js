@@ -310,6 +310,24 @@ module.exports=function(t){
   ctxListas.removerViagem('v');
   t.igual(dadosListas.transacoes[0].viagemId,null,'remover viagem preserva a transação sem referência quebrada');
 
+  console.log('\n\x1b[1mPlanejamento registra recebimento e compra no cartão\x1b[0m');
+  const dadosPlano=base();
+  const ctxPlano=criarAmbiente(dadosPlano,HOJE);
+  t.igual(ctxPlano.criarPlanejado('entrada',{nome:'',valor:100}),null,'entrada planejada sem nome é recusada');
+  const entrada=ctxPlano.criarPlanejado('entrada',{nome:'Cliente',valor:300,dataPrevista:'2026-09-30',modo:'aosPoucos'});
+  t.igual(entrada.recebido,0,'entrada planejada nasce sem recebimento');
+  const recebimento=ctxPlano.registrarRecebimentoEntrada(entrada.id,500);
+  t.valor(recebimento.recebido,300,'recebimento não passa do que falta');
+  t.igual(entrada.feito,true,'entrada fica concluída ao receber tudo');
+  t.valor(dadosPlano.saldoAtual,1300,'recebimento entra no saldo');
+  t.igual(dadosPlano.transacoes[0].tipo,'receita','recebimento vira receita no diário');
+  const compra=ctxPlano.criarPlanejado('compra',{nome:'Notebook',valor:99.99,dataPrevista:'2026-09-15',cartao:true,cartaoId:'a',parcelas:2});
+  t.igual(ctxPlano.definirPlanejadoFeito('compra',compra.id,true).parcelasLancadas,true,'compra concluída no cartão lança as parcelas');
+  t.valor(dadosPlano.faturas.flatMap(f=>f.gastos).reduce((s,g)=>s+g.valor,0),99.99,'parcelas da compra preservam o total');
+  const removidoPlano=ctxPlano.removerPlanejado('compra',compra.id);
+  ctxPlano.restaurarPlanejado('compra',removidoPlano.item,removidoPlano.indice);
+  t.igual(dadosPlano.comprasPlanejadas[0].id,compra.id,'desfazer restaura a compra planejada');
+
   console.log('\n\x1b[1mParcelamento fecha a soma\x1b[0m');
   [[100,3],[10,3],[0.05,3],[1234.56,7],[99.99,2]].forEach(([valor,n])=>{
     const dd=base();
