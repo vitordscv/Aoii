@@ -430,8 +430,9 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .ticker-externo{margin-bottom:18px;background:var(--white);
   border:1px solid var(--line);border-radius:18px;overflow:hidden;
   box-shadow:0 12px 30px -20px rgba(11,24,48,.48);}
-/* altura da página que a TradingView serve pra este widget */
-.ticker-frame{display:block;width:100%;height:82px;border:0;background:transparent;}
+/* 104 px é o que o widget novo ocupa: a fita com o minigráfico mais a linha
+   de crédito da TradingView. Medido no widget, não estimado. */
+.ticker-frame{display:block;width:100%;height:104px;border:0;background:transparent;}
 .ticker-nota{padding:9px 16px 11px;border-top:1px solid var(--line);
   background:var(--cream);font-size:10.5px;line-height:1.45;color:var(--muted2);}
 

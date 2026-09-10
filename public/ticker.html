@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cotações</title>
+<!--
+  Esta página existe pra segurar o widget da TradingView fora do documento do
+  app. O widget precisa de armazenamento próprio pra desenhar, e um iframe
+  isolado de verdade (sandbox sem allow-same-origin) nega isso: medido, ele
+  reserva 104 px e desenha zero — nem texto, nem gráfico.
+
+  Então o isolamento aqui é PARCIAL e vale dizer o que ele é e o que não é:
+
+    o que ele dá   o script de terceiro não roda no documento do app: não vê
+                   o DOM dele, os handlers, as variáveis.
+    o que NÃO dá   sendo a mesma origem, um script mal-intencionado ainda
+                   alcançaria parent.localStorage.
+
+  O conserto completo é servir ESTE arquivo de outro domínio (na Vercel, um
+  subdomínio resolve). Aí a regra de mesma origem do navegador fecha o resto,
+  e o widget continua funcionando porque a origem é real, não opaca. Enquanto
+  isso não existir, é uma linha pra trocar: só muda o endereço em ticker.js.
+-->
+<style>
+  html,body{margin:0;padding:0;background:transparent;overflow:hidden;}
+  #falha{
+    display:none;padding:14px 12px;
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:11.5px;line-height:1.4;color:#8a8378;
+  }
+</style>
+</head>
+<body>
+
+<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
+<tv-ticker-tape id="fita"></tv-ticker-tape>
+
+<div id="falha"></div>
+
+<script>
+(function(){
+  var p=new URLSearchParams(location.search);
+  var fita=document.getElementById('fita');
+
+  fita.setAttribute('symbols', p.get('simbolos') ||
+    'PEPPERSTONE:USDX,BINANCE:BTCUSD,OANDA:XAUUSD,NASDAQ:NVDA,OANDA:SPX500USD');
+  /* o app manda o tema junto: sem isso a fita nasce clara dentro do tema escuro */
+  if(p.get('tema')==='dark') fita.setAttribute('theme','dark');
+
+  /* O app funciona offline; o widget não. Sem este aviso, quem abrisse a aba
+     sem internet veria uma faixa vazia e não saberia se quebrou ou se é assim. */
+  var textos={
+    pt:'Cotações indisponíveis agora — precisa de internet.',
+    en:'Quotes unavailable right now — needs an internet connection.',
+    es:'Cotizaciones no disponibles ahora — necesita conexión a internet.',
+    fr:'Cours indisponibles pour le moment — nécessite une connexion.',
+    it:'Quotazioni non disponibili ora — serve una connessione a internet.'
+  };
+  var lang=(p.get('lang')||'pt').slice(0,2);
+  setTimeout(function(){
+    if(customElements.get('tv-ticker-tape')) return;
+    var el=document.getElementById('falha');
+    el.textContent=textos[lang]||textos.pt;
+    el.style.display='block';
+  },6000);
+})();
+</script>
+
+</body>
+</html>

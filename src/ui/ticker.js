@@ -25,15 +25,6 @@
 
 const TICKER_LOCALES = { pt: 'br', en: 'en', es: 'es', fr: 'fr', it: 'it' };
 
-/* O código do provedor não é nome de nada: "USDX" e "SPX500USD" só dizem
-   alguma coisa pra quem já vive nisso. O rótulo é o instrumento. */
-const TICKER_NOMES = {
-  'PEPPERSTONE:USDX': 'Dólar (DXY)',
-  'OANDA:SPX500USD': 'S&P 500',
-  'OANDA:XAUUSD': 'Ouro',
-  'BINANCE:BTCUSD': 'Bitcoin',
-};
-
 /* Claro ou escuro? Lido de --cream, o fundo declarado pelo tema, em vez de
    uma lista de nomes — assim o tema personalizado também acerta. A variável
    vale assim que o atributo data-theme é posto; o fundo pintado do body só
@@ -55,20 +46,16 @@ function faixaPrefereEscuro(){
   }catch(e){ return false; }
 }
 
+/* O endereço da nossa página, com o que ela precisa saber: os símbolos, o
+   tema (pra fita não nascer clara dentro do tema escuro) e o idioma (só pro
+   aviso de "sem internet"). */
 function enderecoDaFaixa(simbolos){
-  const config={
-    symbols:simbolos.split(',').map(s=>s.trim()).filter(Boolean)
-      .map(s=>({proName:s,title:TICKER_NOMES[s]||s.split(':').pop()})),
-    showSymbolLogo:true,
-    /* fundo próprio, não transparente: sobre o papel de parede do app a
-       fita transparente ficava sem contorno e os números pareciam soltos */
-    isTransparent:false,
-    displayMode:'adaptive',
-    colorTheme:faixaPrefereEscuro()?'dark':'light',
-    locale:TICKER_LOCALES[data&&data.idioma]||'br',
-  };
-  return 'https://s.tradingview.com/embed-widget/ticker-tape/?locale='+
-    encodeURIComponent(config.locale)+'#'+encodeURIComponent(JSON.stringify(config));
+  const p=new URLSearchParams({
+    simbolos:simbolos,
+    tema:faixaPrefereEscuro()?'dark':'light',
+    lang:(data&&data.idioma)||'pt',
+  });
+  return 'ticker.html?'+p.toString();
 }
 
 /* Chamada a cada render. Só mexe no iframe quando o endereço muda de verdade —
