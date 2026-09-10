@@ -35,6 +35,21 @@ function atualizarDinheiroVivo(valor){
   return valor;
 }
 
+function configurarPerfilFinanceiro(entrada){
+  entrada=entrada||{};
+  const tipo=entrada.tipoRenda;
+  const renda=Number(entrada.renda);
+  const saldo=Number(entrada.saldoAtual);
+  const diaDoMes=entrada.diaDoMes===undefined?(data.rendaMensal||{}).diaDoMes:Number(entrada.diaDoMes);
+  if((tipo!=='diaria'&&tipo!=='mensal')||!Number.isFinite(renda)||renda<0||!Number.isFinite(saldo)||
+    (tipo==='mensal'&&(!Number.isInteger(diaDoMes)||diaDoMes<1||diaDoMes>31))) return null;
+  definirTipoRenda(tipo);
+  if(tipo==='diaria') atualizarRendaDiaria(renda);
+  else atualizarRendaMensal(renda,diaDoMes);
+  atualizarSaldoConta(saldo);
+  return {tipoRenda:tipo,renda,saldoAtual:saldo};
+}
+
 function atualizarDataAlvo(valor){
   const dataTeste=typeof valor==='string'?new Date(valor+'T12:00:00'):null;
   if(typeof valor!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(valor)||Number.isNaN(dataTeste.getTime())||dataTeste.toISOString().slice(0,10)!==valor) return null;

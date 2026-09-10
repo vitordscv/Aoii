@@ -288,6 +288,12 @@ module.exports=function(t){
   ctxPreferencias.atualizarReserva({reservaGuardado:500,reservaMeses:6,reservaNaConta:false});
   t.valor(dadosPreferencias.reservaGuardado,500,'valor da reserva é atualizado');
   t.igual(dadosPreferencias.reservaNaConta,false,'local da reserva é atualizado');
+  t.igual(ctxPreferencias.configurarPerfilFinanceiro({tipoRenda:'mensal',renda:3200,saldoAtual:500,diaDoMes:10}).renda,3200,
+    'perfil inicial configura renda e saldo juntos');
+  t.igual(dadosPreferencias.tipoRenda,'mensal','perfil inicial troca o tipo de renda');
+  t.igual(ctxPreferencias.configurarPerfilFinanceiro({tipoRenda:'mensal',renda:-1,saldoAtual:200,diaDoMes:10}),null,
+    'perfil inicial inválido é recusado inteiro');
+  t.igual(dadosPreferencias.saldoAtual,500,'perfil recusado preserva o saldo anterior');
 
   console.log('\n\x1b[1mCategorias e viagens preservam os lançamentos\x1b[0m');
   const dadosListas=base();

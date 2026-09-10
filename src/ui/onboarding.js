@@ -132,13 +132,11 @@ function setupOnboarding(){
   tipoEl.addEventListener('change',()=>{ rendaLabel.textContent=L(tipoEl.value==='diaria'?'ob.valorDiaria':'ob.salarioMensal'); });
   async function finalizar(aplicar){
     if(aplicar){
-      const rendaValor=parseNum(document.getElementById('ob-renda-valor').value)||0;
-      const saldoValor=parseNum(document.getElementById('ob-saldo').value)||0;
-      data.tipoRenda=tipoEl.value;
-      if(tipoEl.value==='diaria') data.rendaDiaria=rendaValor;
-      else data.rendaMensal={valor:rendaValor,diaDoMes:(data.rendaMensal&&data.rendaMensal.diaDoMes)||5};
-      data.saldoAtual=saldoValor;
-      data.saldoAtualizadoEm=new Date().toISOString();
+      const rendaLida=parseNum(document.getElementById('ob-renda-valor').value);
+      const saldoLido=parseNum(document.getElementById('ob-saldo').value);
+      const rendaValor=Number.isFinite(rendaLida)&&rendaLida>=0?rendaLida:0;
+      const saldoValor=Number.isFinite(saldoLido)?saldoLido:0;
+      configurarPerfilFinanceiro({tipoRenda:tipoEl.value,renda:rendaValor,saldoAtual:saldoValor});
       const cNome=(document.getElementById('ob-cartao-nome').value||'').trim();
       if(cNome){
         const cLimite=parseNum(document.getElementById('ob-cartao-limite').value)||0;
