@@ -152,6 +152,10 @@ function migrateData(d){
     if(typeof c.parcelas!=='number')         c.parcelas=1;
     if(typeof c.parcelasLancadas!=='boolean') c.parcelasLancadas=false;
     if(!c.cartaoId)                          c.cartaoId=primeiroCartaoId;
+    if(typeof c.nota!=='string')             c.nota='';
+    /* quem veio de antes do campo não tem link; o schema recusa o que não
+       for http/https, então aqui basta garantir o null. */
+    if(typeof c.link!=='string'||!c.link)    c.link=null;
   });
   if(typeof d.dinheiroVivo!=='number') d.dinheiroVivo=0;
   if(!d.dinheiroVivoAtualizadoEm) d.dinheiroVivoAtualizadoEm=new Date().toISOString();

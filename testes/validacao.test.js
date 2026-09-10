@@ -220,4 +220,26 @@ module.exports=function(t){
   const volta=c.adotarDadosDeFora(JSON.parse(JSON.stringify(ida.data)),'local');
   t.igual(JSON.stringify(volta.data),JSON.stringify(ida.data),
     'validar de novo o que já foi validado não muda nada (sem erosão a cada abertura)');
+
+  console.log('\n\x1b[1mLink de compra vindo de backup\x1b[0m');
+
+  const comLink=l=>{
+    const r=V(base({comprasPlanejadas:[{id:'p1',nome:'Item',valor:10,link:l}]}));
+    return r.ok?r.data.comprasPlanejadas[0]:null;
+  };
+
+  t.igual(comLink('https://loja.com/x').link,'https://loja.com/x','http(s) atravessa inteiro');
+  t.igual(comLink('loja.com/x').link,'https://loja.com/x','sem esquema, o backup também ganha https://');
+
+  /* o item sobrevive; só o link cai. Perder a compra inteira por causa de um
+     link ruim seria perder dado por causa de enfeite. */
+  const mau=comLink('javascript:alert(document.cookie)');
+  t.igual(mau!==null,true,'a compra sobrevive ao link envenenado');
+  t.igual(mau.link,null,'javascript: não chega em data');
+  t.igual(comLink('data:text/html,<script>x</script>').link,null,'data: não chega em data');
+  t.igual(comLink('vbscript:msgbox').link,null,'vbscript: não chega em data');
+  t.igual(comLink('file:///C:/Windows/win.ini').link,null,'file: não chega em data');
+  t.igual(comLink(42).link,null,'link que não é texto vira null');
+  t.igual(comLink({}).link,null,'link que é objeto vira null');
+  t.igual(comLink('h'.repeat(600)).link,null,'link acima do teto de texto vira null');
 };

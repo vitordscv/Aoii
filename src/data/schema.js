@@ -33,6 +33,7 @@ const LIMITES = {
    'iso'        data-hora ISO ('2026-09-06T10:00:00.000Z')
    'dia'        YYYY-MM-DD
    'opcao'      um valor de uma lista fechada
+   'url'        link http/https; qualquer outro esquema não sobrevive
    'id'         só sobrevive se couber em [A-Za-z0-9:_-]{1,64}; senão, novo
    'ref'        aponta pro id de outra lista; segue a troca, se houver
    'lista'      array de objetos, com `item`
@@ -114,7 +115,10 @@ const ITEM_COMPRA = {
   cartaoId: { tipo: 'ref', de: 'cartoes', nulo: true },
   feito: { tipo: 'booleano', padrao: false },
   feitoEm: { tipo: 'dia', nulo: true },
+  /* o motivo da compra, em texto livre — opcional */
   nota: { tipo: 'texto', max: LIMITES.nota, padrao: '' },
+  /* link do produto — opcional. Vira href na lista, daí o tipo 'url'. */
+  link: { tipo: 'url', max: LIMITES.texto, nulo: true },
 };
 
 const ITEM_META = {

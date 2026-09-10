@@ -43,6 +43,21 @@ function numeroDeFora(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/* Link vindo de fora. Só sobrevive http/https absoluto: qualquer outro
+   esquema (javascript:, data:, vbscript:) vira execução ao chegar num href.
+   Quem digita "loja.com" ganha o https:// na frente — é o que a pessoa quis. */
+function urlSegura(v) {
+  if (typeof v !== 'string') return null;
+  let bruto = v.trim();
+  if (!bruto) return null;
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(bruto)) bruto = 'https://' + bruto;
+  let u;
+  try { u = new URL(bruto); } catch (e) { return null; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  if (!u.hostname) return null;
+  return u.href;
+}
+
 const RE_DIA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_ISO = /^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})?$/;
 
@@ -115,6 +130,15 @@ function limparCampo(valor, regra, ctx, caminho) {
         return s.slice(0, regra.max || ctx.limites.texto);
       }
       return s;
+    }
+
+    case 'url': {
+      if (valor == null) return nulo();
+      if (typeof valor !== 'string') { anota('link não é texto'); return nulo(); }
+      if (valor.length > (regra.max || ctx.limites.texto)) { anota('link grande demais'); return nulo(); }
+      const limpo = urlSegura(valor);
+      if (!limpo && valor.trim()) anota('link precisa ser http ou https');
+      return limpo || nulo();
     }
 
     case 'booleano':

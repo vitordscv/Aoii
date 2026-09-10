@@ -348,6 +348,15 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .item-cartao-toggle input:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
 .item-cartao-toggle input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:9px;font-weight:800;line-height:1;}
 .item-nota{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:2px;}
+/* motivo e link da compra planejada */
+.item-link{display:inline-block;max-width:100%;margin-top:3px;font-size:11px;font-weight:600;color:var(--accent-ink);text-decoration:none;border-bottom:1px dotted currentColor;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.item-link:hover{color:var(--ink-navy);}
+.item-detalhes-btn{display:block;margin-top:5px;padding:5px 10px;width:auto;font-size:11px;}
+.item-detalhes-form.aberto{display:flex;}
+.item-detalhes-form input[type=url]{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;}
+.item-detalhes-erro{font-size:11px;font-weight:600;color:var(--neg);}
+/* vazio é o estado normal: o texto só entra quando o link não presta */
+.item-detalhes-erro:empty{display:none;}
 .item-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .tag-pill{font-size:10.5px;background:color-mix(in srgb,var(--disney-blue-deep) 12%,var(--mist-lilac));color:var(--accent-ink);border-radius:999px;padding:2px 8px;font-weight:700;}
 

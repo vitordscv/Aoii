@@ -32,6 +32,9 @@ function criarAmbiente(dados,hojeISO,arquivo){
     data:dados,
     Date:DateFalso,
     Math,JSON,Number,String,Array,Object,Set,Map,isNaN,isFinite,parseInt,parseFloat,console,
+    /* o navegador sempre tem URL; sem ela aqui, urlSegura() cai no catch e
+       todo link viraria null — o teste passaria a medir o dublê, não o app. */
+    URL,
     /* dublê de tradução: devolve a própria chave, exceto onde o teste
        precisa que o marcador {…} sobreviva pra ser substituído */
     L:k=>({'compra.aPartirDe':'a partir de {mes}',

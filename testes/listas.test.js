@@ -421,4 +421,47 @@ module.exports=function(t){
   const cr=criarAmbiente(dr,HOJE);
   /* meses fechados: jun 200, jul 400, ago 600 → média 400; + aluguel 1000 */
   t.valor(cr.custoMensalEssencial(),1400,'média usa os 3 últimos MESES somando os cartões de cada um');
+
+  console.log('\n\x1b[1mMotivo e link da compra planejada\x1b[0m');
+  const dd=base();
+  const cd=criarAmbiente(dd,HOJE);
+
+  const c1=cd.criarPlanejado('compra',{nome:'Notebook',valor:4000,link:'loja.com/note'});
+  t.igual(!!c1,true,'compra com link é criada');
+  t.igual(c1.link,'https://loja.com/note','link sem esquema ganha https://');
+  t.igual(c1.nota,'','sem motivo, a nota fica vazia e não vira undefined');
+
+  const c2=cd.criarPlanejado('compra',{nome:'Cadeira',valor:900});
+  t.igual(c2.link,null,'compra sem link guarda null, não string vazia');
+
+  const c3=cd.atualizarPlanejado('compra',c2.id,{nota:'A minha travou o encosto',link:'https://exemplo.com/cadeira?cor=azul'});
+  t.igual(!!c3,true,'motivo e link entram na compra que já existia');
+  t.igual(c3.nota,'A minha travou o encosto','o motivo é guardado');
+  t.igual(c3.link,'https://exemplo.com/cadeira?cor=azul','o link com query é guardado inteiro');
+
+  /* href é lugar onde texto vira execução: o esquema tem que morrer aqui,
+     antes de chegar na lista. */
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{link:'javascript:alert(1)'}),null,
+    'javascript: reprova a edição inteira');
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{link:'JaVaScRiPt:alert(1)'}),null,
+    'javascript: com caixa trocada também reprova');
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{link:'data:text/html,<script>x</script>'}),null,
+    'data: reprova a edição inteira');
+  t.igual(dd.comprasPlanejadas.find(x=>x.id===c2.id).link,'https://exemplo.com/cadeira?cor=azul',
+    'depois de três tentativas recusadas, o link bom continua lá');
+
+  /* campo apagado é o que a interface manda quando a pessoa seleciona tudo e
+     apaga: tem que limpar, e não reprovar como um esquema inválido. */
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{link:'   '}).link,null,
+    'campo em branco limpa o link');
+
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{link:null}).link,null,
+    'null também limpa');
+  t.igual(cd.atualizarPlanejado('compra',c2.id,{nota:'outro motivo'}).nota,'outro motivo',
+    'editar só o motivo não mexe no link');
+
+  /* a entrada extra não ganhou o campo: se ganhasse sem querer, o valor
+     entraria em data sem passar por validação nenhuma na lista */
+  const e1=cd.criarPlanejado('entrada',{nome:'Reembolso',valor:300,link:'https://x.com'});
+  t.igual(e1.link,undefined,'entrada extra ignora link, que não é campo dela');
 };

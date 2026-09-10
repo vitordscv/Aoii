@@ -22,7 +22,13 @@ function camposPlanejados(tipo,entrada,atual){
   const parcelas=Number(ler('parcelas')||1);
   const cartaoId=ler('cartaoId')||null;
   if(!Number.isInteger(parcelas)||parcelas<1||parcelas>360||(cartaoId&&!(data.cartoes||[]).some(c=>c.id===cartaoId))) return null;
-  return {nome,valor,nota:String(ler('nota')||''),dataPrevista,cartao,parcelas,cartaoId,parcelasLancadas:Boolean(ler('parcelasLancadas')),feito:Boolean(ler('feito')),feitoEm:ler('feitoEm')||null};
+  /* O link é opcional, mas quando vem preenchido tem que ser aproveitável:
+     um texto que não vira http/https recusa a edição inteira, em vez de ser
+     descartado em silêncio e deixar a pessoa achando que salvou. */
+  const linkBruto=ler('link');
+  const link=(linkBruto===null||linkBruto===undefined||String(linkBruto).trim()==='')?null:urlSegura(String(linkBruto));
+  if(link===null&&linkBruto!==null&&linkBruto!==undefined&&String(linkBruto).trim()!=='') return null;
+  return {nome,valor,nota:String(ler('nota')||''),link,dataPrevista,cartao,parcelas,cartaoId,parcelasLancadas:Boolean(ler('parcelasLancadas')),feito:Boolean(ler('feito')),feitoEm:ler('feitoEm')||null};
 }
 
 function criarPlanejado(tipo,entrada){
