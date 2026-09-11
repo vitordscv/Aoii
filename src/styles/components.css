@@ -95,17 +95,14 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 /* ── PADRAO DE FUNDO (ondas vetorizadas) ── */
 .bg-pattern{
   position:fixed;inset:0;z-index:-2;pointer-events:none;
+  --pattern-mask:url("/assets/fundo/pattern.svg");
   background-color:var(--pattern-tint);
   -webkit-mask-image:var(--pattern-mask);
   mask-image:var(--pattern-mask);
-  /* A máscara é uma composição completa, não um ladrilho. Repeti-la em
-     260px expõe as emendas do SVG em telas largas e durante o scroll. */
-  -webkit-mask-repeat:no-repeat;
-  mask-repeat:no-repeat;
-  -webkit-mask-size:cover;
-  mask-size:cover;
-  -webkit-mask-position:center;
-  mask-position:center;
+  -webkit-mask-repeat:repeat;
+  mask-repeat:repeat;
+  -webkit-mask-size:320px 320px;
+  mask-size:320px 320px;
   transition:background-color .2s;
 }
 /* fundo ilustrado: leve desfoque + escala pra suavizar a compressão das artes sem borda transparente */
