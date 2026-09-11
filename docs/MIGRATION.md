@@ -673,3 +673,40 @@ em lixo solto, que o navegador descarta sem avisar. Resultado: nenhum botão
 informativo do app tinha `cursor:pointer`. E consertar acordou um
 `margin-left` que estava dormindo, mudando o espaçamento em outro lugar —
 reviver CSS morto mexe na cascata, e o efeito aparece longe do conserto.
+
+### Varredura com o navegador — o que só aparece rodando
+
+Com um arnês de CDP dirigindo o Chrome de verdade (zero dependência: Node 22+
+já traz `WebSocket`), deu pra procurar o que nenhum teste de unidade alcança.
+Achados, e a lição de cada um:
+
+**O hero corta o que não cabe.** `.hero` tem `overflow:hidden`, então excesso
+não vira rolagem: some. Num aparelho de 320 px as fichas em duas colunas
+saíam 163 e 140 px — `1fr` não manda sozinho, porque cada faixa também não
+pode ficar menor que o conteúdo, e o valor é `white-space:nowrap`. Piorava com
+o saldo: R$ 3.500 perdia 19 px do "A pagar", R$ 98.750 perdia 57. O número
+grande tinha o mesmo problema por outro caminho — piso de 38 px do clamp num
+espaço de 230. **Regra para o próximo:** medir com valor grande e tela
+pequena, não com o cenário bonito.
+
+**Dois toques, dois registros.** Todo botão que grava tem um `await persist()`
+entre o começo do tratador e o `close()`. O segundo toque cai na fresta. Falha
+em quatro dos dez lugares; os outros seis escapavam por acidente, porque
+limpam o campo antes do `await`. `umEnvioPorVez()` fecha o ferrolho de forma
+síncrona, antes do primeiro `await`, e vale para os dez.
+
+**Medir não é ver.** Três achados desta rodada eram defeito da medição, não do
+app: `getBoundingClientRect` devolve caixa para conteúdo de `<details>`
+fechado (o Chrome guarda o layout mas não pinta nem deixa tocar), medir a aba
+escondida dá zero em tudo, e `navigator.onLine` não acompanha a emulação de
+rede do CDP. Quando a pergunta for "dá pra tocar nisso?", quem responde é
+`elementFromPoint`, não conta de retângulo.
+
+### O que a varredura confirmou que está de pé
+
+Os cinco caminhos principais fecham do toque ao dado salvo (lançar gasto,
+crédito virando parcelas sem mexer no saldo, gasto fixo, meta, remover e
+desfazer). O backup vai e volta sem perder nada — 24 lançamentos, tags,
+notas, parcelas de fatura, credor e dividendos. Offline o app abre do cache,
+anota gasto, e as ferramentas que dependem de rede avisam em vez de quebrar.
+Nenhum campo abaixo de 16 px, que é o que faz o iOS dar zoom sozinho.
