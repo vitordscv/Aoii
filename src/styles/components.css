@@ -762,6 +762,26 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .cat-pill.active{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);color:var(--on-accent);}
 
 /* ── BOTTOM SHEET: Novo gasto ── */
+/* ── a rolagem para onde a camada de cima acaba ────────────────────────────
+   Por padrão o navegador ENCADEIA: quando a folha chega ao fim e o dedo
+   continua, ele repassa o movimento pra página de trás, que começa a descer
+   sozinha. Você sai de dentro do "Novo gasto" sem ter pedido, e ao fechar a
+   folha o Resumo está em outro lugar.
+
+   `contain` corta o repasse sem tirar nada: dentro da folha rola igual, e o
+   que sobra morre ali. O chat da IA já fazia isso; era o único.
+
+   Os panos de fundo não rolam, mas o dedo arrastando SOBRE eles rolava a
+   página atrás — pelo mesmo motivo, só que sem nem haver o que rolar na
+   frente. `pinch-zoom` tira o arrasto e mantém a ampliação com dois dedos:
+   `none` tiraria as duas coisas, e o app não proíbe zoom no viewport — quem
+   precisa aproximar pra ler continua podendo. O toque que fecha não é
+   afetado, porque clique não é gesto de rolagem. */
+.bottom-sheet,.settings-modal,.onboarding-dialog,.ia-chat-messages,.cal-scroll{
+  overscroll-behavior:contain;
+}
+.sheet-backdrop,.modal-backdrop,.tour-blocker{touch-action:pinch-zoom;}
+
 .sheet-backdrop{position:fixed;inset:0;background:rgba(11,24,48,0.55);z-index:70;animation:modalFade .18s ease;}
 .sheet-backdrop.closing{animation:modalFadeOut .18s ease forwards;}
 .bottom-sheet{
