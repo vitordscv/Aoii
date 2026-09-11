@@ -167,7 +167,22 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
   letter-spacing:.04em;padding:8px 10px;cursor:pointer;
 border-color:rgba(255,255,255,.42);}
 .hero-date-input::-webkit-calendar-picker-indicator{filter:invert(.65) sepia(.5) hue-rotate(200deg);cursor:pointer;margin-left:4px;padding:0;}
-.hero-number{font-family:'Sora',sans-serif;font-weight:600;font-size:clamp(38px,7vw,72px);line-height:1.04;margin:10px 0 2px;}
+/* O "i" ao lado do valor é irmão do número, e a linha é flex pra ele ficar no
+   meio da altura dele. Com vertical-align:middle o botão se alinhava à
+   baseline mais meia altura de x — ou seja, quase no pé de um número de 72px,
+   não no centro dele. */
+.hero-number{font-family:'Sora',sans-serif;font-weight:600;font-size:clamp(38px,7vw,72px);line-height:1.04;margin:10px 0 2px;
+  display:flex;align-items:center;}
+/* O `top:.6em` de .hero-tip-btn era o ajuste à mão que compensava o
+   alinhamento por baseline. Agora quem centra é o flex acima, e aquele
+   empurrão vira exatamente o desvio que ele existia pra corrigir — 6,3 px
+   pra baixo. Zera aqui, no contexto onde deixou de fazer sentido. */
+/* A margem de 8 px também mora aqui agora. .hero-tip-btn pedia 8, mas
+   .info-tip-btn pede 5 e vem depois na concatenação — enquanto aquela regra
+   estava quebrada isso não aparecia, e ao consertá-la o botão encostou no
+   número. Ao lado de um algarismo de 72 px, 5 px é colado. */
+.hero-number .hero-tip-btn{top:0;flex:none;margin-left:10px;}
+.hero-number-valor{min-width:0;}
 .hero-number.negativo{color:var(--hero-neg-text);}
 /* o "?" das seções é escuro sobre creme; aqui ele vive sobre o azul do hero.
    Ao lado de um número de 38–72 px ele precisa se descolar da linha de base:

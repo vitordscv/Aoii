@@ -467,7 +467,12 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
   content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;transform:translate(-50%,-50%);
 }
 .revisao-close,.item-del,.gasto-del,.gasto-del-parc,.month-del,.cat-manage-del,.gm-del{position:relative;}
-.info-tip-btn::after{content:'';position:absolute;inset:-14px;}cursor:pointer;margin-left:5px;vertical-align:middle;line-height:1;}
+/* Havia uma chave a mais no meio desta regra: o `}` fechava o ::after e o
+   resto — cursor, margem, alinhamento, entrelinha — virava lixo solto, que o
+   navegador descarta calado. Nenhum botão informativo do app tinha
+   cursor:pointer por causa disso. */
+.info-tip-btn::after{content:'';position:absolute;inset:-14px;}
+.info-tip-btn{cursor:pointer;margin-left:5px;vertical-align:middle;line-height:1;}
 .info-tip-btn:hover{background:var(--disney-blue-deep);color:var(--on-accent);}
 .info-tip-popover{position:fixed;z-index:130;background:var(--ink-navy);color:var(--cream);font-size:12px;line-height:1.5;border-radius:10px;padding:10px 13px;max-width:260px;box-shadow:0 10px 26px rgba(0,0,0,.25);display:none;}
 
