@@ -95,14 +95,13 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 /* ── PADRAO DE FUNDO (ondas vetorizadas) ── */
 .bg-pattern{
   position:fixed;inset:0;z-index:-2;pointer-events:none;
-  --pattern-mask:url("/assets/fundo/pattern.svg");
   background-color:var(--pattern-tint);
   -webkit-mask-image:var(--pattern-mask);
   mask-image:var(--pattern-mask);
-  -webkit-mask-repeat:repeat;
-  mask-repeat:repeat;
-  -webkit-mask-size:320px 320px;
-  mask-size:320px 320px;
+  -webkit-mask-repeat:round;
+  mask-repeat:round;
+  -webkit-mask-size:260px 260px;
+  mask-size:260px 260px;
   transition:background-color .2s;
 }
 /* fundo ilustrado: leve desfoque + escala pra suavizar a compressão das artes sem borda transparente */
