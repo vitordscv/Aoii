@@ -60,15 +60,36 @@ async function init(){
       if(!senhaFoiDispensada(getSyncCode())) destrancarSincronizacao();
     }
   }
-  // O ciclo também atende quem ativar a sincronização depois de abrir o app.
-  setInterval(async()=>{
+  /* ── quando buscar o que o outro aparelho gravou ──
+
+     O relógio de 20 s sozinho não dá conta: o navegador do celular estrangula
+     setInterval em aba escondida — às vezes pra uma vez por minuto, às vezes
+     congela de vez — então pegar o telefone na mão significava encarar o valor
+     velho até o próximo tique acordar. Era esse o "demorou muito".
+
+     Pegar o aparelho na mão é exatamente o momento em que a resposta importa,
+     e é de graça: buscar ao voltar pra tela troca uma espera de até 20 s por
+     uma leitura no instante certo, e ainda por cima faz MENOS leituras que
+     encurtar o intervalo, porque não busca nada enquanto ninguém olha. */
+  let _ultimaBusca=0;
+  async function cicloDeSincronizacao(){
+    _ultimaBusca=Date.now();
     await puxarDaNuvem();
-    /* o mesmo relógio serve pra tentar de novo o que ficou pra trás: uma fila
+    /* o mesmo gatilho serve pra tentar de novo o que ficou pra trás: uma fila
        parada por falta de senha volta sozinha quando a sessão abre, sem
        depender de a pessoa salvar outra coisa pra destravá-la */
     retomarEspelho();
     if(sincronizacaoDestrancada()&&!espelhoPendente()&&!_espelhando&&!_abrindoSync) await ensureMonthlySnapshot();
-  },20000);
+  }
+  // O ciclo também atende quem ativar a sincronização depois de abrir o app.
+  setInterval(cicloDeSincronizacao,20000);
+  document.addEventListener('visibilitychange',()=>{
+    /* a aba pisca por muita coisa — trocar de janela, o teclado subindo, uma
+       notificação passando. Sem esta folga, uma alternância rápida viraria
+       uma rajada de leituras da nuvem. */
+    if(document.visibilityState!=='visible'||Date.now()-_ultimaBusca<3000) return;
+    cicloDeSincronizacao();
+  });
   setupAutoUpdate();
   if('serviceWorker' in navigator){
     /* o app é montado DEPOIS que o 'load' da página já aconteceu (o

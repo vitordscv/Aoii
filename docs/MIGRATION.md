@@ -645,3 +645,31 @@ já têm botão visível. Nas compras no crédito nem estavam ligados a nada.
 - **O Resumo vazio ainda é andaime.** Com a saúde sem nota, sobram limite vazio,
   categorias vazias, orçamento e calendário na primeira abertura. O ponto fraco
   não é a estética, é não haver um caminho único e óbvio antes de haver dados.
+
+### Depois de publicar — o que só apareceu com o app no ar
+
+**Buscar da nuvem ao voltar pra tela.** A fila de envio foi consertada e a
+sincronização voltou a funcionar, mas ficou lenta de um jeito que não existia
+antes: mudar no computador e só ver no telefone um tempo depois. O envio não
+era o culpado — os 400 ms do espelho são ~4% da espera. Quem recebe é que só
+perguntava de 20 em 20 segundos, e o navegador do celular estrangula
+`setInterval` em aba escondida, às vezes congelando de vez.
+
+Pegar o aparelho na mão é o instante em que a resposta importa, e é o mais
+barato de atender: buscar no `visibilitychange` troca uma espera de até 20 s
+por uma leitura na hora certa e faz **menos** leituras que encurtar o
+intervalo, porque não busca nada enquanto ninguém olha. O relógio de 20 s fica
+como rede de segurança para quem deixa a aba aberta na frente.
+
+**Conteúdo vivo dentro de elemento animado.** `countUpAll()` anima escrevendo
+`textContent` no elemento que carrega o `data-countup`. O botão de ajuda do
+hero era filho desse elemento, então sumia na primeira vez que o valor mudava e
+só voltava no render seguinte. Regra que vale para o próximo: **nada além do
+número mora dentro de um elemento com `data-countup`.**
+
+**Chave a mais engole regra inteira.** Em `enhancements.css` havia um `}` no
+meio de uma regra: fechava o `::after` cedo e transformava quatro declarações
+em lixo solto, que o navegador descarta sem avisar. Resultado: nenhum botão
+informativo do app tinha `cursor:pointer`. E consertar acordou um
+`margin-left` que estava dormindo, mudando o espaçamento em outro lugar —
+reviver CSS morto mexe na cascata, e o efeito aparece longe do conserto.
