@@ -10,8 +10,20 @@ let _espelhoAgendado=null;
 let _espelhando=false;
 let _recebendoNuvem=false;
 let _abrindoSync=false;
-let _espelhoPausado=false;
+/* Por que o espelho parou — antes era um booleano, e por isso não havia como
+   saber se valia a pena voltar a tentar. Qualquer desfecho que não fosse
+   "enviado" ou "sem conexão" parava a fila PARA SEMPRE: só uma visita às
+   Configurações, que chama prepararSincronizacao(), destravava. Enquanto isso
+   a barra do hero dizia "envio pendente", que promete que vai acontecer.
+
+     'conflito' — a pessoa escolheu decidir depois. Só ela destrava, e está
+                  certo: retomar sozinho reabriria o diálogo que ela fechou.
+     'senha'    — a sessão está trancada. Destrava sozinho quando abrir.
+     'erro'     — o servidor recusou. Retenta algumas vezes antes de desistir;
+                  5xx e rede instável costumam passar sozinhos.             */
+let _pausaEspelho=null;
 let _falhasEspelho=0;
+const MAX_TENTATIVAS_ERRO=5;
 const _estadosEspelho=new Map();
 
 function estadoEspelho(codigo){
@@ -51,23 +63,40 @@ function agendarEspelho(){
   estado.pendente=true;
   guardarEstadoEspelho(codigo);
   renderStatusSync();
-  if(_espelhoPausado) return;
   retomarEspelho();
+}
+
+/* O que está IMPEDINDO o envio, se algo estiver — a chave de tradução, pra
+   quem desenha decidir onde mostrar. Existe porque a barra do hero dizia
+   "envio pendente" nos quatro casos, e três deles não saem do lugar sozinhos:
+   sem a senha, nada será enviado por mais que se espere. */
+function impedimentoDoEspelho(){
+  if(!espelhoPendente()) return null;
+  /* os dois: a sessão pode ter trancado agora, ou a fila já ter parado por
+     isso numa rodada anterior — quem lê a barra quer o mesmo aviso nos dois */
+  if(!sincronizacaoDestrancada()||_pausaEspelho==='senha') return 'sync.trancada';
+  if(_pausaEspelho==='conflito') return 'sync.conflito';
+  if(_pausaEspelho==='erro') return 'sync.falhou';
+  if(sync.status==='sem-conexao') return 'sync.semConexao';
+  return null;
 }
 
 function retomarEspelho(){
   if(_espelhoAgendado) clearTimeout(_espelhoAgendado);
   _espelhoAgendado=null;
-  if(!espelhoPendente()||_espelhando||_recebendoNuvem||_abrindoSync||_espelhoPausado) return;
-  if(!sincronizacaoDestrancada()) { renderStatusSync(); return; }
+  /* a sessão destrancou depois de a fila ter parado por falta de senha: não há
+     mais o que esperar, e ninguém precisa passar pelas Configurações pra isso */
+  if(_pausaEspelho==='senha'&&sincronizacaoDestrancada()){ _pausaEspelho=null; _falhasEspelho=0; }
+  if(!espelhoPendente()||_espelhando||_recebendoNuvem||_abrindoSync||_pausaEspelho) return;
+  if(!sincronizacaoDestrancada()) { _pausaEspelho='senha'; renderStatusSync(); return; }
   _espelhoAgendado=setTimeout(rodarEspelho,ESPERA_ESPELHO);
 }
 
 async function rodarEspelho(){
   if(_espelhoAgendado) clearTimeout(_espelhoAgendado);
   _espelhoAgendado=null;
-  if(_espelhando||_recebendoNuvem||_abrindoSync||_espelhoPausado||!espelhoPendente()) return;
-  if(!sincronizacaoDestrancada()) { renderStatusSync(); return; }
+  if(_espelhando||_recebendoNuvem||_abrindoSync||_pausaEspelho||!espelhoPendente()) return;
+  if(!sincronizacaoDestrancada()) { _pausaEspelho='senha'; renderStatusSync(); return; }
   _espelhando=true;
   const codigo=getSyncCode();
   const estado=estadoEspelho(codigo);
@@ -85,13 +114,28 @@ async function rodarEspelho(){
     }else if(r.resultado==='sem-conexao'){
       _falhasEspelho++;
       repetir=true;
+    }else if(r.resultado==='precisa-senha'){
+      /* volta sozinho assim que a sessão abrir — ver retomarEspelho() */
+      _pausaEspelho='senha';
+    }else if(r.resultado==='erro'){
+      /* Erro de servidor costuma passar sozinho: 5xx, rede que caiu no meio
+         da gravação, uma recusa momentânea. Parar na primeira e só voltar se
+         alguém abrisse as Configurações deixava a fila morta em silêncio, com
+         a barra dizendo "envio pendente" por tempo indeterminado. */
+      _falhasEspelho++;
+      if(_falhasEspelho>=MAX_TENTATIVAS_ERRO) _pausaEspelho='erro';
+      else repetir=true;
     }else{
-      // Conflito adiado, senha ou erro permanente aguardam ação explícita.
-      _espelhoPausado=true;
+      /* 'adiado': a pessoa escolheu decidir depois no diálogo de conflito.
+         Esta é a única pausa que deve mesmo esperar por ela — retomar sozinho
+         reabriria a janela que ela acabou de fechar. */
+      _pausaEspelho='conflito';
     }
   }catch(e){
     sync.status='erro';
-    _espelhoPausado=true;
+    _falhasEspelho++;
+    if(_falhasEspelho>=MAX_TENTATIVAS_ERRO) _pausaEspelho='erro';
+    else repetir=true;
     setSaveStatus(L('st.syncErro'));
   }finally{
     guardarEstadoEspelho(codigo);
@@ -107,7 +151,10 @@ async function rodarEspelho(){
 function prepararSincronizacao(){
   if(_espelhando||_recebendoNuvem||_abrindoSync) return false;
   _abrindoSync=true;
-  _espelhoPausado=false;
+  /* abrir a sincronização é a ação explícita que destrava qualquer pausa,
+     inclusive a do conflito adiado: quem chegou aqui está decidindo de novo */
+  _pausaEspelho=null;
+  _falhasEspelho=0;
   if(_espelhoAgendado) clearTimeout(_espelhoAgendado);
   _espelhoAgendado=null;
   return true;
@@ -120,4 +167,10 @@ function concluirAberturaSync(){
 }
 
 avisarQuandoSalvar(agendarEspelho);
-window.addEventListener('online',()=>{ _falhasEspelho=0; retomarEspelho(); });
+/* Voltar pra rede limpa a pausa por erro — o que derrubou o envio quase sempre
+   foi a própria queda. Não limpa a de conflito: aquela é decisão de gente. */
+window.addEventListener('online',()=>{
+  _falhasEspelho=0;
+  if(_pausaEspelho==='erro') _pausaEspelho=null;
+  retomarEspelho();
+});

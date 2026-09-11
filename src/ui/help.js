@@ -63,6 +63,10 @@ async function init(){
   // O ciclo também atende quem ativar a sincronização depois de abrir o app.
   setInterval(async()=>{
     await puxarDaNuvem();
+    /* o mesmo relógio serve pra tentar de novo o que ficou pra trás: uma fila
+       parada por falta de senha volta sozinha quando a sessão abre, sem
+       depender de a pessoa salvar outra coisa pra destravá-la */
+    retomarEspelho();
     if(sincronizacaoDestrancada()&&!espelhoPendente()&&!_espelhando&&!_abrindoSync) await ensureMonthlySnapshot();
   },20000);
   setupAutoUpdate();

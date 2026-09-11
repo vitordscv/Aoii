@@ -71,6 +71,62 @@ module.exports=async t=>{
   d.c.sincronizacaoDestrancada=()=>true;d.eventos.online();
   t.igual(d.timers.size,1,'voltar à rede retoma quando a sessão tem senha');
 
+  /* ── a fila não pode morrer em silêncio ──
+     Qualquer desfecho que não fosse "enviado" ou "sem conexão" parava o
+     espelho PARA SEMPRE: só uma visita às Configurações destravava. Enquanto
+     isso a barra do hero dizia "envio pendente", que promete que vai
+     acontecer — e nunca acontecia. */
+  const err=aparelho();err.c.confirmarRevisaoLocal(1);
+  err.c.empurrarParaNuvem=async()=>({resultado:'erro'});
+  await err.c.persist();
+  for(let tentativa=1;tentativa<5;tentativa++){
+    await err.disparar();
+    t.igual(err.timers.size,1,`erro do servidor tenta de novo (tentativa ${tentativa})`);
+    t.igual(err.c.impedimentoDoEspelho(),null,`enquanto tenta, nada de anunciar falha (tentativa ${tentativa})`);
+  }
+  await err.disparar();
+  t.igual(err.timers.size,0,'depois de cinco tentativas para de insistir');
+  t.igual(err.c.espelhoPendente(),true,'mas não perde o que estava pra enviar');
+  t.igual(err.c.impedimentoDoEspelho(),'sync.falhou','e passa a dizer que falhou, em vez de "pendente"');
+  err.eventos.online();
+  t.igual(err.timers.size,1,'voltar à rede dá outra chance a quem parou por erro');
+
+  /* sessão trancada: destrava sozinha quando a senha chega, sem exigir uma
+     visita às Configurações nem uma nova edição pra acordar a fila */
+  const tranca=aparelho();tranca.c.confirmarRevisaoLocal(1);
+  tranca.c.sincronizacaoDestrancada=()=>false;
+  await tranca.c.persist();
+  t.igual(tranca.timers.size,0,'sem senha, não fica tentando à toa');
+  t.igual(tranca.c.espelhoPendente(),true,'o que foi salvo continua esperando');
+  t.igual(tranca.c.impedimentoDoEspelho(),'sync.trancada','e diz que está trancada, não "pendente"');
+  tranca.c.data.saldoAtual=1234;await tranca.c.persist();
+  t.igual(tranca.c.impedimentoDoEspelho(),'sync.trancada','salvar de novo não muda o aviso');
+  /* a senha chega — e a fila volta sozinha, sem passar pelas Configurações */
+  tranca.c.sincronizacaoDestrancada=()=>true;
+  tranca.c.empurrarParaNuvem=async()=>{tranca.c.sync.revisao++;return {resultado:'enviado'};};
+  tranca.c.retomarEspelho();
+  t.igual(tranca.timers.size,1,'destrancar retoma sozinho');
+  await tranca.disparar();
+  t.igual(tranca.c.espelhoPendente(),false,'e o que estava parado enfim vai');
+  t.igual(tranca.c.impedimentoDoEspelho(),null,'sem nada travando, nenhum aviso sobra');
+
+  /* o conflito adiado é a única pausa que deve mesmo esperar por gente:
+     retomar sozinho reabriria o diálogo que a pessoa acabou de fechar */
+  const adia=aparelho();adia.c.confirmarRevisaoLocal(1);
+  adia.c.empurrarParaNuvem=async()=>({resultado:'adiado'});
+  await adia.c.persist();
+  await adia.disparar();
+  t.igual(adia.c.impedimentoDoEspelho(),'sync.conflito','conflito adiado se anuncia como conflito');
+  adia.eventos.online();
+  t.igual(adia.timers.size,0,'voltar à rede não reabre o conflito sozinho');
+  adia.c.retomarEspelho();
+  t.igual(adia.timers.size,0,'nem o batimento de recuperação');
+  adia.c.prepararSincronizacao();adia.c.concluirAberturaSync();
+  t.igual(adia.timers.size,1,'só abrir a sincronização de novo destrava o conflito');
+
+  const semNada=aparelho();
+  t.igual(semNada.c.impedimentoDoEspelho(),null,'sem nada pendente não há impedimento nenhum');
+
   const e=aparelho(),leitura=adiar();e.c.confirmarRevisaoLocal(1);
   e.c.receberDaNuvem=async()=>{await leitura.promessa;e.c.sync.revisao=2;return {resultado:'novidade',dados:{saldoAtual:999}};};
   const puxando=e.c.puxarDaNuvem();

@@ -59,10 +59,14 @@ function renderStatusSync(){
     (emHomologacao()?'  ⚠️ HOMOLOGAÇÃO':'');
   /* A barra do hero recebe a versão curta. A longa — "Salvo neste aparelho ·
      envio pendente" — repete o que o persist() acabou de escrever ali mesmo,
-     duas atualizações antes, e é o que fazia o texto passar dos 200 px. Ela
-     continua inteira acima, em #sync-status-text, dentro das Configurações,
-     onde há espaço e onde ela explica alguma coisa. */
-  if(pendente) setSaveStatus(L('sync.pendenteCurto'));
+     duas atualizações antes. Ela continua inteira acima, em #sync-status-text,
+     dentro das Configurações, onde há espaço e onde ela explica alguma coisa.
+
+     E quando há algo IMPEDINDO o envio, é o impedimento que aparece. Dizer
+     "envio pendente" com a sessão trancada é prometer uma coisa que não vai
+     acontecer: nada será enviado por mais que se espere, e quem lia ficava
+     olhando a mesma frase sem entender por que ela não mudava. */
+  if(pendente) setSaveStatus(L(impedimentoDoEspelho()||'sync.pendenteCurto'));
   else if(sync.status==='sincronizada') setSaveStatus(L('sync.emDia'));
   renderSenhaLembrada();
 }
