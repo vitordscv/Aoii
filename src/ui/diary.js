@@ -65,10 +65,28 @@ const DIARIO_PAGINA=10;
 let diarioMostrando=DIARIO_PAGINA;
 function diarioVoltaAoTopo(){ diarioMostrando=DIARIO_PAGINA; }
 let diarioMesFiltro='todos';
-function renderDiarioMesOptions(){
+/* Tudo que o Diário mostra: os lançamentos avulsos MAIS as parcelas de cada
+   fatura. As compras no crédito são só de leitura — editá-las é dentro da
+   fatura, na aba Fixos — mas aparecem na mesma lista, e por isso precisam
+   contar na hora de montar o filtro de mês também. */
+function itensDoDiario(){
+  const creditoItems=[];
+  (data.faturas||[]).forEach(f=>{
+    (f.gastos||[]).forEach(g=>{
+      const dt=g.dataCompra||`${f.ano}-${String(f.mes).padStart(2,'0')}-01`;
+      creditoItems.push({id:'fat-'+g.id,nome:g.nome,valor:g.valor,categoria:g.categoria,metodo:'credito',data:dt,
+        viagemId:g.viagemId||null,tags:g.tags||null,nota:g.nota||null,_cartaoId:f.cartaoId,_readonly:true});
+    });
+  });
+  return (data.transacoes||[]).concat(creditoItems).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+}
+
+function renderDiarioMesOptions(itens){
   const sel=document.getElementById('diario-mes-filtro'); if(!sel) return;
   const meses=new Set();
-  (data.transacoes||[]).forEach(t=>{ if(t.data) meses.add(String(t.data).slice(0,7)); });
+  /* montar isto só com data.transacoes escondia do filtro qualquer mês em que
+     só houve compra no cartão — e o mês existia, logo abaixo, na lista */
+  (itens||[]).forEach(t=>{ if(t.data) meses.add(String(t.data).slice(0,7)); });
   const sorted=[...meses].sort().reverse();
   sel.innerHTML=[`<option value="todos">${L('diary.allMonths')}</option>`].concat(sorted.map(m=>{
     const parts=m.split('-');
@@ -78,16 +96,8 @@ function renderDiarioMesOptions(){
 }
 function renderTransacoesList(){
   const el=document.getElementById('transacoes-list'); if(!el) return;
-  renderDiarioMesOptions();
-  const creditoItems=[];
-  (data.faturas||[]).forEach(f=>{
-    (f.gastos||[]).forEach(g=>{
-      const dt=g.dataCompra||`${f.ano}-${String(f.mes).padStart(2,'0')}-01`;
-      creditoItems.push({id:'fat-'+g.id,nome:g.nome,valor:g.valor,categoria:g.categoria,metodo:'credito',data:dt,
-        viagemId:g.viagemId||null,tags:g.tags||null,nota:g.nota||null,_cartaoId:f.cartaoId,_readonly:true});
-    });
-  });
-  const all=(data.transacoes||[]).concat(creditoItems).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const all=itensDoDiario();
+  renderDiarioMesOptions(all);
   const busca=diarioBusca.trim().toLowerCase();
   const list=all.filter(t=>{
     if(transacoesFiltro==='__credito'&&t.metodo!=='credito') return false;
