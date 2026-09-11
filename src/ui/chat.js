@@ -73,7 +73,21 @@ function setupGastoSheet(){
       btn.classList.toggle('active',ativo); btn.setAttribute('aria-pressed',ativo?'true':'false');
     });
     document.getElementById('gasto-credito-fields').style.display = metodoAtual==='credito' ? 'block' : 'none';
-    document.querySelector('.gasto-dividir-toggle').style.display = metodoAtual==='credito' ? 'none' : 'block';
+    atualizarDividirVisivel();
+  }
+  /* "Dividir com alguém" só faz sentido num gasto pago à vista: no crédito o
+     valor vai inteiro pra fatura, e numa entrada não há o que rachar — o envio
+     de receita ignora a porcentagem. Quem decidia era só o método, então bastava
+     escolher "Entrada inesperada" e depois tocar em "Dinheiro" pra o controle
+     voltar à tela, marcável e sem efeito nenhum. */
+  function atualizarDividirVisivel(){
+    const cabe=metodoAtual!=='credito'&&tipoAtual!=='receita';
+    document.querySelector('.gasto-dividir-toggle').style.display=cabe?'block':'none';
+    if(!cabe&&dividirCheck.checked){
+      dividirCheck.checked=false;
+      dividirFields.style.display='none';
+      updateDividirPreview();
+    }
   }
   document.getElementById('gasto-tipo-toggle')?.querySelectorAll('.gasto-tipo-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -84,7 +98,7 @@ function setupGastoSheet(){
       const creditoBtn=document.querySelector('.pay-method-btn[data-metodo="credito"]');
       if(creditoBtn) creditoBtn.style.display=isReceita?'none':'';
       if(isReceita&&metodoAtual==='credito'){ metodoAtual='pix'; renderPayGrid(); }
-      document.querySelector('.gasto-dividir-toggle').style.display = (metodoAtual==='credito'||isReceita) ? 'none' : 'block';
+      atualizarDividirVisivel();
       updateAlertaMedia();
     });
   });
