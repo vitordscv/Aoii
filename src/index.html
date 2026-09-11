@@ -571,11 +571,17 @@
       <div class="tabs-scroll tabs-scroll-settings">
       <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
       <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
+      <!-- A ordem conta uma história: primeiro o seu dinheiro (de onde vem,
+           por onde sai, como você o classifica), depois o app, depois os seus
+           dados, e por último o que apaga tudo. O cartão de crédito ficava em
+           "Personalização", ao lado das cores — é conta financeira, não
+           enfeite, e é o segundo passo que o próprio tour manda dar. -->
       <div class="view-tabs settings-tabs" role="tablist" data-grupo="settings" data-i18n-aria-label="settings.abasAria" aria-label="Seções das configurações">
         <button type="button" class="view-tab settings-tab" id="settings-tab-renda" data-sub="settings.rendaSub" role="tab" aria-controls="settings-pane-renda" aria-selected="false" tabindex="-1" data-pane="renda"><span data-i18n="settings.renda">Renda</span></button>
-        <button type="button" class="view-tab settings-tab" id="settings-tab-dados" data-sub="settings.dadosSub" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-cartoes" data-sub="settings.abaCartoesSub" role="tab" aria-controls="settings-pane-cartoes" aria-selected="false" tabindex="-1" data-pane="cartoes"><span data-i18n="settings.abaCartoes">Cartões</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-categorias" data-sub="settings.abaCategoriasSub" role="tab" aria-controls="settings-pane-categorias" aria-selected="false" tabindex="-1" data-pane="categorias"><span data-i18n="settings.abaCategorias">Categorias</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-preferencias" data-sub="settings.preferenciasSub" role="tab" aria-controls="settings-pane-preferencias" aria-selected="false" tabindex="-1" data-pane="preferencias"><span data-i18n="settings.preferencias">Preferências</span></button>
-        <button type="button" class="view-tab settings-tab" id="settings-tab-personalizacao" data-sub="settings.personalizacaoSub" role="tab" aria-controls="settings-pane-personalizacao" aria-selected="false" tabindex="-1" data-pane="personalizacao"><span data-i18n="settings.personalizacao">Personalização</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-dados" data-sub="settings.dadosSub" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-ia" data-sub="settings.iaSub" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-zona" data-sub="settings.zonaSub" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
       </div>
@@ -626,43 +632,38 @@
         </div>
 
       </div>
-      <div class="view-pane settings-pane" id="settings-pane-dados" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-dados" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-cartoes" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-cartoes" hidden>
         <div class="field-group">
-          <label data-i18n="settings.backupLocal">Backup local</label>
-          <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
-          <input type="file" id="upload-json-input" accept="application/json,.json" style="display:none;">
-          <button type="button" id="upload-json-btn" class="reset-btn" data-i18n="btn.carregarJson" style="margin-top:8px;">⬆️ Carregar arquivo (.json)</button>
-          <div class="help-text" data-i18n="settings.backupLocalHelp">Um arquivo com todos os seus dados, pra guardar em outro lugar (Drive, e-mail). Se precisar restaurar, é só usar o código de sincronização acima ou pedir ajuda pra reimportar.</div>
-        </div>
-        <div class="field-group" id="sync-section">
-          <label data-i18n="settings.syncTitle">Sincronizar entre aparelhos</label>
-          <div class="help-text" id="sync-status-text" role="status" aria-live="polite" aria-atomic="true"></div>
-          <div class="share-row">
-            <input type="text" id="sync-code-input" placeholder="Código de sincronização" data-i18n-placeholder="ph.codigoSync" data-i18n-aria-label="ph.codigoSync" style="font-family:'Nunito Sans',sans-serif;letter-spacing:.05em;text-transform:uppercase;">
-            <button class="reset-btn" id="sync-gen-btn" data-i18n="btn.gerarCodigoNovo">Gerar código novo</button>
-            <button class="reset-btn" id="sync-use-btn" data-i18n="btn.usarCodigo">Usar este código</button>
+          <label data-i18n="settings.cartoes">Cartões de crédito</label>
+          <div id="cartoes-list"></div>
+          <div class="gf-empty-state" id="cartoes-empty-state" style="display:none;padding:18px;">
+            <div data-i18n="settings.nenhumCartao">Nenhum cartão cadastrado.</div>
           </div>
-          <div class="senha-lembrada" id="senha-lembrada" hidden>
-            <div class="senha-lembrada-texto">
-              <span class="senha-lembrada-titulo" id="senha-lembrada-titulo"></span>
-              <span class="senha-lembrada-sub" id="senha-lembrada-sub"></span>
-            </div>
-            <button type="button" class="reset-btn senha-esquecer-btn" id="senha-esquecer-btn" data-i18n="senha.esquecerBtn">Esquecer neste aparelho</button>
-          </div>
-          <div class="help-text" data-i18n="settings.syncHelp">Gere um código no primeiro aparelho e cole o mesmo código nos outros. Guarde-o só com você — quem tiver o código acessa os mesmos dados.</div>
+          <button type="button" class="gf-new-btn" id="cartao-new-btn" style="margin-top:10px;" data-i18n="btn.adicionarCartao">+ Adicionar cartão</button>
+          <div class="help-text" data-i18n="settings.cartoesHelp">Cadastre um ou mais cartões. Usado pra calcular quanto do limite de cada um já está comprometido com as faturas em aberto.</div>
         </div>
-        <div class="field-group" id="share-section">
-          <label data-i18n="settings.shareTitle">Compartilhar com outra pessoa</label>
-          <div class="help-text" data-i18n="settings.shareHelp">Gere um código com os seus dados atuais e mande por mensagem — a outra pessoa cola esse código no site dela pra carregar os mesmos dados, sem precisar do arquivo.</div>
-          <div class="share-row">
-            <button class="reset-btn" id="export-btn" data-i18n="btn.gerarCodigo">Gerar código</button>
-            <button class="reset-btn" id="copy-code-btn" style="display:none;" data-i18n="btn.copiarCodigo">Copiar código</button>
+      </div>
+      <div class="view-pane settings-pane" id="settings-pane-categorias" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-categorias" hidden>
+        <div class="field-group">
+          <label data-i18n="settings.categorias">Categorias de gasto</label>
+          <div id="categorias-list" class="cat-manage-list"></div>
+          <div class="add-item-row" style="margin-top:10px;">
+            <input type="text" id="categoria-nova-nome" placeholder="Nova categoria (ex: Pets)" data-i18n-placeholder="ph.novaCategoria" data-i18n-aria-label="ph.novaCategoria">
+            <button type="button" id="categoria-add-btn" data-i18n="btn.adicionar">+ Adicionar</button>
           </div>
-          <textarea id="export-output" class="code-box" readonly="" placeholder="O código vai aparecer aqui" data-i18n-placeholder="ph.generatedCode" data-i18n-aria-label="ph.generatedCode" style="display:none;"></textarea>
-          <div class="help-text" style="margin-top:16px;" data-i18n="settings.receberCodigoHelp">Recebeu um código de alguém? Cole abaixo e carregue — isso substitui os seus dados atuais pelos da outra pessoa.</div>
-          <textarea id="import-input" class="code-box" placeholder="Cole aqui o código recebido" data-i18n-placeholder="ph.colaCodigo" data-i18n-aria-label="ph.colaCodigo"></textarea>
-          <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
+          <div class="help-text" data-i18n="settings.categoriasHelp">Aparecem nos seletores de categoria em todo o app. Categorias já usadas em lançamentos antigos continuam aparecendo neles mesmo se removidas daqui.</div>
         </div>
+        <div class="field-group">
+          <label data-i18n="settings.viagens">Viagens / eventos com orçamento próprio</label>
+          <div id="viagens-list" class="cat-manage-list"></div>
+          <div class="add-item-row" style="margin-top:10px;flex-wrap:wrap;">
+            <input type="text" id="viagem-nova-nome" placeholder="Nome (ex: Praia em janeiro)" data-i18n-placeholder="ph.nomeViagem" data-i18n-aria-label="ph.nomeViagem">
+            <input type="text" inputmode="decimal" id="viagem-novo-orcamento" placeholder="orçamento" step="0.01" style="width:120px;" data-i18n-placeholder="ph.orcamento" data-i18n-aria-label="ph.orcamento">
+            <button type="button" id="viagem-add-btn" data-i18n="btn.adicionar">+ Adicionar</button>
+          </div>
+          <div class="help-text" data-i18n="settings.viagensHelp">Marque gastos do Diário com uma viagem pra acompanhar o total gasto contra o orçamento dela, à parte do orçamento mensal.</div>
+        </div>
+
       </div>
       <div class="view-pane settings-pane" id="settings-pane-preferencias" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-preferencias" hidden>
         <div class="field-group">
@@ -714,36 +715,43 @@
         </div>
 
       </div>
-      <div class="view-pane settings-pane" id="settings-pane-personalizacao" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-personalizacao" hidden>
+      <div class="view-pane settings-pane" id="settings-pane-dados" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-dados" hidden>
         <div class="field-group">
-          <label data-i18n="settings.viagens">Viagens / eventos com orçamento próprio</label>
-          <div id="viagens-list" class="cat-manage-list"></div>
-          <div class="add-item-row" style="margin-top:10px;flex-wrap:wrap;">
-            <input type="text" id="viagem-nova-nome" placeholder="Nome (ex: Praia em janeiro)" data-i18n-placeholder="ph.nomeViagem" data-i18n-aria-label="ph.nomeViagem">
-            <input type="text" inputmode="decimal" id="viagem-novo-orcamento" placeholder="orçamento" step="0.01" style="width:120px;" data-i18n-placeholder="ph.orcamento" data-i18n-aria-label="ph.orcamento">
-            <button type="button" id="viagem-add-btn" data-i18n="btn.adicionar">+ Adicionar</button>
-          </div>
-          <div class="help-text" data-i18n="settings.viagensHelp">Marque gastos do Diário com uma viagem pra acompanhar o total gasto contra o orçamento dela, à parte do orçamento mensal.</div>
+          <label data-i18n="settings.backupLocal">Backup local</label>
+          <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
+          <input type="file" id="upload-json-input" accept="application/json,.json" style="display:none;">
+          <button type="button" id="upload-json-btn" class="reset-btn" data-i18n="btn.carregarJson" style="margin-top:8px;">⬆️ Carregar arquivo (.json)</button>
+          <div class="help-text" data-i18n="settings.backupLocalHelp">Um arquivo com todos os seus dados, pra guardar em outro lugar (Drive, e-mail). Se precisar restaurar, é só usar o código de sincronização acima ou pedir ajuda pra reimportar.</div>
         </div>
-        <div class="field-group">
-          <label data-i18n="settings.categorias">Categorias de gasto</label>
-          <div id="categorias-list" class="cat-manage-list"></div>
-          <div class="add-item-row" style="margin-top:10px;">
-            <input type="text" id="categoria-nova-nome" placeholder="Nova categoria (ex: Pets)" data-i18n-placeholder="ph.novaCategoria" data-i18n-aria-label="ph.novaCategoria">
-            <button type="button" id="categoria-add-btn" data-i18n="btn.adicionar">+ Adicionar</button>
+        <div class="field-group" id="sync-section">
+          <label data-i18n="settings.syncTitle">Sincronizar entre aparelhos</label>
+          <div class="help-text" id="sync-status-text" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="share-row">
+            <input type="text" id="sync-code-input" placeholder="Código de sincronização" data-i18n-placeholder="ph.codigoSync" data-i18n-aria-label="ph.codigoSync" style="font-family:'Nunito Sans',sans-serif;letter-spacing:.05em;text-transform:uppercase;">
+            <button class="reset-btn" id="sync-gen-btn" data-i18n="btn.gerarCodigoNovo">Gerar código novo</button>
+            <button class="reset-btn" id="sync-use-btn" data-i18n="btn.usarCodigo">Usar este código</button>
           </div>
-          <div class="help-text" data-i18n="settings.categoriasHelp">Aparecem nos seletores de categoria em todo o app. Categorias já usadas em lançamentos antigos continuam aparecendo neles mesmo se removidas daqui.</div>
-        </div>
-        <div class="field-group">
-          <label data-i18n="settings.cartoes">Cartões de crédito</label>
-          <div id="cartoes-list"></div>
-          <div class="gf-empty-state" id="cartoes-empty-state" style="display:none;padding:18px;">
-            <div data-i18n="settings.nenhumCartao">Nenhum cartão cadastrado.</div>
+          <div class="senha-lembrada" id="senha-lembrada" hidden>
+            <div class="senha-lembrada-texto">
+              <span class="senha-lembrada-titulo" id="senha-lembrada-titulo"></span>
+              <span class="senha-lembrada-sub" id="senha-lembrada-sub"></span>
+            </div>
+            <button type="button" class="reset-btn senha-esquecer-btn" id="senha-esquecer-btn" data-i18n="senha.esquecerBtn">Esquecer neste aparelho</button>
           </div>
-          <button type="button" class="gf-new-btn" id="cartao-new-btn" style="margin-top:10px;" data-i18n="btn.adicionarCartao">+ Adicionar cartão</button>
-          <div class="help-text" data-i18n="settings.cartoesHelp">Cadastre um ou mais cartões. Usado pra calcular quanto do limite de cada um já está comprometido com as faturas em aberto.</div>
+          <div class="help-text" data-i18n="settings.syncHelp">Gere um código no primeiro aparelho e cole o mesmo código nos outros. Guarde-o só com você — quem tiver o código acessa os mesmos dados.</div>
         </div>
-
+        <div class="field-group" id="share-section">
+          <label data-i18n="settings.shareTitle">Compartilhar com outra pessoa</label>
+          <div class="help-text" data-i18n="settings.shareHelp">Gere um código com os seus dados atuais e mande por mensagem — a outra pessoa cola esse código no site dela pra carregar os mesmos dados, sem precisar do arquivo.</div>
+          <div class="share-row">
+            <button class="reset-btn" id="export-btn" data-i18n="btn.gerarCodigo">Gerar código</button>
+            <button class="reset-btn" id="copy-code-btn" style="display:none;" data-i18n="btn.copiarCodigo">Copiar código</button>
+          </div>
+          <textarea id="export-output" class="code-box" readonly="" placeholder="O código vai aparecer aqui" data-i18n-placeholder="ph.generatedCode" data-i18n-aria-label="ph.generatedCode" style="display:none;"></textarea>
+          <div class="help-text" style="margin-top:16px;" data-i18n="settings.receberCodigoHelp">Recebeu um código de alguém? Cole abaixo e carregue — isso substitui os seus dados atuais pelos da outra pessoa.</div>
+          <textarea id="import-input" class="code-box" placeholder="Cole aqui o código recebido" data-i18n-placeholder="ph.colaCodigo" data-i18n-aria-label="ph.colaCodigo"></textarea>
+          <button class="reset-btn" id="import-btn" data-i18n="btn.carregarCodigo">Carregar código</button>
+        </div>
       </div>
       <div class="view-pane settings-pane" id="settings-pane-ia" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-ia" hidden>
         <div class="field-group" id="ia-section">
