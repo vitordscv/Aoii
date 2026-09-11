@@ -54,10 +54,56 @@ function formatPct(n,casas){
   return n.toLocaleString(localeAtual(),
     {minimumFractionDigits:0,maximumFractionDigits:casas==null?2:casas})+'%';
 }
+/* Dinheiro escrito como se escreve no idioma de QUEM LÊ, e não como se escreve
+   no país da moeda.
+
+   Cada moeda trazia um locale colado nela — o euro vinha com 'de-DE' —, e o
+   símbolo era sempre prefixado à mão. Duas consequências, ambas só para quem
+   não usa o app em português:
+
+     · um francês via "€ 1.234,56" onde se escreve "1 234,56 €": separador de
+       milhar alemão, e o símbolo do lado errado;
+     · italiano e espanhol viam o símbolo antes, quando nas três línguas ele
+       vem depois do número.
+
+   Pior: no mesmo cartão do hero, o campo editável já usava o idioma
+   (valorDeCampo) e o total usava a moeda, então as duas linhas mostravam
+   separadores de milhar diferentes, uma embaixo da outra.
+
+   Quem decide agora é o Intl, com os dados da própria língua — símbolo,
+   posição, separador e agrupamento. É o mesmo caminho que o conversor de
+   moedas já usava em formatarNaMoeda(); aqui é que estava fora de passo.
+
+   O formatador é guardado porque isto é chamado muitas vezes por render, e
+   montar um Intl.NumberFormat não é de graça. A chave carrega idioma e moeda:
+   trocar qualquer um dos dois monta outro. */
+let _fmtMoeda=null, _fmtMoedaChave='';
+function formatadorDeMoeda(){
+  const idioma=localeAtual(), moeda=(CURRENCY_INFO[data.moeda]?data.moeda:'BRL');
+  const chave=idioma+'|'+moeda;
+  if(_fmtMoedaChave!==chave){
+    try{
+      _fmtMoeda=new Intl.NumberFormat(idioma,{style:'currency',currency:moeda,
+        minimumFractionDigits:2,maximumFractionDigits:2});
+    }catch(e){ _fmtMoeda=null; }
+    _fmtMoedaChave=chave;
+  }
+  return _fmtMoeda;
+}
 function formatBRL(n){
-  const neg=n<-0.004, abs=Math.abs(n);
+  const v=Number.isFinite(n)?n:0;
+  const fmt=formatadorDeMoeda();
+  if(fmt) return fmt.format(v);
+  /* navegador sem dados da moeda: o número no idioma, o símbolo na frente */
   const cfg=CURRENCY_INFO[data.moeda]||CURRENCY_INFO.BRL;
-  return (neg?'-':'')+' '+cfg.symbol+' '+abs.toLocaleString(cfg.locale,{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (v<0?'-':'')+cfg.symbol+' '+Math.abs(v).toLocaleString(localeAtual(),{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+/* O mesmo número, sem a moeda. O eixo do gráfico precisa disto e vinha
+   arrancando o símbolo do texto pronto com um replace — que só funcionava
+   enquanto o símbolo estivesse na frente e colado num espaço. */
+function formatValorSemMoeda(n){
+  const v=Number.isFinite(n)?n:0;
+  return v.toLocaleString(localeAtual(),{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 /* dia do mês que existe de verdade: 31 em fevereiro vira o último dia,
    senão o Date rola pro mês seguinte e a conta cai no mês errado */

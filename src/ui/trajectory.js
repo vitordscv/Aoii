@@ -64,7 +64,7 @@ function renderChart(){
     const yy=padT+innerH*f;
     const val=vMax-(vMax-vMin)*f;
     return `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="var(--line)" stroke-width="1"/>
-            <text x="${padL-8}" y="${yy+3}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="var(--muted2)">${formatBRL(val).replace((CURRENCY_INFO[data.moeda]||CURRENCY_INFO.BRL).symbol+' ','')}</text>`;
+            <text x="${padL-8}" y="${yy+3}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="var(--muted2)">${formatValorSemMoeda(val)}</text>`;
   }).join('');
 
   const xLabels=points.map((p,i)=>`

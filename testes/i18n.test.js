@@ -133,6 +133,50 @@ module.exports=function(t){
     t.igual(ctxNav.idiomaDoNavegador(lista),idioma,`idioma em ${apelido}`);
     t.igual(ctxNav.moedaDoNavegador(lista),moeda,`moeda em ${apelido}`);
   });
+  /* ── dinheiro se escreve na língua de quem lê, não na do país da moeda ──
+     Cada moeda trazia um locale colado nela: o euro vinha com 'de-DE', então
+     um francês via "€ 1.234,56" onde se escreve "1 234,56 €" — separador de
+     milhar alemão e símbolo do lado errado. Italiano e espanhol viam o
+     símbolo antes, quando nas três línguas ele vem depois. */
+  console.log('\n\x1b[1mDinheiro no formato de cada língua\x1b[0m');
+  const escreve=(idioma,moeda,n)=>{
+    ctxNav.data.idioma=idioma; ctxNav.data.moeda=moeda;
+    return ctxNav.formatBRL(n);
+  };
+  /* o próprio Intl é a referência: é ele que carrega a convenção de cada língua */
+  const referencia=(idioma,moeda,n)=>new Intl.NumberFormat(
+    ({pt:'pt-BR',en:'en-US',es:'es-ES',fr:'fr-FR',it:'it-IT'})[idioma],
+    {style:'currency',currency:moeda,minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+
+  [['pt','BRL'],['en','USD'],['en','GBP'],['fr','EUR'],['it','EUR'],['es','EUR'],
+   ['fr','BRL'],['pt','EUR']].forEach(([idioma,moeda])=>{
+    t.igual(escreve(idioma,moeda,1234.56),referencia(idioma,moeda,1234.56),
+      `${idioma} + ${moeda} sai como se escreve em ${idioma}`);
+  });
+
+  /* o mesmo número em duas línguas não pode sair igual quando a convenção
+     difere — é o que provava que o locale estava preso à moeda */
+  t.verdadeiro(escreve('fr','EUR',1234.56)!==escreve('pt','EUR',1234.56),
+    'francês e português não escrevem euro do mesmo jeito',
+    'os dois deram '+escreve('fr','EUR',1234.56));
+  t.verdadeiro(/^1/.test(escreve('it','EUR',1234.56)),
+    'em italiano o símbolo vem depois do número',
+    'veio '+escreve('it','EUR',1234.56));
+  t.verdadeiro(/^R\$/.test(escreve('pt','BRL',1234.56)),
+    'em português o símbolo vem antes',
+    'veio '+escreve('pt','BRL',1234.56));
+
+  /* negativo e zero continuam legíveis */
+  t.verdadeiro(escreve('pt','BRL',-50).includes('-'),'valor negativo mostra o sinal');
+  t.igual(escreve('pt','BRL',0),referencia('pt','BRL',0),'zero também passa pelo formatador');
+  t.igual(escreve('pt','BRL',NaN),referencia('pt','BRL',0),'valor ilegível vira zero em vez de "NaN" na tela');
+
+  /* sem moeda, pro eixo do gráfico — que antes arrancava o símbolo com replace */
+  ctxNav.data.idioma='fr';
+  t.verdadeiro(!/[€$£]/.test(ctxNav.formatValorSemMoeda(1234.56)),
+    'o valor sem moeda não traz símbolo nenhum','veio '+ctxNav.formatValorSemMoeda(1234.56));
+  ctxNav.data.idioma='pt'; ctxNav.data.moeda='BRL';
+
   /* o palpite precisa ser um valor que os comandos aceitem, senão entra torto */
   t.verdadeiro(['pt','en','es','fr','it'].every(i=>ctxNav.definirIdioma(ctxNav.idiomaDoNavegador([i+'-XX']))!==null),
     'todo idioma palpitado é aceito por definirIdioma()');

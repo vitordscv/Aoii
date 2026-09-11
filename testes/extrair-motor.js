@@ -74,7 +74,7 @@ const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORM
 
 /* funções puras de cálculo — a parte do app que os testes cobrem */
 const FUNCOES=[
-  'parseNum','parseNumOpcional','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
+  'parseNum','parseNumOpcional','localeAtual','formatadorDeMoeda','formatBRL','formatValorSemMoeda','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'definirIdioma','definirMoeda','definirTema','definirPreferenciaBooleana','definirTipoRenda','atualizarRendaDiaria','atualizarRendaMensal','atualizarSaldoConta','atualizarDinheiroVivo','configurarPerfilFinanceiro','atualizarDataAlvo','atualizarReserva',
   'adicionarCategoria','removerCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','definirDiasTrabalho','diaCalendarioValido','adicionarDiaNaoTrabalhado','removerDiaNaoTrabalhado','daysBetweenInclusive','remainingWorkDaysUntil',
@@ -108,8 +108,10 @@ function montarMotor(arquivo){
   const abrev=/const MONTH_ABBR\s*=\s*\[[^\]]*\]/.exec(src);
   const cats=/const CATEGORIAS_DEFAULT\s*=\s*\[[^\]]*\]/.exec(src);
   const tiposRenda=/const TIPOS_RENDA\s*=\s*\[[\s\S]*?\n\];/.exec(src);
+  /* os símbolos de moeda: formatBRL() os consulta antes de cair no Intl */
+  const moedas=/const CURRENCY_INFO\s*=\s*\{[\s\S]*?\n\};/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
-    (tiposRenda?tiposRenda[0]+'\n':'');
+    (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez
@@ -117,6 +119,9 @@ function montarMotor(arquivo){
   codigo+="const SUPABASE_URL='https://projeto-de-teste.invalido';\n";
   codigo+="const SUPABASE_ANON_KEY='chave-de-teste-sem-valor';\n";
   codigo+='let _tlMemo=new Map();\n';
+  /* o cache do formatador de moeda, como o _tlMemo acima: mora no topo do
+     módulo e não vem junto com a função quando ela é recortada */
+  codigo+='let _fmtMoeda=null, _fmtMoedaChave="";\n';
   BLOCOS.forEach(([ini,fim])=>{ codigo+=recortarBloco(src,ini,fim)+'\n'; });
   FUNCOES.forEach(n=>{
     if(n==='invalidarTimeline'){ codigo+='function invalidarTimeline(){ _tlMemo.clear(); }\n'; return; }

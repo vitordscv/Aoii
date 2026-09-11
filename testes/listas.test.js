@@ -25,7 +25,10 @@ module.exports=function(t){
   t.valor(ctx.computeGastoMesPorCategoria()['Mercado'],200,'orçamento por categoria ignora entradas');
   t.valor(ctx.transacoesGasto().length,2,'só dois lançamentos são gasto de verdade');
   const insights=ctx.computeInsights();
-  t.valor(insights[1]&&Number(String(insights[1].value).replace(/[^\d.]/g,'')),200,
+  /* compara com o próprio formatador em vez de arrancar os dígitos do texto:
+     arrancar só funcionava enquanto o decimal fosse ponto, e o formatador de
+     verdade escreve no idioma de quem lê — em português, "R$ 200,00" */
+  t.igual(insights[1]&&insights[1].value,ctx.formatBRL(200),
     'o "maior gasto" é o Mercado de 200, não o Presente de 900');
 
   console.log('\n\x1b[1mDesfazer a remoção de um lançamento\x1b[0m');
