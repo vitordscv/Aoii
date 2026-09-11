@@ -560,3 +560,88 @@ tabela guardada continua respondendo e a nota passa a dizer de quando ela é.
 A conversão entre duas moedas que não são a base é uma divisão só
 (`taxas[para]/taxas[de]`), não dois saltos pela base — dois saltos dariam o
 mesmo número arredondando duas vezes.
+
+## Retomada em 11/09/2026 — varredura de defeitos e primeira experiência
+
+Varredura completa do `src/` atrás do que o portão de qualidade não vê. Os
+`npm run check` passavam inteiros antes e depois: testes, tradução, contraste,
+CSS e ids nunca reprovaram nada disto. O que segue é o mapa dos pontos cegos.
+
+### O que o portão não enxergava
+
+**Fuso horário.** Três validações de data comparavam o texto digitado com
+`toISOString().slice(0,10)`, que lê a data em UTC. Em UTC+13 e UTC+14 o meio-dia
+local já é o dia anterior em UTC, e toda data boa era recusada — em silêncio,
+porque a interface descartava o `null` sem avisar. Na Nova Zelândia, UTC+12 no
+horário padrão, a falha aparecia só nas datas dentro do horário de verão: de fim
+de setembro a início de abril não dava para marcar compra planejada, entrada
+extra, meta nem mudar a data-alvo. A suíte roda num fuso só e não tinha como
+notar. A sonda (`testes/fuso-sonda.js`) roda num processo à parte porque o fuso
+do Node se fixa na partida.
+
+**Campo que o rótulo diz ser opcional.** `parseNum('')` devolve `NaN`, que é
+certo para um campo obrigatório e errado para um opcional. O `NaN` descia até a
+validação, que recusava o registro inteiro. "Limite (opcional)" em branco
+impedia salvar o cartão, sem mensagem nenhuma. `parseNumOpcional()` separa os
+dois casos: branco vale zero, texto ilegível continua `NaN`.
+
+**Campo lido e nunca guardado.** A folha "Novo gasto" perguntava Viagem, Tags e
+Nota também com "Crédito" selecionado, e lia os três no envio — mas
+`lancarParcelamento()` não tinha onde guardar. O efeito passava do cosmético: o
+orçamento de viagem era medido só sobre `data.transacoes`, então gasto de viagem
+no cartão não contava. Lição de forma: campo que a tela mostra tem que ter
+destino no esquema, senão vira dado perdido em silêncio.
+
+**Recusa silenciosa.** O padrão `if(!salvo) return` aparecia em quatro lugares.
+Do lado de quem usa, o botão simplesmente não faz nada. O pior era o assistente
+de primeiro uso, que fechava e marcava o onboarding como concluído mesmo sem ter
+criado o cartão.
+
+### Decisões
+
+**Nome de pessoa e de instituição não vai para a IA.** Credor, nome do cartão e
+nome livre da renda saíram do resumo mandado ao Gemini; os cartões vão como
+"Cartão 1". A linha que ficou: nome de **pessoa ou instituição** não sai; rótulo
+que a própria pessoa escreveu sobre a vida dela (metas, viagens, contas fixas,
+compras) sai, porque sem ele não dá para perguntar sobre uma delas pelo nome.
+Quem quiser um resumo sem nome nenhum mexe em `montarResumoFinanceiroParaIA()`,
+que é o único lugar que monta o texto. Fecha a pendência 6 de
+[SECURITY.md](SECURITY.md).
+
+**O palpite de primeiro uso vem do navegador.** Idioma e moeda nasciam fixos em
+português e real. A moeda sai da **região** da etiqueta quando ela existe, não
+do idioma: `pt-PT` é euro e `pt-BR` é real. Só `defaultData()` — `migrateData()`
+não encosta em quem já tem dados salvos.
+
+**Número que mede ausência de problema não é medida.** A saúde financeira dava
+70/100 num app recém-instalado: três quartos da nota vinham de ainda não haver
+nada cadastrado. Sem renda e sem despesa, `computeSaudeFinanceira()` devolve
+`score: null` e o cartão diz o que falta. Vale como regra geral para indicador
+novo: se a fórmula pontua a ausência, ela precisa de um estado "ainda não".
+
+**A data-alvo padrão tem horizonte mínimo.** 31 de dezembro funciona dez meses
+por ano e falha nos outros dois: em 20 de dezembro a previsão era de onze dias,
+em 31 de dezembro de zero. Com menos de um trimestre até lá, o alvo passa a ser
+o dezembro seguinte.
+
+**Texto de interface não mora em módulo de tela.** Os 25 pares de título e texto
+do tour estavam escritos à mão em `ui/onboarding.js`, um bloco por idioma. Como
+não passavam por `L()`, a auditoria não os enxergava: um sexto idioma entraria
+com o tour calado em português sem nada reprovar. Em `onboarding.js` ficou só o
+alvo de cada passo.
+
+**Afordância de toque fica fora da ordem de tabulação.** Os botões que o
+arrastar revela ficam num painel absoluto coberto pelo conteúdo: invisíveis ao
+olho, sempre presentes para o teclado, duas paradas por item repetindo ações que
+já têm botão visível. Nas compras no crédito nem estavam ligados a nada.
+
+### Pendências que ficaram
+
+- **Dividir com alguém não existe no crédito.** O controle some quando "Crédito"
+  está selecionado, e `lancarParcelamento()` recebe o valor cheio. Rachar a
+  conta de um restaurante pago no cartão é o caso mais comum de divisão, e hoje
+  não tem como. Exige decidir o que a fatura deve mostrar — o valor cheio, que é
+  o que o banco vai cobrar, ou a parte de quem lançou.
+- **O Resumo vazio ainda é andaime.** Com a saúde sem nota, sobram limite vazio,
+  categorias vazias, orçamento e calendário na primeira abertura. O ponto fraco
+  não é a estética, é não haver um caminho único e óbvio antes de haver dados.
