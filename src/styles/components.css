@@ -899,11 +899,11 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
    a página inteira para tentar revelar o campo. */
 @media(max-width:759px){
   .ia-chat-sheet{
-    height:min(80vh,calc(100dvh - 12px));
+    height:auto;
     max-height:calc(100dvh - 12px);
-    overflow:hidden;
+    overflow-y:auto;
   }
-  .ia-chat-messages{min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+  .ia-chat-messages{min-height:clamp(140px,35dvh,260px);overflow-y:auto;overscroll-behavior:contain;}
 }
 
 .gasto-fab{

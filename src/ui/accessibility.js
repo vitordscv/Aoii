@@ -27,7 +27,9 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
   }
   function focar(){
     const alvo=inicial&&inicial.getClientRects().length?inicial:focaveis()[0]||dg;
-    alvo.focus();
+    // No iOS, focar um campo logo após abrir o sheet pode rolar o documento
+    // inteiro antes de o teclado terminar de redimensionar a viewport.
+    try{ alvo.focus({preventScroll:true}); }catch(e){ alvo.focus(); }
   }
   function teclado(e){
     if(!noTopo()) return;
