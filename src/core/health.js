@@ -1,5 +1,25 @@
-/* ── indicador de saúde financeira: score simples 0-100 baseado em orçamento, saldo projetado, faturas e metas ── */
+/* Tem algum número de verdade pra medir? Renda configurada, ou qualquer
+   despesa registrada. Sem isso não há saúde financeira nenhuma pra calcular —
+   só a soma dos pontos que o app dá por ausência de problema. */
+function temDadoParaSaude(){
+  const temRenda=(data.tipoRenda==='diaria'&&data.rendaDiaria>0)
+    ||(data.tipoRenda==='mensal'&&data.rendaMensal&&data.rendaMensal.valor>0)
+    ||rendasRecorrentesAtivas().length>0;
+  const temDespesa=(data.transacoes||[]).length>0
+    ||(data.gastosMensais||[]).length>0
+    ||(data.faturas||[]).some(f=>(f.valor||0)>0||(f.gastos||[]).length>0);
+  return temRenda||temDespesa;
+}
+
+/* ── indicador de saúde financeira: score simples 0-100 baseado em orçamento, saldo projetado, faturas e metas ──
+
+   Num app recém-instalado a conta dava 70/100: +20 por não ter orçamento, +30
+   por a projeção de zero não ser negativa, +20 por não haver fatura atrasada.
+   Três quartos da nota vinham de ainda não haver nada cadastrado — e isso
+   aparecia como a primeira avaliação que a pessoa lê sobre a vida financeira
+   dela. Nota inventada em cima de nada é pior do que nota nenhuma. */
 function computeSaudeFinanceira(){
+  if(!temDadoParaSaude()) return {score:null,motivos:[]};
   let score=0; const motivos=[];
   const t=today(); const anoA=t.getFullYear(), mesA=t.getMonth()+1;
   const orcamentoTotal=Object.values(data.orcamentos||{}).reduce((s,v)=>s+(v||0),0);

@@ -50,7 +50,7 @@ function montarResumoFinanceiroParaIA(){
   const compMes=gastoMesPassado>0
     ? `${formatBRL(gastoMesAtual)} este mês vs ${formatBRL(gastoMesPassado)} no mês passado (${Math.round(((gastoMesAtual-gastoMesPassado)/gastoMesPassado)*100)}%)`
     : `${formatBRL(gastoMesAtual)} este mês (sem histórico do mês passado)`;
-  return `Saúde financeira (score 0-100): ${saude.score}. Motivos: ${saude.motivos.join('; ')||'—'}.
+  return `Saúde financeira (score 0-100): ${saude.score===null?'ainda sem dados suficientes para calcular':saude.score}. Motivos: ${saude.motivos.join('; ')||'—'}.
 Saldo atual: ${formatBRL(data.saldoAtual||0)}. Dinheiro vivo: ${formatBRL(data.dinheiroVivo||0)}. Saldo projetado até a data-alvo: ${formatBRL(t.projetado)}.
 Patrimônio total: ${formatBRL(patrimonioCalculado())}.
 Renda média mensal: ${formatBRL(rendaMediaMensal())}. Rendas recorrentes ativas: ${rendas}.

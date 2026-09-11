@@ -1,6 +1,16 @@
 function renderSaudeFinanceira(){
   const el=document.getElementById('saude-financeira-card'); if(!el) return;
   const {score,motivos}=computeSaudeFinanceira();
+  /* sem nada cadastrado não há nota: diz o que falta, em vez de inventar um
+     número que só mede a ausência de problema — ver computeSaudeFinanceira() */
+  if(score===null){
+    el.innerHTML=`
+    <div class="saude-card saude-sem-dado">
+      <div class="saude-top"><span class="saude-label">${esc(L('saude.titulo'))}</span></div>
+      <div class="saude-motivos">${esc(L('saude.semDado'))}</div>
+    </div>`;
+    return;
+  }
   const label=score>=75?L('saude.boa'):score>=40?L('saude.regular'):L('saude.atencao');
   const cls=score>=75?'boa':score>=40?'regular':'atencao';
   el.innerHTML=`

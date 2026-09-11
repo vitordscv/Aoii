@@ -30,7 +30,50 @@ module.exports=function(t){
   grupoSemChuteDeGasto(t);
   grupoMedias(t);
   grupoAosPoucos(t);
+  grupoSaude(t);
 };
+
+/* ── nota de saúde financeira: sem dado, sem nota ──
+   Num app recém-instalado a conta dava 70/100 — +20 por não ter orçamento,
+   +30 por a projeção de zero não ser negativa, +20 por não haver fatura
+   atrasada. Três quartos da nota vinham de ainda não haver nada cadastrado, e
+   isso aparecia como a primeira avaliação que a pessoa lê sobre a vida
+   financeira dela. */
+function grupoSaude(t){
+  console.log('\n\x1b[1mSaúde financeira sem dado nenhum\x1b[0m');
+  const vazio={saldoAtual:0,dinheiroVivo:0,tipoRenda:'diaria',rendaDiaria:0,diasTrabalho:[1,2,3,4,5],
+    rendaMensal:{valor:0,diaDoMes:5},idioma:'pt',dataAlvo:'2026-12-31',
+    gastosMensais:[],cartoes:[],faturas:[],transacoes:[],entradasExtras:[],comprasPlanejadas:[],
+    metas:[],rendasRecorrentes:[],investimentos:[],viagens:[],orcamentos:{},diasNaoTrabalhados:[]};
+  const comeco=(mudar)=>{
+    const d=JSON.parse(JSON.stringify(vazio));
+    if(mudar) mudar(d);
+    return criarAmbiente(d,HOJE);
+  };
+
+  t.igual(comeco().temDadoParaSaude(),false,'app recém-instalado não tem o que medir');
+  t.igual(comeco().computeSaudeFinanceira().score,null,'e por isso não recebe nota nenhuma');
+  t.igual(comeco().computeSaudeFinanceira().motivos.length,0,'nem motivo, que seria explicar um número que não existe');
+
+  /* qualquer um dos dois lados basta pra haver o que medir */
+  const comRenda=comeco(d=>{ d.tipoRenda='mensal'; d.rendaMensal={valor:3000,diaDoMes:5}; });
+  t.igual(comRenda.temDadoParaSaude(),true,'renda mensal já dá o que medir');
+  t.verdadeiro(typeof comRenda.computeSaudeFinanceira().score==='number','e a nota volta a sair');
+
+  t.igual(comeco(d=>{ d.rendaDiaria=150; }).temDadoParaSaude(),true,'renda diária também');
+  t.igual(comeco(d=>{ d.rendasRecorrentes=[{id:'r',nome:'Freela',valor:900,diaDoMes:10,ativo:true,tipo:'salario'}]; }).temDadoParaSaude(),true,
+    'renda recorrente também');
+  t.igual(comeco(d=>{ d.gastosMensais=[{id:'g',nome:'Aluguel',valor:1200,diaDoMes:5,ativo:true,categoria:'Casa'}]; }).temDadoParaSaude(),true,
+    'só gasto fixo, sem renda, já dá o que medir');
+  t.igual(comeco(d=>{ d.transacoes=[{id:'t',nome:'Café',valor:8,categoria:'Outros',metodo:'pix',data:HOJE}]; }).temDadoParaSaude(),true,
+    'um único lançamento no Diário já basta');
+  t.igual(comeco(d=>{ d.cartoes=[{id:'a',nome:'A',limite:1000,diaFechamento:10}];
+    d.faturas=[{id:'f',ano:2026,mes:9,valor:300,pago:false,cartaoId:'a',gastos:[]}]; }).temDadoParaSaude(),true,
+    'fatura em aberto também');
+  /* cartão cadastrado e mais nada continua sendo nada pra medir */
+  t.igual(comeco(d=>{ d.cartoes=[{id:'a',nome:'A',limite:1000,diaFechamento:10}]; }).temDadoParaSaude(),false,
+    'cartão sem fatura nenhuma ainda não é dado financeiro');
+}
 
 /* quem te deve pagando em pedaços: o valor que falta se divide pelos meses */
 function grupoAosPoucos(t){
