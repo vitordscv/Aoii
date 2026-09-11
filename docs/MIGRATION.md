@@ -763,3 +763,31 @@ tabela, então o uso legítimo não muda. Conferido ponta a ponta pela chave
 `anon`, como o app faz: criar, reler e atualizar passam; token errado, token
 curto, id curto, revisão velha e linha acima de 5 MB são recusados; a tabela e
 a própria `aoii_limites` continuam fora do REST (HTTP 401).
+
+### Ainda em 11/09 — a primeira busca era vinte segundos depois
+
+O conserto anterior (buscar no `visibilitychange`) resolveu metade do problema
+e eu declarei vitória cedo demais. O relato voltou: "ainda demora".
+
+`setInterval(ciclo, 20000)` **só dispara na primeira virada do relógio**. Abrir
+o app era: ler o disco, desenhar o valor velho, restaurar a sessão, e ficar com
+o valor velho na cara por 20 segundos antes de perguntar qualquer coisa à
+nuvem.
+
+E abrir o app é exatamente o que o celular faz. O sistema descarta a página
+quando você troca de aplicativo, então voltar não é "aba reaparecendo" — é
+carregar de novo. Por isso o `visibilitychange` não cobria: a página já nasce
+visível, não há transição nenhuma para ouvir.
+
+Eram **dois casos diferentes com o mesmo sintoma**, e o primeiro conserto
+pegou só um. Medido pela rede (`Network.requestWillBeSent`, tempo entre
+carregar e o primeiro `aoii_get`), três voltas cada:
+
+| | antes | depois |
+|---|---|---|
+| primeira leitura da nuvem | 20,3 s | **0,4 s** |
+
+A lição: quando o sintoma persiste depois de um conserto que você mediu e
+aprovou, o mais provável é que existam duas causas, não que a medição
+estivesse errada. Medir o caminho certo teria mostrado isso de primeira —
+`visibilitychange` foi medido, mas "abrir o app do zero" não.

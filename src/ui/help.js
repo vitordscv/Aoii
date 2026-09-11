@@ -81,6 +81,21 @@ async function init(){
     retomarEspelho();
     if(sincronizacaoDestrancada()&&!espelhoPendente()&&!_espelhando&&!_abrindoSync) await ensureMonthlySnapshot();
   }
+  /* A PRIMEIRA busca é agora, não daqui a vinte segundos.
+
+     setInterval só dispara na primeira virada do relógio, então abrir o app
+     era: ler o disco, desenhar o valor velho, e ficar com ele na cara por 20 s
+     antes de perguntar qualquer coisa à nuvem. E abrir o app é justamente o
+     que acontece no celular — o sistema descarta a página quando você troca de
+     aplicativo, então voltar não é "aba reaparecendo", é carregar de novo.
+
+     Por isso o visibilitychange abaixo não cobria este caso: a página já nasce
+     visível, não há transição nenhuma pra ouvir. Eram dois casos diferentes
+     com o mesmo sintoma, e o primeiro conserto só pegou um deles.
+
+     Sem await: a leitura não precisa segurar a tela, que já está desenhada com
+     o que havia no disco. Quando a resposta vier, render() atualiza. */
+  cicloDeSincronizacao();
   // O ciclo também atende quem ativar a sincronização depois de abrir o app.
   setInterval(cicloDeSincronizacao,20000);
   document.addEventListener('visibilitychange',()=>{
