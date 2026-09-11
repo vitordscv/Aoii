@@ -183,6 +183,19 @@ border-color:rgba(255,255,255,.42);}
    número. Ao lado de um algarismo de 72 px, 5 px é colado. */
 .hero-number .hero-tip-btn{top:0;flex:none;margin-left:10px;}
 .hero-number-valor{min-width:0;}
+/* ── telas bem estreitas: o número precisa caber inteiro ──
+   O piso de 38px do clamp acima não cabia num aparelho de 320px: um saldo de
+   R$ 178.659,57 pede 267px e só há 230, e o hero tem overflow:hidden — o
+   último dígito sumia, no número que é a razão de o app existir.
+
+   Antes dava pra não notar, porque o texto quebrava no espaço depois do "R$".
+   Parou de quebrar quando o formato passou a vir do Intl, que usa espaço
+   NÃO-SEPARÁVEL ali — e faz certo, "R$" sozinho no fim da linha é pior. Só
+   que a quebra estava encobrindo a fonte grande demais pra tela. A conta é a
+   mesma de sempre: o número tem que caber. */
+@media(max-width:359px){
+  .hero-number{font-size:clamp(30px,9.5vw,38px);}
+}
 .hero-number.negativo{color:var(--hero-neg-text);}
 /* o "?" das seções é escuro sobre creme; aqui ele vive sobre o azul do hero.
    Ao lado de um número de 38–72 px ele precisa se descolar da linha de base:
@@ -237,6 +250,19 @@ border-color:rgba(255,255,255,.42);}
   /* número ímpar de fichas: a última ocupa a linha em vez de deixar buraco */
   .chips .chip:last-child:nth-child(odd){grid-column:1/-1;}
 }
+/* ── telas estreitas: uma ficha por linha ──
+   Em duas colunas o `1fr` não manda: cada faixa também não pode ficar menor
+   que o conteúdo dela, e o valor é `white-space:nowrap`. Num aparelho de
+   320 px as faixas saíam 163 e 140 px — desiguais e somando mais que a
+   largura disponível. Como o hero tem `overflow:hidden`, o que passava era
+   CORTADO, não rolava: parte do "A pagar" simplesmente não existia na tela.
+
+   E piorava com o saldo: R$ 3.500 perdia 19 px, R$ 98.750 perdia 57 px. Quem
+   tem mais dinheiro enxergava menos dele. Uma coluna resolve por construção —
+   a ficha inteira é a largura do hero, cabe qualquer valor. */
+@media(max-width:389px){
+  .chips{grid-template-columns:1fr;}
+}
 /* sombra leve padrão pra caixas flutuantes (cards) */
 .chip,.chart-card,.month-card,.list-panel,.limit-card,.cat-card,.gf-health-card,.patrimonio-card,.parcelamento-card{
   box-shadow:0 3px 14px -6px rgba(11,24,48,0.14);
@@ -252,7 +278,9 @@ border-color:rgba(255,255,255,.42);}
 .chip-label{font-size:11.5px;color:var(--muted);margin-bottom:8px;line-height:1.3;}
 /* nowrap: "R$ 19.500,00" quebrava em duas linhas dentro da ficha e ficava com
    o dobro da altura das outras */
-.chip-value{font-family:'Nunito Sans',sans-serif;font-size:19px;font-weight:600;color:var(--num-color);white-space:nowrap;}
+/* o clamp é a rede de segurança pra valor absurdo em qualquer largura:
+   encolhe a fonte antes de deixar o número sair da ficha */
+.chip-value{font-family:'Nunito Sans',sans-serif;font-size:clamp(15px,4.4vw,19px);font-weight:600;color:var(--num-color);white-space:nowrap;}
 
 /* ── SECTIONS ── */
 .section{margin-top:46px;}
