@@ -64,6 +64,28 @@ module.exports=function(t){
   t.verdadeiro(!pontos.some(p=>p.monthLabel==='Julho/2026'),
     'mês encerrado não vira ponto no gráfico','pontos: '+pontos.map(p=>p.monthLabel).join(','));
 
+  /* ── a data-alvo padrão precisa ser uma previsão, não o dia de hoje ──
+     Era sempre 31/12 do ano corrente. Quem instalava o app em 20 de dezembro
+     recebia uma previsão de onze dias; em 31 de dezembro, de zero — e o
+     número grande do hero, que é a razão de o app existir, virava o saldo de
+     hoje logo na primeira tela. */
+  console.log('\n\x1b[1mData-alvo de quem começa hoje\x1b[0m');
+  const alvoEm=dia=>criarAmbiente(base(),dia).defaultTargetValue();
+  t.igual(alvoEm('2026-01-05'),'2026-12-31','em janeiro, o fim deste ano');
+  t.igual(alvoEm('2026-09-05'),'2026-12-31','em setembro ainda cabe o ano corrente');
+  t.igual(alvoEm('2026-10-02'),'2026-12-31','no limite do trimestre, ainda este ano');
+  t.igual(alvoEm('2026-10-10'),'2027-12-31','passado o trimestre, vai pro dezembro seguinte');
+  t.igual(alvoEm('2026-12-20'),'2027-12-31','em dezembro não se oferece previsão de onze dias');
+  t.igual(alvoEm('2026-12-31'),'2027-12-31','no último dia do ano, muito menos de zero dia');
+  const horizonte=dia=>{
+    const c=criarAmbiente(base(),dia);
+    return Math.round((new Date(c.defaultTargetValue()+'T12:00:00')-new Date(dia+'T12:00:00'))/86400000);
+  };
+  ['2026-01-05','2026-06-15','2026-10-10','2026-12-31'].forEach(dia=>{
+    t.verdadeiro(horizonte(dia)>=90,`o padrão sempre olha pelo menos um trimestre à frente (${dia})`,
+      `em ${dia} sobraram ${horizonte(dia)} dias`);
+  });
+
   /* ── validação de data não pode depender do fuso de quem usa ──
      As três validações comparavam com toISOString(), que lê a data em UTC.
      Em UTC+13/+14 o meio-dia local é o dia ANTERIOR em UTC, então toda data

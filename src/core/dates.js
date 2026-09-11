@@ -13,8 +13,19 @@ function metaMonthsRemaining(dataAlvo){
 
 /* ─── data target ─── */
 
+/* 31 de dezembro é uma data-alvo boa porque todo mundo entende "até o fim do
+   ano" — menos em novembro e dezembro, quando ela deixa de ser uma previsão.
+   Quem instalava o app em 20 de dezembro abria numa previsão de onze dias, e
+   em 31 de dezembro numa de zero: o número grande do hero virava o saldo de
+   hoje e a premissa do app ("isto é uma previsão") não se sustentava logo na
+   primeira tela. Com menos de um trimestre pela frente, o alvo passa a ser o
+   dezembro seguinte — continua sendo "o fim do ano", só que o próximo. */
 function defaultTargetValue(){
-  const t=today(); return `${t.getFullYear()}-12-31`;
+  const HORIZONTE_MINIMO_DIAS=90;   // um trimestre: o menor prazo em que a projeção ainda diz algo
+  const t=today();
+  const diasAteODezembroDesteAno=Math.round((new Date(t.getFullYear(),11,31)-t)/86400000);
+  const ano=diasAteODezembroDesteAno>=HORIZONTE_MINIMO_DIAS?t.getFullYear():t.getFullYear()+1;
+  return `${ano}-12-31`;
 }
 function getTargetDate(){
   if(data&&data.dataAlvo){ const d=new Date(data.dataAlvo+'T23:59:59'); if(!isNaN(d)) return d; }

@@ -1,14 +1,15 @@
 /* ─── default data ─── */
 
 function defaultData(){
-  const Y=new Date().getFullYear();
   return {
     schemaVersion:SCHEMA_VERSAO,
     saldoAtual:0,
     saldoAtualizadoEm:new Date().toISOString(),
     dinheiroVivo:0,
     dinheiroVivoAtualizadoEm:new Date().toISOString(),
-    dataAlvo:`${Y}-12-31`,
+    /* a mesma regra do resto do app: 31/12, mas nunca a menos de um
+       trimestre de distância — ver defaultTargetValue() */
+    dataAlvo:defaultTargetValue(),
     tipoRenda:'diaria',
     rendaDiaria:0,
     diasTrabalho:[1,2,3,4,5],
