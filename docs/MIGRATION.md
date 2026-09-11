@@ -744,3 +744,22 @@ depois: 5 linhas, 5 cifradas, 0 em texto puro. A cópia local ficou em
 diferente — se exigisse, ninguém ligaria a sincronização a primeira vez). As
 duas estão descritas em [SECURITY.md](SECURITY.md) e nenhuma expõe dado que já
 esteja lá.
+
+### Ainda em 11/09 — o teto que a gêmea escondia
+
+Fechar o `0008` deixou à mostra um efeito colateral: a tabela `aoii_limites`
+tinha os quatro valores configurados desde 10/09, mas **quem os consultava era
+só a `aoii_put_homolog`**. Removida a gêmea, sobrou em pé apenas a função de
+produção — que não lia teto nenhum.
+
+Ou seja: por algumas horas, o único caminho de escrita era o sem limite. A
+metade que faltava do `0006` foi aplicada e isso acabou. A lição é de ordem:
+**tirar o sandbox pode desproteger a produção, quando era o sandbox que
+carregava a proteção.** Vale conferir o que sobra de pé antes de remover
+qualquer gêmea.
+
+O corpo novo de `aoii_put` é idêntico ao anterior fora os três tetos lidos da
+tabela, então o uso legítimo não muda. Conferido ponta a ponta pela chave
+`anon`, como o app faz: criar, reler e atualizar passam; token errado, token
+curto, id curto, revisão velha e linha acima de 5 MB são recusados; a tabela e
+a própria `aoii_limites` continuam fora do REST (HTTP 401).

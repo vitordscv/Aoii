@@ -244,7 +244,29 @@ quem descobrir o código lê o texto cifrado, mas não escreve.
 O arquivo traz também o roteiro de conferência (o que precisa falhar) e o SQL de
 reversão.
 
-### 9. Criação anônima ilimitada de registros — **aberta em produção**
+### ~~9. Criação anônima ilimitada de registros~~ — fechada em 11/09/2026
+
+**Resolvida** aplicando a metade que faltava do
+[`0006_limites_producao.sql`](../supabase/migrations/0006_limites_producao.sql).
+A tabela `aoii_limites` existia com os quatro valores desde 10/09, mas quem
+consultava era so a gemea de homologacao — e a gemea saiu no 0008, deixando
+em pe apenas a funcao sem teto nenhum.
+
+`aoii_put` agora le os tres tetos da tabela antes de criar linha:
+`bytes_por_linha` (5 MB), `criacoes_por_hora` (30) e `linhas_no_total`
+(5000). O corpo e identico ao anterior no resto — mesma validacao de id e
+token, mesma checagem de hash e de revisao —, entao o uso legitimo nao muda.
+
+Conferido pela chave `anon`, como o app faz: criar, reler e atualizar
+passam; token errado, token curto, id curto, revisao velha e linha acima do
+teto sao recusados; e a tabela continua fora do REST (HTTP 401), assim como
+a propria `aoii_limites`. A linha de teste foi apagada.
+
+Continua sendo possivel criar a PRIMEIRA linha sem token, e tem que ser:
+sem isso ninguem liga a sincronizacao. O que mudou e que agora ha um teto.
+
+O diagnostico original:
+
 
 `aoii_put` cria linha nova sem exigir token, e não pode ser diferente: se
 exigisse, ninguém conseguiria ligar a sincronização a primeira vez. Como a chave
