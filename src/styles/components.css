@@ -894,6 +894,18 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .ia-chat-input-row button{border:none;background:var(--disney-blue-deep);color:var(--on-accent);border-radius:9px;padding:10px 16px;font-size:13.5px;font-weight:700;cursor:pointer;}
 .ia-chat-input-row button:disabled{opacity:.5;}
 
+/* No iPhone a altura visível diminui quando o teclado aparece. O painel da IA
+   precisa acompanhar essa viewport dinâmica; caso contrário o Safari desloca
+   a página inteira para tentar revelar o campo. */
+@media(max-width:759px){
+  .ia-chat-sheet{
+    height:min(80vh,calc(100dvh - 12px));
+    max-height:calc(100dvh - 12px);
+    overflow:hidden;
+  }
+  .ia-chat-messages{min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+}
+
 .gasto-fab{
   position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:41;
   width:54px;height:54px;border-radius:50%;background:var(--disney-blue-deep);color:var(--on-accent);

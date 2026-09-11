@@ -965,7 +965,7 @@
     <div class="sheet-subtitle" data-i18n="tools.fxSub">Taxas de referência do Banco Central Europeu, publicadas uma vez por dia útil.</div>
     <div class="sheet-field">
       <label for="fx-valor" data-i18n="tools.fxValor">Valor</label>
-      <input type="text" inputmode="decimal" id="fx-valor" placeholder="0,00">
+      <input type="text" inputmode="decimal" enterkeyhint="done" id="fx-valor" placeholder="0,00">
     </div>
     <div class="fx-par">
       <div class="sheet-field">
@@ -1125,7 +1125,7 @@
     <div class="sheet-subtitle" data-i18n="ia.consultorSub">Analisa saldo, gastos, cartões, metas e viagens antes de responder</div>
     <div id="ia-chat-messages" class="ia-chat-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
     <div class="ia-chat-input-row">
-      <input type="text" id="ia-chat-input" placeholder="Pergunte algo sobre suas finanças…" data-i18n-placeholder="ia.perguntePlaceholder" aria-label="Pergunte ao consultor" data-i18n-aria-label="ia.consultorTitle2">
+      <input type="text" inputmode="text" enterkeyhint="send" id="ia-chat-input" placeholder="Pergunte algo sobre suas finanças…" data-i18n-placeholder="ia.perguntePlaceholder" aria-label="Pergunte ao consultor" data-i18n-aria-label="ia.consultorTitle2">
       <button type="button" id="ia-chat-send" data-i18n="ia.enviar">Enviar</button>
     </div>
   </div>
