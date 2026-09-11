@@ -8,6 +8,9 @@ const THEME_VARS={
   matcha:{'--cream':'#EFF1DE','--white':'#FAFBF2','--disney-blue':'#5C8259','--disney-blue-deep':'#3A5A3D','--ink-navy':'#33421F','--num-color':'#33421F','--line':'#CBD3AC','--pos':'#3E6F5C','--neg':'#A2482E','--gold':'#A78A3F','--hero-grad1':'#38512F','--hero-text':'#EFF1DE'},
   poupa:{'--cream':'#0F1E16','--white':'#17291F','--disney-blue':'#1FBE99','--disney-blue-deep':'#0E8E73','--ink-navy':'#E9F3EC','--num-color':'#E9F3EC','--line':'#23392C','--pos':'#3ECF8E','--neg':'#E6685A','--gold':'#1FBE99','--hero-grad1':'#12483B','--hero-text':'#E9F3EC'},
   grafite:{'--cream':'#131313','--white':'#1C1C1C','--disney-blue':'#B5B5B5','--disney-blue-deep':'#8A8A8A','--ink-navy':'#EDEDED','--num-color':'#EDEDED','--line':'#333333','--pos':'#8FBF9A','--neg':'#C97B72','--gold':'#A8A8A8','--hero-grad1':'#242424','--hero-text':'#F2F2F2'},
+  /* o roxo existia no menu, no esquema e no CSS, e só aqui não — então era o
+     único tema sem "↺ Restaurar" no painel de cores personalizadas */
+  roxo:{'--cream':'#12071C','--white':'#1D0F2B','--disney-blue':'#B47CE8','--disney-blue-deep':'#8A2BE0','--ink-navy':'#F0E9F7','--num-color':'#F0E9F7','--line':'#3A2352','--pos':'#5FC98A','--neg':'#E8756A','--gold':'#D9B45C','--hero-grad1':'#6D18B8','--hero-text':'#FFFFFF'},
 };
 
 let customPanelHidden=false;
