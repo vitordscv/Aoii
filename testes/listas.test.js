@@ -148,6 +148,21 @@ module.exports=function(t){
   t.igual(novoCartao.nome,'Viagem','nome do cartão é normalizado');
   t.igual(novoCartao.diaFechamento,8,'dia válido é convertido em número');
   t.igual(novoCartao.diaVencimento,null,'dia opcional pode ficar vazio');
+  /* "Limite (opcional)" em branco precisa salvar. O campo chegava como o NaN
+     de parseNum('') e derrubava o cartão inteiro — em silêncio, porque a
+     folha descarta o null sem avisar. */
+  t.valor(ctxCartao.parseNumOpcional(''),0,'campo opcional em branco vale zero');
+  t.valor(ctxCartao.parseNumOpcional('   '),0,'só espaço também vale zero');
+  t.valor(ctxCartao.parseNumOpcional(null),0,'campo opcional ausente vale zero');
+  t.valor(ctxCartao.parseNumOpcional('2.500,50'),2500.5,'campo opcional preenchido lê o número do jeito daqui');
+  t.naoNumero(ctxCartao.parseNumOpcional('abc'),'campo opcional ilegível continua NaN');
+  const semLimite=ctxCartao.criarCartao({nome:'Só pra fatura',limite:ctxCartao.parseNumOpcional(''),diaFechamento:'10',diaVencimento:'17'});
+  t.verdadeiro(!!semLimite,'cartão com limite em branco é aceito','veio '+JSON.stringify(semLimite));
+  t.valor(semLimite&&semLimite.limite,0,'limite em branco vale zero');
+  t.igual(ctxCartao.criarCartao({nome:'Ilegível',limite:ctxCartao.parseNum('abc')}),null,'limite ilegível continua recusado');
+  /* cartão vindo de backup antigo, sem a chave limite */
+  const semCampo=ctxCartao.criarCartao({nome:'De backup',diaFechamento:'5'});
+  t.verdadeiro(!!semCampo,'cartão sem a chave limite é aceito','veio '+JSON.stringify(semCampo));
   const nomeAntesCartao=novoCartao.nome;
   t.igual(ctxCartao.atualizarCartao(novoCartao.id,{nome:'Mudou',limite:900,diaVencimento:0}),null,'edição inválida é recusada inteira');
   t.igual(novoCartao.nome,nomeAntesCartao,'edição recusada não altera outro campo');

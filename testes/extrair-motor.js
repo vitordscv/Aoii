@@ -73,7 +73,7 @@ const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORM
 
 /* funções puras de cálculo — a parte do app que os testes cobrem */
 const FUNCOES=[
-  'parseNum','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
+  'parseNum','parseNumOpcional','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'definirIdioma','definirMoeda','definirTema','definirPreferenciaBooleana','definirTipoRenda','atualizarRendaDiaria','atualizarRendaMensal','atualizarSaldoConta','atualizarDinheiroVivo','configurarPerfilFinanceiro','atualizarDataAlvo','atualizarReserva',
   'adicionarCategoria','removerCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','definirDiasTrabalho','diaCalendarioValido','adicionarDiaNaoTrabalhado','removerDiaNaoTrabalhado','daysBetweenInclusive','remainingWorkDaysUntil',

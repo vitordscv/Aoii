@@ -35,6 +35,17 @@ function parseNum(v){
   return neg?-n:n;
 }
 
+/* Campo de dinheiro que o rótulo diz ser opcional. parseNum('') devolve NaN,
+   igual ao parseFloat — o que está certo para um campo obrigatório e errado
+   para um opcional: o NaN descia até a validação, que recusava o registro
+   inteiro, e a folha fechava sem salvar e sem dizer o porquê. Aqui, branco
+   vale zero; texto que não é número continua NaN e continua sendo recusado. */
+function parseNumOpcional(v){
+  if(v===null||v===undefined) return 0;
+  if(typeof v==='number') return v;
+  return String(v).trim()===''?0:parseNum(v);
+}
+
 /* Percentual no idioma da pessoa. O número cru do JavaScript escreve sempre
    com ponto: um brasileiro lia "14.9%" onde escreve 14,9%, e a calculadora
    era o único canto do app com esse ponto. */

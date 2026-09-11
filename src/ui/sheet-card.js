@@ -87,10 +87,14 @@ function setupCartaoSheet(){
       nome,
       diaFechamento:document.getElementById('cartao-fechamento').value,
       diaVencimento:document.getElementById('cartao-vencimento').value,
-      limite:parseNum(document.getElementById('cartao-limite').value),
+      /* "Limite (opcional)": em branco vale zero. Com parseNum puro vinha NaN
+         e o cartão inteiro era recusado — ver parseNumOpcional() */
+      limite:parseNumOpcional(document.getElementById('cartao-limite').value),
     };
     const salvo=editingId?atualizarCartao(editingId,entrada):criarCartao(entrada);
-    if(!salvo) return;
+    /* recusa sem aviso é o pior desfecho possível: o botão não faz nada e a
+       pessoa não tem como saber qual campo está errado */
+    if(!salvo){ await alertDialog(L('cartao.erroCampos')); return; }
     await persist(); render();
     close();
   });

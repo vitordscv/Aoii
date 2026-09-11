@@ -20,7 +20,14 @@ function camposCartao(entrada,atual){
   entrada=entrada||{}; atual=atual||{};
   const ler=(campo)=>Object.prototype.hasOwnProperty.call(entrada,campo)?entrada[campo]:atual[campo];
   const nome=String(ler('nome')||'').trim();
-  const limite=Number(ler('limite'));
+  /* O limite é opcional — e o rótulo do campo diz isso. Vazio vale zero, do
+     mesmo jeito que dia vazio vale null: quem digita nada não está errando,
+     está deixando em branco. Antes, campo vazio chegava aqui como NaN (é o
+     que parseNum devolve pra texto sem dígito), a validação recusava o cartão
+     inteiro e a folha fechava sem salvar e sem dizer nada. Texto ilegível —
+     "abc" — continua sendo NaN e continua sendo recusado. */
+  const limiteBruto=ler('limite');
+  const limite=(limiteBruto===null||limiteBruto===undefined||limiteBruto==='')?0:Number(limiteBruto);
   function dia(campo){
     const bruto=ler(campo);
     if(bruto===null||bruto===undefined||bruto==='') return null;
