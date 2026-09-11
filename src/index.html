@@ -590,7 +590,11 @@
         </div>
         <div id="renda-diaria-fields">
           <div class="field-group">
-            <label for="cfg-renda-diaria" data-i18n="settings.valorDia">Valor por dia trabalhado (R$)</label>
+            <!-- o símbolo sai de .curr, que applyIdioma() reescreve com a moeda
+                 escolhida. Estava fixo em "(R$)" só no português: quem usava o
+                 app em português com dólar digitava dólar num campo escrito
+                 "(R$)". Os outros quatro idiomas não mostravam moeda nenhuma. -->
+            <label for="cfg-renda-diaria"><span data-i18n="settings.valorDia">Valor por dia trabalhado</span> (<span class="curr">R$</span>)</label>
             <input type="text" inputmode="decimal" id="cfg-renda-diaria" step="0.01">
           </div>
           <div class="field-group">
@@ -609,7 +613,7 @@
         <div id="renda-mensal-fields">
           <div class="field-group two-col">
             <div>
-              <label for="cfg-renda-mensal-valor" data-i18n="settings.valorMensal">Valor mensal (R$)</label>
+              <label for="cfg-renda-mensal-valor"><span data-i18n="settings.valorMensal">Valor mensal</span> (<span class="curr">R$</span>)</label>
               <input type="text" inputmode="decimal" id="cfg-renda-mensal-valor" step="0.01">
             </div>
             <div>

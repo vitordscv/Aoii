@@ -21,7 +21,11 @@ function computeConselhos(){
     const media=anteriores.reduce((s,v)=>s+v,0)/3;
     if(media>50&&atual>media*1.4){
       const pct=Math.round(((atual-media)/media)*100);
-      dicas.push({icon:'📊',texto:L('cons.categoriaAcima').replace('{pct}',pct).replace('{cat}',cat),prioridade:2});
+      /* categoriaLabel() e não o id cru: as categorias padrão têm nome em
+         português nos dados por motivo histórico, e sem isto o conselho saía
+         "you're spending 60% more on Mercado" pra quem usa o app em inglês.
+         O conselho de orçamento estourado, três blocos abaixo, já traduzia. */
+      dicas.push({icon:'📊',texto:L('cons.categoriaAcima').replace('{pct}',pct).replace('{cat}',categoriaLabel(cat)),prioridade:2});
     }
   });
   // 2) metas atrasadas
