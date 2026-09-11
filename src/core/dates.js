@@ -28,10 +28,15 @@ function definirDiasTrabalho(dias){
   data.diasTrabalho=unicos.sort((a,b)=>a-b);
   return data.diasTrabalho;
 }
+/* A volta pelo texto confere que a data EXISTE: "2026-02-30" vira 2 de março
+   e deixa de bater com o que foi digitado. A comparação tem que ser com
+   isoDate(), que lê o dia no fuso local — toISOString() lê em UTC e, em
+   UTC+13/+14 (Nova Zelândia no horário de verão, Kiribati), devolvia o dia
+   anterior e recusava toda data boa. Ver o aviso em money.js. */
 function diaCalendarioValido(valor){
   if(typeof valor!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
   const dataTeste=new Date(valor+'T12:00:00');
-  return !isNaN(dataTeste)&&dataTeste.toISOString().slice(0,10)===valor;
+  return !isNaN(dataTeste)&&isoDate(dataTeste)===valor;
 }
 function adicionarDiaNaoTrabalhado(valor){
   if(!diaCalendarioValido(valor)) return false;

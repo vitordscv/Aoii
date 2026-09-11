@@ -1,6 +1,8 @@
 /* Datas: dias que não existem no mês, contagem de dias trabalhados e
    ocorrências de conta fixa. */
 const {criarAmbiente}=require('./ambiente');
+const {execFileSync}=require('child_process');
+const path=require('path');
 const HOJE='2026-09-05';   // sábado
 
 const base=()=>({saldoAtual:0,dinheiroVivo:0,tipoRenda:'diaria',rendaDiaria:100,diasTrabalho:[1,2,3,4,5],
@@ -61,4 +63,27 @@ module.exports=function(t){
   const pontos=c5.getTrajectoryPoints();
   t.verdadeiro(!pontos.some(p=>p.monthLabel==='Julho/2026'),
     'mês encerrado não vira ponto no gráfico','pontos: '+pontos.map(p=>p.monthLabel).join(','));
+
+  /* ── validação de data não pode depender do fuso de quem usa ──
+     As três validações comparavam com toISOString(), que lê a data em UTC.
+     Em UTC+13/+14 o meio-dia local é o dia ANTERIOR em UTC, então toda data
+     boa era recusada em silêncio: o campo simplesmente não guardava.
+     Na Nova Zelândia (UTC+12 no padrão) a falha aparecia só nas datas
+     dentro do horário de verão — de fim de setembro a início de abril. */
+  console.log('\n\x1b[1mValidação de data em qualquer fuso\x1b[0m');
+  const sonda=(tz,dia)=>JSON.parse(execFileSync(process.execPath,
+    [path.join(__dirname,'fuso-sonda.js'),dia],
+    {env:{...process.env,TZ:tz},encoding:'utf-8'}));
+
+  [['Pacific/Kiritimati','2026-12-01','UTC+14'],
+   ['Pacific/Auckland','2026-12-01','Nova Zelândia no horário de verão'],
+   ['Pacific/Auckland','2026-07-01','Nova Zelândia no horário padrão'],
+   ['America/Sao_Paulo','2026-12-01','Brasil'],
+   ['Pacific/Honolulu','2026-12-01','UTC−10']].forEach(([tz,dia,apelido])=>{
+    const r=sonda(tz,dia);
+    t.verdadeiro(r.diaCalendarioValido&&r.dataPlanejadaValida===dia&&r.atualizarDataAlvo===dia&&r.folgaAceita,
+      `${dia} é aceita em ${apelido}`,
+      `${tz} (offset ${r.offset}) devolveu ${JSON.stringify(r)}`);
+    t.igual(r.impossivel,false,`30 de fevereiro continua recusada em ${apelido}`);
+  });
 };

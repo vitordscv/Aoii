@@ -12,7 +12,8 @@ function listaPlanejada(tipo){ return Object.prototype.hasOwnProperty.call(LISTA
 function dataPlanejadaValida(valor){
   if(valor===null||valor===undefined||valor==='') return null;
   const d=new Date(String(valor)+'T12:00:00');
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(valor))&&!Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===valor?valor:undefined;
+  /* isoDate() e não toISOString(): ver diaCalendarioValido() em dates.js */
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(valor))&&!Number.isNaN(d.getTime())&&isoDate(d)===valor?valor:undefined;
 }
 
 function camposPlanejados(tipo,entrada,atual){
