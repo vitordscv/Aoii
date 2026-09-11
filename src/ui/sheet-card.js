@@ -36,7 +36,7 @@ function setupCartaoSheet(){
   _openCartaoSheet=open;
 
   document.getElementById('cartao-new-btn')?.addEventListener('click',()=>open(null));
-  document.getElementById('categoria-add-btn')?.addEventListener('click',async()=>{
+  umEnvioPorVez(document.getElementById('categoria-add-btn'),async()=>{
     const inp=document.getElementById('categoria-nova-nome');
     const nome=inp.value.trim();
     if(!nome) return;
@@ -47,7 +47,7 @@ function setupCartaoSheet(){
     inp.value='';
     await persist(); render();
   });
-  document.getElementById('viagem-add-btn')?.addEventListener('click',async()=>{
+  umEnvioPorVez(document.getElementById('viagem-add-btn'),async()=>{
     const nInp=document.getElementById('viagem-nova-nome'), oInp=document.getElementById('viagem-novo-orcamento');
     const nome=nInp.value.trim();
     if(!nome) return;
@@ -82,7 +82,7 @@ function setupCartaoSheet(){
     close();
   });
 
-  submitBtn.addEventListener('click',async()=>{
+  umEnvioPorVez(submitBtn,async()=>{
     const nomeEl=document.getElementById('cartao-nome');
     const nome=nomeEl.value.trim();
     if(!nome){ nomeEl.focus(); return; }

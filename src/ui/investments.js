@@ -212,7 +212,7 @@ function setupInvSheet(){
     close();
     removeInvestimentoComUndo(id);
   });
-  submitBtn.addEventListener('click',async()=>{
+  umEnvioPorVez(submitBtn,async()=>{
     const valor=parseNum(document.getElementById('inv-valor').value);
     if(isNaN(valor)||valor<0){ document.getElementById('inv-valor').focus(); return; }
     const t=tipoInvest(tipoAtual);

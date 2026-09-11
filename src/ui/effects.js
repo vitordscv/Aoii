@@ -85,6 +85,30 @@ function attachChartTooltip(container){
   svg.addEventListener('pointerleave',hide);
 }
 
+/* ── um envio por vez ───────────────────────────────────────────────────────
+   Todo botão que cria registro tinha o mesmo furo: o tratador é `async`, e
+   entre o começo dele e o `close()` do fim há um `await persist()`. O segundo
+   toque cai nessa fresta, com a folha ainda aberta e os campos ainda cheios —
+   e grava de novo.
+
+   Custa caro porque não parece erro: a pessoa toca duas vezes quando o dedo
+   escorrega, ou quando acha que o primeiro toque não pegou. No Diário saem
+   dois lançamentos iguais, e o saldo desconta duas vezes.
+
+   O ferrolho é síncrono, e é isso que resolve: ele fecha ANTES do primeiro
+   `await`, então o segundo toque já encontra ocupado. Liberar no `finally`
+   garante que uma exceção não deixe o botão morto pro resto da sessão. */
+function umEnvioPorVez(botao,acao){
+  if(!botao) return;
+  let ocupado=false;
+  botao.addEventListener('click',async ev=>{
+    if(ocupado) return;
+    ocupado=true;
+    try{ await acao(ev); }
+    finally{ ocupado=false; }
+  });
+}
+
 /* ── toast "Desfazer": a remoção só é persistida depois do prazo ── */
 let _undoTimer=null,_undoRestore=null;
 function showUndoToast(msg,restoreFn){

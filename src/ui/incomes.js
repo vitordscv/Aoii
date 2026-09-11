@@ -104,7 +104,7 @@ function setupRRSheet(){
       restaurarRendaRecorrente(removida.item,removida.indice);
     });
   });
-  submitBtn.addEventListener('click',async()=>{
+  umEnvioPorVez(submitBtn,async()=>{
     const valor=parseNum(document.getElementById('rr-valor').value);
     if(isNaN(valor)||valor<=0){ document.getElementById('rr-valor').focus(); return; }
     let dia=parseInt(document.getElementById('rr-dia').value,10);

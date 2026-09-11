@@ -133,7 +133,7 @@ function bindStatic(){
     customPanelHidden=false; applyTheme(data.tema);
   });
   bindCustomTheme();
-  document.getElementById('metas-add').addEventListener('click',async()=>{
+  umEnvioPorVez(document.getElementById('metas-add'),async()=>{
     const nEl=document.getElementById('metas-nome'), vEl=document.getElementById('metas-valor'), dEl=document.getElementById('metas-data'), aEl=document.getElementById('metas-aporte');
     const nome=nEl.value.trim(), valor=parseNum(vEl.value);
     const aporte=parseNum(aEl&&aEl.value);
@@ -361,7 +361,7 @@ function bindStatic(){
     const extraCartao=document.getElementById(prefix+'-cartao-extra');
     const mostrarExtra=()=>{ if(extraCartao) extraCartao.hidden=!(marcaCartao&&marcaCartao.checked); };
     if(marcaCartao&&extraCartao){ marcaCartao.addEventListener('change',mostrarExtra); mostrarExtra(); }
-    document.getElementById(prefix+'-add').addEventListener('click',async()=>{
+    umEnvioPorVez(document.getElementById(prefix+'-add'),async()=>{
       const nEl=document.getElementById(prefix+'-nome');
       const vEl=document.getElementById(prefix+'-valor');
       const dEl=document.getElementById(prefix+'-data');
@@ -382,7 +382,7 @@ function bindStatic(){
       await persist(); render();
     });
   }
-  document.getElementById('dividas-add').addEventListener('click',async()=>{
+  umEnvioPorVez(document.getElementById('dividas-add'),async()=>{
     const nEl=document.getElementById('dividas-nome');
     const cEl=document.getElementById('dividas-credor');
     const vEl=document.getElementById('dividas-valor');

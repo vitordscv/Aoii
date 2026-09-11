@@ -77,7 +77,7 @@ function setupGastoFixoSheet(){
     close();
   });
 
-  submitBtn.addEventListener('click',async()=>{
+  umEnvioPorVez(submitBtn,async()=>{
     const valor=parseNum(document.getElementById('gf-valor').value);
     if(isNaN(valor)||valor<=0){ document.getElementById('gf-valor').focus(); return; }
     const nome=document.getElementById('gf-nome').value.trim()||(categoriaAtual||'Outros');

@@ -213,7 +213,7 @@ function setupGastoSheet(){
   backdrop.addEventListener('click',close);
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sheet.style.display==='block') close(); });
 
-  submitBtn.addEventListener('click',async()=>{
+  umEnvioPorVez(submitBtn,async()=>{
     const valor=parseNum(document.getElementById('gasto-valor').value);
     if(isNaN(valor)||valor<=0){ document.getElementById('gasto-valor').focus(); return; }
     const categoria=categoriaAtual||'Outros';

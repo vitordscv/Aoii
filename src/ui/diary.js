@@ -1,7 +1,7 @@
   /* ── melhorias: busca do diário, CSV, undo e calculadora de investimentos ── */
   const buscaEl=document.getElementById('diario-busca');
   if(buscaEl) buscaEl.addEventListener('input',e=>{ diarioBusca=e.target.value; diarioVoltaAoTopo(); renderTransacoesList(); });
-  document.getElementById('repetir-gasto-btn')?.addEventListener('click',async()=>{
+  umEnvioPorVez(document.getElementById('repetir-gasto-btn'),async()=>{
     const t=repetirUltimoGasto();
     if(!t){ vibrate(15); return; }
     vibrate([10,30,10]);
