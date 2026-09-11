@@ -1224,12 +1224,14 @@
     </div>
 
     <label class="ob-label" for="ob-tipo-renda" data-i18n="ob.comoRecebe">Como você recebe?</label>
+    <!-- salário mensal primeiro: é o caso comum, e a primeira opção de um
+         select é a que a maioria aceita sem abrir -->
     <select id="ob-tipo-renda">
-      <option value="diaria" data-i18n="ob.porDia">Por dia trabalhado</option>
       <option value="mensal" data-i18n="ob.salarioMensal">Salário mensal fixo</option>
+      <option value="diaria" data-i18n="ob.porDia">Por dia trabalhado</option>
     </select>
 
-    <label class="ob-label" id="ob-renda-label" for="ob-renda-valor" data-i18n="ob.valorDiaria">Valor da diária</label>
+    <label class="ob-label" id="ob-renda-label" for="ob-renda-valor" data-i18n="ob.salarioMensal">Salário mensal fixo</label>
     <input type="text" inputmode="decimal" id="ob-renda-valor" placeholder="0,00">
 
     <label class="ob-label" for="ob-saldo" data-i18n="ob.saldoAtual">Saldo atual em conta</label>

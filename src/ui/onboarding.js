@@ -106,7 +106,17 @@ function setupOnboarding(){
   });
   const tipoEl=document.getElementById('ob-tipo-renda');
   const rendaLabel=document.getElementById('ob-renda-label');
-  tipoEl.addEventListener('change',()=>{ rendaLabel.textContent=L(tipoEl.value==='diaria'?'ob.valorDiaria':'ob.salarioMensal'); });
+  /* trocar o data-i18n, e não só o texto: applyIdioma() reescreve o
+     textContent de todo elemento que carrega o atributo, e o render() de
+     qualquer mudança feita com o diálogo aberto (trocar a moeda, por exemplo)
+     devolvia o rótulo pro tipo de renda que a pessoa acabou de sair */
+  function rotularRenda(){
+    const chave=tipoEl.value==='diaria'?'ob.valorDiaria':'ob.salarioMensal';
+    rendaLabel.setAttribute('data-i18n',chave);
+    rendaLabel.textContent=L(chave);
+  }
+  tipoEl.addEventListener('change',rotularRenda);
+  rotularRenda();
   /* Este diálogo é a primeira coisa que a pessoa vê no app. Ele chamava os dois
      comandos e ignorava o retorno: dia de fechamento "45" devolvia null, o
      cartão não era criado e o diálogo fechava assim mesmo — ela saía achando

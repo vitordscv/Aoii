@@ -10,7 +10,10 @@ function defaultData(){
     /* a mesma regra do resto do app: 31/12, mas nunca a menos de um
        trimestre de distância — ver defaultTargetValue() */
     dataAlvo:defaultTargetValue(),
-    tipoRenda:'diaria',
+    /* salário mensal é o caso comum; a diária era o padrão porque foi o
+       primeiro caso que o app atendeu. migrateData() segue devolvendo
+       'diaria' pra dado antigo sem o campo — lá era mesmo o que valia. */
+    tipoRenda:'mensal',
     rendaDiaria:0,
     diasTrabalho:[1,2,3,4,5],
     rendaMensal:{valor:0,diaDoMes:5},
@@ -32,7 +35,9 @@ function defaultData(){
     viagens:[],
     taxasManuais:{cdi:null,selic:null,atualizadoEm:null},
     fundoIlustrado:false,
-    gastoDiario:false,
+    /* "quanto posso gastar hoje" é o gancho diário do app e nascia
+       desligado; sem renda cadastrada o cartão já diz o que falta fazer */
+    gastoDiario:true,
     reservaGuardado:0,
     reservaMeses:3,
     reservaNaConta:true,
