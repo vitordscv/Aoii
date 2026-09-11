@@ -756,6 +756,12 @@
           <div id="ia-fields" style="display:none;">
             <input type="text" id="ia-chave-input" class="ia-chave-input" placeholder="Cole sua chave da API do Google Gemini" data-i18n-placeholder="ph.colaChaveGemini" data-i18n-aria-label="ph.colaChaveGemini">
             <div class="help-text"><span data-i18n="settings.iaHelp">Sua chave fica salva só neste aparelho (nunca sai daqui, exceto pra falar direto com o Google). Pegue a sua grátis em</span> <a class="help-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.</div>
+            <!-- a ajuda acima fala só da chave. Quem liga a IA precisa saber o
+                 que dos DADOS sai daqui — ver montarResumoFinanceiroParaIA() -->
+            <div class="ia-envio-aviso">
+              <div class="ia-envio-titulo" data-i18n="settings.iaEnvioTitulo">O que é enviado ao Google</div>
+              <div class="help-text" data-i18n="settings.iaEnvioHelp">A cada pergunta vão os seus números (saldo, gastos por categoria, faturas, metas) e os nomes que você deu às suas metas, viagens, contas fixas e compras. Não vão: o nome dos seus cartões, o de quem você deve, o nome livre das suas rendas, nem as notas dos lançamentos.</div>
+            </div>
           </div>
         </div>
 

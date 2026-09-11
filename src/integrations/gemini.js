@@ -1,13 +1,35 @@
 
+/* ─── o que sai daqui para o Google ───────────────────────────────────────
+   O resumo é montado no aparelho e mandado inteiro para o Gemini junto com a
+   pergunta. Vale a regra do guia: nome de pessoa, de banco e de empregador não
+   vão sem necessidade — e não há necessidade nenhuma, porque a IA responde
+   igualmente bem sobre "Cartão 1".
+
+   Fica de fora, de propósito:
+     · o credor de cada dívida — é o nome de OUTRA pessoa, que nem usa o app
+     · o nome do cartão, que na prática é o nome do banco
+     · o nome livre de cada renda, que costuma ser o empregador
+       ("Salário · TechBrasil" é o exemplo que o próprio campo sugere)
+     · as notas dos lançamentos, que nunca foram enviadas
+
+   Continua indo o que a própria pessoa nomeou sobre a vida dela — metas,
+   viagens, contas fixas, compras planejadas, ativos: sem isso ela não
+   consegue perguntar "como está a viagem a Portugal?", que é metade do valor
+   do recurso. Se um dia isso incomodar, o lugar de mexer é aqui. */
+function rotuloDoCartao(cartaoId){
+  const i=(data.cartoes||[]).findIndex(c=>c.id===cartaoId);
+  return i<0?L('ia.cartaoSemNome'):L('ia.cartaoNumero').replace('{n}',i+1);
+}
+
 function montarResumoFinanceiroParaIA(){
   const t=computeTotals();
   const cat=computeCategoryBreakdown();
   const w=computeWeekSummary();
   const saude=computeSaudeFinanceira();
-  const cartoes=(data.cartoes||[]).map(c=>{ const i=computeCartao(c.id); return `${c.nome}: ${i.pct.toFixed(0)}% do limite usado, disponível ${formatBRL(i.disponivel)}${i.faturaAberta>0?`, fatura em aberto ${formatBRL(i.faturaAberta)}`:''}`; }).join('; ')||'nenhum';
+  const cartoes=(data.cartoes||[]).map(c=>{ const i=computeCartao(c.id); return `${rotuloDoCartao(c.id)}: ${i.pct.toFixed(0)}% do limite usado, disponível ${formatBRL(i.disponivel)}${i.faturaAberta>0?`, fatura em aberto ${formatBRL(i.faturaAberta)}`:''}`; }).join('; ')||'nenhum';
   const metas=(data.metas||[]).map(m=>`${m.nome}: ${formatBRL(m.valorGuardado||0)} de ${formatBRL(m.valorAlvo||0)}${m.aporteMensal>0?` (aporte automático ${formatBRL(m.aporteMensal)}/mês)`:''}`).join('; ')||'nenhuma';
   const fixos=(data.gastosMensais||[]).filter(g=>gastoFixoAtivoEm(g,today().getFullYear(),today().getMonth()+1)).map(g=>`${g.nome} ${formatBRL(g.valor)} (dia ${g.diaDoMes})`).join('; ')||'nenhum';
-  const faturasPendentes=(data.faturas||[]).filter(f=>!f.pago).map(f=>`${MONTH_NAMES[f.mes-1]}/${f.ano}${nomeCartao(f.cartaoId)?` (${nomeCartao(f.cartaoId)})`:''}: ${formatBRL(f.valor+(f.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0))}`).join('; ')||'nenhuma';
+  const faturasPendentes=(data.faturas||[]).filter(f=>!f.pago).map(f=>`${MONTH_NAMES[f.mes-1]}/${f.ano}${f.cartaoId?` (${rotuloDoCartao(f.cartaoId)})`:''}: ${formatBRL(f.valor+(f.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0))}`).join('; ')||'nenhuma';
   const viagens=(data.viagens||[]).map(v=>{ const g=gastoDaViagem(v.id); return `${v.nome}: ${formatBRL(g)}${v.orcamento>0?` de ${formatBRL(v.orcamento)}`:''}`; }).join('; ')||'nenhuma';
   const orcamentos=Object.entries(data.orcamentos||{}).filter(([,v])=>v>0).map(([c,v])=>`${categoriaLabel(c)} teto ${formatBRL(v)} (gasto atual ${formatBRL(cat.entries.find(([cc])=>cc===c)?.[1]||0)})`).join('; ')||'sem tetos definidos';
   const custoEss=custoMensalEssencial();
@@ -15,9 +37,11 @@ function montarResumoFinanceiroParaIA(){
   const reservaTxt=custoEss>0
     ? `${formatBRL(data.reservaGuardado||0)} guardados de um alvo de ${formatBRL(reservaAlvo)} (${data.reservaMeses||3} meses do custo essencial de ${formatBRL(custoEss)}/mês) — cobre ${(custoEss>0?(data.reservaGuardado||0)/custoEss:0).toFixed(1)} mês(es)`
     : 'sem gastos fixos cadastrados para calcular';
-  const rendas=rendasRecorrentesAtivas().map(r=>`${r.nome||tipoRenda(r.tipo).label} ${formatBRL(r.valor)} (dia ${r.diaDoMes})`).join('; ')||'nenhuma';
+  /* o tipo da renda, não o nome livre: o nome costuma ser o empregador */
+  const rendas=rendasRecorrentesAtivas().map(r=>`${tipoRenda(r.tipo).label} ${formatBRL(r.valor)} (dia ${r.diaDoMes})`).join('; ')||'nenhuma';
   const aReceber=(data.entradasExtras||[]).filter(e=>!e.feito).map(e=>`${e.nome} ${formatBRL(e.valor)}`).join('; ')||'nenhuma';
-  const deve=(data.dividas||[]).filter(d=>!d.quitado).map(d=>`${d.nome}${d.credor?' (para '+d.credor+')':''}: falta ${formatBRL(restanteDivida(d))} de ${formatBRL(d.valor)}`).join('; ')||'nenhuma';
+  /* sem o credor: é o nome de outra pessoa, que nem usa o app */
+  const deve=(data.dividas||[]).filter(d=>!d.quitado).map(d=>`${d.nome}: falta ${formatBRL(restanteDivida(d))} de ${formatBRL(d.valor)}`).join('; ')||'nenhuma';
   const planejadas=(data.comprasPlanejadas||[]).filter(c=>!c.feito).map(c=>`${c.nome} ${formatBRL(c.valor)}${c.cartao?' (no cartão)':''}`).join('; ')||'nenhuma';
   const investimentos=(data.investimentos||[]).map(i=>`${i.nome} ${formatBRL(i.valorInvestido||0)}${i.tipo?` (${tipoInvest(i.tipo).label})`:''}`).join('; ')||'nenhum';
   const anoA=today().getFullYear(), mesA=today().getMonth()+1;

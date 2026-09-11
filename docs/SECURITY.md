@@ -20,7 +20,7 @@ rotina e a situação de alguém.
 | quem pega o aparelho desbloqueado | ler tudo em `localStorage` | sem proteção — é o mesmo risco de qualquer app local |
 | quem descobre um código de sincronização | atacar a cópia na nuvem | branch cifra e exige token via RPC; acesso REST de produção ainda aberto até a parte 2 |
 | quem manda um backup/código adulterado | tentar injetar HTML e propriedades no objeto | branch valida as entradas e verifica escapes por lint |
-| o Google (Gemini) | ler o resumo financeiro enviado | recebe nomes de pessoas, cartões e contas |
+| o Google (Gemini) | ler o resumo financeiro enviado | só com a IA ligada; sem nome de pessoa, banco ou empregador — cartões vão numerados |
 | a Vercel | pageviews | script de analytics padrão |
 | a BrasilAPI | saber que alguém consultou CDI/Selic | consulta sem dado pessoal |
 
@@ -54,9 +54,19 @@ migração; não foram alterados aqui.
 
 **Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
-saúde financeira, **nomes dos cartões**, **nomes das metas**, **nomes dos gastos
-fixos**, faturas pendentes, reserva, investimentos, **nomes de quem deve
-dinheiro**, compras planejadas e viagens.
+saúde financeira, faturas pendentes, reserva, investimentos, compras planejadas
+e os **nomes que a própria pessoa deu** às metas, viagens e gastos fixos.
+
+**Não é enviado**, desde 11/09/2026: o nome dos cartões (na prática, o nome do
+banco), o **credor de cada dívida** (nome de outra pessoa, que nem usa o app), o
+nome livre de cada renda recorrente (na prática, o empregador — o placeholder do
+campo sugere "Salário · TechBrasil") e as notas dos lançamentos, que nunca foram.
+Os cartões vão como "Cartão 1", "Cartão 2": a IA não precisa do banco para
+responder. A tela de Configurações diz isso antes de alguém ligar a IA.
+
+A linha que separa o que vai do que não vai: nome de **pessoa ou instituição**
+não sai; rótulo que a pessoa escreveu sobre a própria vida sai, porque sem ele
+não dá para perguntar "como está a viagem a Portugal?".
 
 **Enviado à Vercel:** pageviews (`/_vercel/insights/script.js`).
 
@@ -150,10 +160,18 @@ Fica em `localStorage` sob `financas-ia-chave`, e o campo do formulário não é
 Falta: campo de senha com mostrar/ocultar, não guardar por padrão, explicar o
 risco quando a pessoa escolher guardar, e oferecer apagar ao desligar a IA.
 
-### 6. Consentimento sobre o que vai para a IA
+### ~~6. Consentimento sobre o que vai para a IA~~ — fechada em 11/09/2026
 
-Não há tela que mostre o que será enviado antes do primeiro envio, nem opção de
-resumo reduzido sem nomes próprios. (A resposta da IA já é renderizada com
+Nome de pessoa e de instituição deixou de ser enviado: credor, nome do cartão e
+nome livre da renda saíram do resumo, e os cartões vão numerados. O painel da IA
+nas Configurações lista o que sai e o que não sai, ao lado do interruptor que
+liga o recurso — antes do primeiro envio, porque é essa a informação que decide
+se alguém quer ligar isso.
+
+Continua indo o rótulo que a própria pessoa escreveu para metas, viagens, contas
+fixas e compras: é o que permite perguntar sobre uma delas pelo nome. Quem quiser
+um resumo sem nome nenhum mexe em `montarResumoFinanceiroParaIA()`, que é o
+único lugar que monta o texto. (A resposta da IA já é renderizada com
 `textContent` — isso está certo.)
 
 ### 7. Conflito entre aparelhos — implementado e ensaiado no branch

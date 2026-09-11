@@ -977,6 +977,11 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
    (cor e fonte, sem borda) e ficava com a cara nua do navegador ao lado de
    campos com borda por toda a casa. */
 .ia-chave-input{display:block;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:'Nunito Sans',sans-serif;font-size:13px;margin-top:10px;}
+/* o que dos dados sai do aparelho quando a IA está ligada: destacado do resto
+   da ajuda porque é a informação que decide se alguém quer ligar isso */
+.ia-envio-aviso{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--cream);}
+.ia-envio-titulo{font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;margin-bottom:5px;color:var(--ink-navy);}
+.ia-envio-aviso .help-text{margin-top:0;}
 .field-group select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
 .weekday-group{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
 /* o dia da semana: a etiqueta inteira é o botão */
