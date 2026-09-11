@@ -126,10 +126,7 @@ function renderTransacoesList(){
     <div class="diario-history-title">${L('empty.historicoDebito')}</div>
     ${visiveis.map(t=>`
     <div class="swipe-item" data-id="${t.id}">
-      <div class="swipe-actions">
-        <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',t.nome))}">✏️</button>
-        <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',t.nome))}">🗑</button>
-      </div>
+      ${t._readonly?'':acoesDeSwipeHtml()}
       <div class="swipe-content">
         <div class="item-row">
           <div class="item-texts">

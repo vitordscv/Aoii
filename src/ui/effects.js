@@ -117,6 +117,24 @@ function bindUndoToast(){
 }
 
 /* ── swipe pra revelar editar/excluir, com retorno elástico ── */
+
+/* Os dois botões que o arrastar revela. Ficam num painel absoluto, coberto
+   pelo conteúdo da linha: com o dedo só aparecem depois do arrasto, mas para
+   o teclado estavam sempre lá, duas paradas de tabulação por item, antes do
+   texto da linha e repetindo ações que já têm botão visível (✎/✕ no Diário)
+   ou caminho próprio (abrir a linha e usar "Excluir", nos fixos).
+
+   tabindex -1 e aria-hidden tiram os dois da navegação sem tirar o gesto:
+   attachSwipe() liga os cliques do mesmo jeito. Onde nem gesto existe — as
+   compras no crédito, que só se editam dentro da fatura — quem chama não
+   desenha o painel, em vez de deixar dois botões ligados a nada. */
+function acoesDeSwipeHtml(){
+  return `<div class="swipe-actions" aria-hidden="true">`+
+    `<button type="button" class="swipe-act-edit" tabindex="-1" title="${esc(L('btn.editar'))}">✏️</button>`+
+    `<button type="button" class="swipe-act-del" tabindex="-1" title="${esc(L('btn.excluir'))}">🗑</button>`+
+  `</div>`;
+}
+
 function attachSwipe(item,handlers){
   const content=item.querySelector('.swipe-content'); if(!content) return;
   const MAX=(handlers.onEdit?64:0)+(handlers.onDelete?64:0);

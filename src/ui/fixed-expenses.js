@@ -73,10 +73,7 @@ function renderGastosFixosTab(){
       else if(futuro) subTxt+=` · ${L('gf.apartirDe')} ${MONTH_NAMES[g.inicioMes-1]}/${g.inicioAno}`;
       return `
         <div class="swipe-item" data-id="${g.id}">
-          <div class="swipe-actions">
-            <button type="button" class="swipe-act-edit" title="${esc(L('btn.editar'))}" aria-label="${esc(L('a11y.editItem').replace('{name}',g.nome))}">✏️</button>
-            <button type="button" class="swipe-act-del" title="${esc(L('btn.excluir'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',g.nome))}">🗑</button>
-          </div>
+          ${acoesDeSwipeHtml()}
           <div class="swipe-content">
             <div class="gf-item-row${ativo?'':' paused'}${pagoEsteMes?' gf-pago':''}" data-action="edit-gasto-fixo" data-id="${g.id}">
               ${(ativo&&!g.cartao)?`<label class="gf-pago-check${soVenceu?' gf-pago-passado':''}" title="${esc(L(soVenceu?'gf.jaVenceuTip':'gf.marcarPago'))}">
