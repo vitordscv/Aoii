@@ -80,7 +80,7 @@ const FUNCOES=[
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','camposFatura','salvarFatura','atualizarValorFatura',
   'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','restanteDivida','fatiasAosPoucos',
   'transacoesGasto','buildTimeline','_buildTimeline','saldoPrevistoEm',
-  'computeTotals','computeCartao','camposCartao','criarCartao','atualizarCartao','removerCartao','nextMonth','ensureFatura','lancarParcelamento',
+  'computeTotals','computeCartao','camposCartao','criarCartao','atualizarCartao','removerCartao','nextMonth','ensureFatura','lancarParcelamento','gastoDaViagem',
   'dataPlanejadaValida','camposPlanejados','criarPlanejado','atualizarPlanejado','removerPlanejado','restaurarPlanejado','registrarRecebimentoEntrada','registrarPagamentoDivida','definirPlanejadoFeito',
   'aplicarEfeitoTransacao','registrarMovimento','registrarTransacao','registrarReceita','repetirUltimoGasto',
   'dataAlvoMetaValida','moverSaldoParaMeta','criarMeta','atualizarMeta','removerMeta','restaurarMeta',

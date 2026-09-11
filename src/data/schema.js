@@ -67,6 +67,13 @@ const ITEM_GASTO_FATURA = {
   categoria: { tipo: 'texto', max: LIMITES.categoria, padrao: 'Outros' },
   parcelamentoId: { tipo: 'ref', de: 'parcelamento', nulo: true },
   dataCompra: { tipo: 'dia', nulo: true },
+  /* Os mesmos três da transação avulsa. A folha "Novo gasto" sempre mostrou
+     Viagem, Tags e Nota junto com o crédito, mas o parcelamento os descartava
+     no caminho — e aí gasto de viagem no cartão não contava no orçamento da
+     viagem, que é justamente como quase todo mundo paga em viagem. */
+  viagemId: { tipo: 'ref', de: 'viagens', nulo: true },
+  tags: { tipo: 'listaTexto', max: LIMITES.tag },
+  nota: { tipo: 'texto', max: LIMITES.nota, nulo: true },
 };
 
 const ITEM_FATURA = {

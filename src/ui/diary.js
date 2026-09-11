@@ -83,7 +83,8 @@ function renderTransacoesList(){
   (data.faturas||[]).forEach(f=>{
     (f.gastos||[]).forEach(g=>{
       const dt=g.dataCompra||`${f.ano}-${String(f.mes).padStart(2,'0')}-01`;
-      creditoItems.push({id:'fat-'+g.id,nome:g.nome,valor:g.valor,categoria:g.categoria,metodo:'credito',data:dt,_cartaoId:f.cartaoId,_readonly:true});
+      creditoItems.push({id:'fat-'+g.id,nome:g.nome,valor:g.valor,categoria:g.categoria,metodo:'credito',data:dt,
+        viagemId:g.viagemId||null,tags:g.tags||null,nota:g.nota||null,_cartaoId:f.cartaoId,_readonly:true});
     });
   });
   const all=(data.transacoes||[]).concat(creditoItems).sort((a,b)=>(b.data||'').localeCompare(a.data||''));

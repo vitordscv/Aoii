@@ -340,6 +340,35 @@ module.exports=function(t){
   ctxListas.removerViagem('v');
   t.igual(dadosListas.transacoes[0].viagemId,null,'remover viagem preserva a transação sem referência quebrada');
 
+  /* ── viagem paga no cartão ──
+     A folha "Novo gasto" sempre perguntou Viagem, Tags e Nota, inclusive com
+     "Crédito" selecionado, mas lancarParcelamento não tinha onde guardar:
+     os três sumiam. Resultado: gasto de viagem no cartão — que é como quase
+     todo mundo paga em viagem — não contava no orçamento da viagem. */
+  console.log('\n\x1b[1mCompra no cartão carrega viagem, tags e nota\x1b[0m');
+  const dadosViagem=base();
+  dadosViagem.viagens=[{id:'v1',nome:'Portugal',orcamento:3000}];
+  dadosViagem.transacoes=[{id:'t1',nome:'Café',valor:40,categoria:'Outros',metodo:'pix',data:HOJE,viagemId:'v1'}];
+  const ctxViagem=criarAmbiente(dadosViagem,HOJE);
+  ctxViagem.lancarParcelamento('Hotel',900,3,2026,9,'Outros','a','2026-09-05',
+    {viagemId:'v1',tags:['reembolsável','trabalho'],nota:'três diárias'});
+  const parcelas=dadosViagem.faturas.flatMap(f=>f.gastos).filter(g=>g.nome.startsWith('Hotel'));
+  t.igual(parcelas.length,3,'a compra vira três parcelas');
+  t.verdadeiro(parcelas.every(g=>g.viagemId==='v1'),'toda parcela aponta pra viagem, não só a primeira',
+    JSON.stringify(parcelas.map(g=>g.viagemId)));
+  t.verdadeiro(parcelas.every(g=>(g.tags||[]).join(',')==='reembolsável,trabalho'),'toda parcela carrega as tags');
+  t.igual(parcelas[0].nota,'três diárias','a nota é guardada');
+  t.valor(ctxViagem.gastoDaViagem('v1'),940,'o gasto da viagem soma o Diário (40) e as três parcelas (900)');
+  t.valor(ctxViagem.gastoDaViagem('inexistente'),0,'viagem sem lançamento soma zero');
+  /* parcela sem extras continua exatamente como era */
+  ctxViagem.lancarParcelamento('Pão',10,1,2026,9,'Mercado','a','2026-09-05');
+  const avulsa=dadosViagem.faturas.flatMap(f=>f.gastos).find(g=>g.nome==='Pão');
+  t.igual(avulsa.viagemId,undefined,'compra sem viagem não ganha campo à toa');
+  t.valor(ctxViagem.gastoDaViagem('v1'),940,'compra fora da viagem não entra no total dela');
+  ctxViagem.removerViagem('v1');
+  t.verdadeiro(dadosViagem.faturas.flatMap(f=>f.gastos).every(g=>!g.viagemId),
+    'remover a viagem limpa também a referência dentro da fatura');
+
   t.igual(ctxListas.definirOrcamento('Ausente',100),null,'orçamento de categoria inexistente é recusado');
   t.igual(ctxListas.definirOrcamento('Outros',-1),null,'orçamento negativo é recusado');
   ctxListas.definirOrcamento('Outros',250);

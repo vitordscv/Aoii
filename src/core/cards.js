@@ -99,21 +99,45 @@ function ensureFatura(ano,mes,cartaoId){
   return f;
 }
 
-function lancarParcelamento(nome,valorTotal,parcelas,anoIni,mesIni,categoria,cartaoId,dataCompra){
+/* `extras` leva viagem, tags e nota — o que a folha "Novo gasto" pergunta e o
+   parcelamento descartava. Vão em TODA parcela, e não só na primeira, porque
+   o filtro de viagem e a busca por tag olham item a item: numa compra em 3x,
+   só a primeira apareceria. Somar as três parcelas devolve o valor da compra,
+   então o total gasto na viagem continua batendo. */
+function lancarParcelamento(nome,valorTotal,parcelas,anoIni,mesIni,categoria,cartaoId,dataCompra,extras){
   parcelas=Math.max(1,parseInt(parcelas,10)||1);
+  extras=extras||{};
   /* divide em centavos e joga o resto nas primeiras parcelas, senão a soma
      das parcelas não fecha com o valor da compra (100 em 3x = 99,99) */
   const centavos=Math.round((Number(valorTotal)||0)*100);
   const base=Math.trunc(centavos/parcelas);
   const resto=centavos-base*parcelas;
   const groupId=uid();
+  const tags=Array.isArray(extras.tags)&&extras.tags.length?extras.tags.slice():null;
   let ano=anoIni, mes=mesIni;
   for(let i=0;i<parcelas;i++){
     const f=ensureFatura(ano,mes,cartaoId);
     const label=parcelas>1?`${nome} (${i+1}/${parcelas})`:nome;
     const parcelaValor=(base+(i<resto?1:0))/100;
-    f.gastos.push({id:uid(),nome:label,valor:parcelaValor,pago:false,categoria:categoria||'Outros',parcelamentoId:groupId,dataCompra:i===0?dataCompra:undefined});
+    const gasto={id:uid(),nome:label,valor:parcelaValor,pago:false,categoria:categoria||'Outros',parcelamentoId:groupId,dataCompra:i===0?dataCompra:undefined};
+    if(extras.viagemId) gasto.viagemId=extras.viagemId;
+    if(tags) gasto.tags=tags.slice();
+    if(extras.nota) gasto.nota=String(extras.nota);
+    f.gastos.push(gasto);
     const nx=nextMonth(ano,mes); ano=nx.ano; mes=nx.mes;
   }
   return groupId;
+}
+
+/* Total gasto numa viagem: lançamentos do Diário MAIS as parcelas no cartão.
+   Existe como função única porque três telas perguntam a mesma coisa — o
+   conselho, o resumo mandado pra IA e a lista de viagens nas configurações —
+   e antes cada uma somava só as transações avulsas, deixando o cartão de fora. */
+function gastoDaViagem(viagemId){
+  if(!viagemId) return 0;
+  let total=transacoesGasto().filter(t=>t.viagemId===viagemId).reduce((s,t)=>s+t.valor,0);
+  (data.faturas||[]).forEach(f=>{
+    (f.gastos||[]).forEach(g=>{ if(g.viagemId===viagemId) total+=g.valor; });
+  });
+  return total;
 }

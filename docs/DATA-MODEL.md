@@ -114,12 +114,22 @@ vive dentro da fatura, senão conta duas vezes.
 
 ```js
 { id, ano, mes, valor, pago, cartaoId, gastos: [{id, nome, valor, pago, categoria,
-                                                 parcelamentoId?, dataCompra?}] }
+                                                 parcelamentoId?, dataCompra?,
+                                                 viagemId?, tags?, nota?}] }
 ```
 
 Com dois cartões existem **duas faturas no mesmo mês**. Renda e gastos fixos são
 do mês, não da fatura: agrupe com `faturasPorMes()` antes de somar qualquer
 coisa, ou a renda é contada uma vez por cartão.
+
+`viagemId`, `tags` e `nota` são os mesmos três campos da transação avulsa, e
+vão em **todas** as parcelas de um parcelamento, não só na primeira: o filtro
+de viagem e a busca por tag olham item a item. Como a soma das parcelas é o
+valor da compra, `gastoDaViagem()` continua fechando com o total gasto.
+
+**Gasto de viagem no cartão conta na viagem.** Use `gastoDaViagem(id)`, que
+soma o Diário e as faturas. Filtrar só `data.transacoes` deixa de fora
+justamente a forma de pagamento mais usada em viagem.
 
 ### `gastosMensais` — contas fixas
 

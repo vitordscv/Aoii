@@ -34,5 +34,9 @@ function removerViagem(id){
   if(indice<0) return null;
   const item=data.viagens.splice(indice,1)[0];
   (data.transacoes||[]).forEach(t=>{ if(t.viagemId===id) t.viagemId=null; });
+  /* as parcelas no cartão também apontam pra viagem desde que lancarParcelamento
+     passou a carregar os extras — sem isto sobraria referência pra viagem que
+     não existe mais, e a validação de entrada derrubaria o dado */
+  (data.faturas||[]).forEach(f=>{ (f.gastos||[]).forEach(g=>{ if(g.viagemId===id) g.viagemId=null; }); });
   return {item,indice};
 }

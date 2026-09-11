@@ -58,7 +58,7 @@ function computeConselhos(){
   // 5) viagem estourando orçamento
   (data.viagens||[]).forEach(v=>{
     if(!(v.orcamento>0)) return;
-    const gasto=transacoesGasto().filter(t=>t.viagemId===v.id).reduce((s,t)=>s+t.valor,0);
+    const gasto=gastoDaViagem(v.id);
     if(gasto>v.orcamento){
       dicas.push({icon:'✈️',texto:L('cons.viagemEstourada').replace('{nome}',v.nome).replace('{gasto}',formatBRL(gasto)).replace('{orcamento}',formatBRL(v.orcamento)),prioridade:2});
     }

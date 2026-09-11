@@ -8,7 +8,7 @@ function montarResumoFinanceiroParaIA(){
   const metas=(data.metas||[]).map(m=>`${m.nome}: ${formatBRL(m.valorGuardado||0)} de ${formatBRL(m.valorAlvo||0)}${m.aporteMensal>0?` (aporte automático ${formatBRL(m.aporteMensal)}/mês)`:''}`).join('; ')||'nenhuma';
   const fixos=(data.gastosMensais||[]).filter(g=>gastoFixoAtivoEm(g,today().getFullYear(),today().getMonth()+1)).map(g=>`${g.nome} ${formatBRL(g.valor)} (dia ${g.diaDoMes})`).join('; ')||'nenhum';
   const faturasPendentes=(data.faturas||[]).filter(f=>!f.pago).map(f=>`${MONTH_NAMES[f.mes-1]}/${f.ano}${nomeCartao(f.cartaoId)?` (${nomeCartao(f.cartaoId)})`:''}: ${formatBRL(f.valor+(f.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0))}`).join('; ')||'nenhuma';
-  const viagens=(data.viagens||[]).map(v=>{ const g=transacoesGasto().filter(t=>t.viagemId===v.id).reduce((s,t)=>s+t.valor,0); return `${v.nome}: ${formatBRL(g)}${v.orcamento>0?` de ${formatBRL(v.orcamento)}`:''}`; }).join('; ')||'nenhuma';
+  const viagens=(data.viagens||[]).map(v=>{ const g=gastoDaViagem(v.id); return `${v.nome}: ${formatBRL(g)}${v.orcamento>0?` de ${formatBRL(v.orcamento)}`:''}`; }).join('; ')||'nenhuma';
   const orcamentos=Object.entries(data.orcamentos||{}).filter(([,v])=>v>0).map(([c,v])=>`${categoriaLabel(c)} teto ${formatBRL(v)} (gasto atual ${formatBRL(cat.entries.find(([cc])=>cc===c)?.[1]||0)})`).join('; ')||'sem tetos definidos';
   const custoEss=custoMensalEssencial();
   const reservaAlvo=custoEss*(data.reservaMeses||3);

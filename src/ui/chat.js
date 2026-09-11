@@ -235,7 +235,7 @@ function setupGastoSheet(){
       if(cartaoObj&&cartaoObj.diaFechamento&&d.getDate()>cartaoObj.diaFechamento){
         const nx=nextMonth(anoCompra,mesCompra); anoCompra=nx.ano; mesCompra=nx.mes;
       }
-      lancarParcelamento(nome,valor,parcelas,anoCompra,mesCompra,categoria,cid,dataISO);
+      lancarParcelamento(nome,valor,parcelas,anoCompra,mesCompra,categoria,cid,dataISO,{viagemId,tags,nota});
     }else{
       // dinheiro, débito e pix passam pelo mesmo comando que atualiza o saldo
       registrarMovimento({

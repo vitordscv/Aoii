@@ -4,7 +4,7 @@ function renderViagensList(){
   const viagens=data.viagens||[];
   if(!viagens.length){ el.innerHTML=`<div class="cat-empty">${L('empty.nenhumaViagem')}</div>`; return; }
   el.innerHTML=viagens.map(v=>{
-    const gasto=transacoesGasto().filter(t=>t.viagemId===v.id).reduce((s,t)=>s+t.valor,0);
+    const gasto=gastoDaViagem(v.id);
     return `
     <div class="cat-manage-row">
       <span>✈️ ${esc(v.nome)} — ${formatBRL(gasto)}${v.orcamento>0?` / ${formatBRL(v.orcamento)}`:''}</span>
