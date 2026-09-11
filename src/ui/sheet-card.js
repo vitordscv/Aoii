@@ -40,7 +40,10 @@ function setupCartaoSheet(){
     const inp=document.getElementById('categoria-nova-nome');
     const nome=inp.value.trim();
     if(!nome) return;
-    if(!adicionarCategoria(nome)){ inp.value=''; return; }
+    /* limpar o campo e não fazer nada era o pior desfecho: parecia que tinha
+       dado certo. O único motivo de recusa que a pessoa pode corrigir é o
+       nome repetido — os outros (vazio, longo demais) ela vê no campo. */
+    if(!adicionarCategoria(nome)){ await alertDialog(L('erro.categoriaRepetida')); inp.select(); return; }
     inp.value='';
     await persist(); render();
   });
@@ -48,7 +51,7 @@ function setupCartaoSheet(){
     const nInp=document.getElementById('viagem-nova-nome'), oInp=document.getElementById('viagem-novo-orcamento');
     const nome=nInp.value.trim();
     if(!nome) return;
-    if(!criarViagem({nome,orcamento:parseNum(oInp.value)||0})) return;
+    if(!criarViagem({nome,orcamento:parseNumOpcional(oInp.value)})){ await alertDialog(L('erro.viagemInvalida')); return; }
     nInp.value=''; oInp.value='';
     await persist(); render();
   });

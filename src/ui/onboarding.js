@@ -127,25 +127,32 @@ function setupOnboarding(){
   const tipoEl=document.getElementById('ob-tipo-renda');
   const rendaLabel=document.getElementById('ob-renda-label');
   tipoEl.addEventListener('change',()=>{ rendaLabel.textContent=L(tipoEl.value==='diaria'?'ob.valorDiaria':'ob.salarioMensal'); });
+  /* Este diálogo é a primeira coisa que a pessoa vê no app. Ele chamava os dois
+     comandos e ignorava o retorno: dia de fechamento "45" devolvia null, o
+     cartão não era criado e o diálogo fechava assim mesmo — ela saía achando
+     que tinha cadastrado. Agora a recusa é dita, e só o cartão é perdido:
+     obrigar a corrigir logo na abertura seria pior do que deixar pra depois. */
   async function finalizar(aplicar){
+    const avisos=[];
     if(aplicar){
       const rendaLida=parseNum(document.getElementById('ob-renda-valor').value);
       const saldoLido=parseNum(document.getElementById('ob-saldo').value);
       const rendaValor=Number.isFinite(rendaLida)&&rendaLida>=0?rendaLida:0;
       const saldoValor=Number.isFinite(saldoLido)?saldoLido:0;
-      configurarPerfilFinanceiro({tipoRenda:tipoEl.value,renda:rendaValor,saldoAtual:saldoValor});
+      if(!configurarPerfilFinanceiro({tipoRenda:tipoEl.value,renda:rendaValor,saldoAtual:saldoValor})) avisos.push(L('erro.obPerfil'));
       const cNome=(document.getElementById('ob-cartao-nome').value||'').trim();
       if(cNome){
-        const cLimite=parseNum(document.getElementById('ob-cartao-limite').value)||0;
+        const cLimite=parseNumOpcional(document.getElementById('ob-cartao-limite').value);
         const cFechamento=parseInt(document.getElementById('ob-cartao-fechamento').value,10)||null;
         const cVencimento=parseInt(document.getElementById('ob-cartao-vencimento').value,10)||null;
-        criarCartao({nome:cNome,limite:cLimite,diaFechamento:cFechamento,diaVencimento:cVencimento});
+        if(!criarCartao({nome:cNome,limite:cLimite,diaFechamento:cFechamento,diaVencimento:cVencimento})) avisos.push(L('erro.obCartao'));
       }
     }
     data.onboardingCompleto=true;
     backdrop.style.display='none'; dialog.style.display='none';
     if(restaurar){ restaurar(); restaurar=null; }
     await persist(); render();
+    for(const aviso of avisos) await alertDialog(aviso);
     if(!data.tourCompleto) setTimeout(startTour,350);
   }
   document.getElementById('ob-confirm-btn').addEventListener('click',()=>finalizar(true));
