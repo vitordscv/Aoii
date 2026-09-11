@@ -710,3 +710,37 @@ desfazer). O backup vai e volta sem perder nada — 24 lançamentos, tags,
 notas, parcelas de fatura, credor e dividendos. Offline o app abre do cache,
 anota gasto, e as ferramentas que dependem de rede avisam em vez de quebrar.
 Nenhum campo abaixo de 16 px, que é o que faz o iOS dar zoom sozinho.
+
+## Retomada em 11/09/2026 — as duas pendências do Supabase
+
+As duas que mexiam em dado de verdade foram fechadas. Ficam registradas aqui
+porque a ordem importa e a segunda não tem desfazer.
+
+**A gêmea de homologação saiu da produção** (`0008`). `financas_homolog` tinha
+quatro políticas abertas para `public` — `SELECT`, `INSERT`, `UPDATE`,
+`DELETE` — sem token, sem revisão e sem o teto de 5 MB por linha que a
+`financas` herdou da parte 1. Qualquer um com a chave `anon`, que está no HTML
+publicado porque tem que estar, inseria o que quisesse até estourar a cota.
+Tinha zero linhas: a perda era a porta, não o conteúdo. Conferido depois:
+tabela, as duas funções `aoii_*_homolog` e as quatro políticas não existem
+mais. Rollback é reaplicar `0003` e `0005`, ambos idempotentes.
+
+**Não há mais texto puro na nuvem** (`0007`). Eram 18 linhas, 5 cifradas e 13
+em texto puro. Três das 13 eram snapshots mensais do código **ativo**, com o
+id derivado do próprio código: quem soubesse o código montava
+`CODIGO-snap-2026-9` e lia o mês inteiro pela `aoii_get`, sem senha nenhuma. A
+criptografia da linha ativa estava sendo contornada pela porta ao lado.
+
+A ordem foi a que o próprio repositório prescreve, e não dá pra inverter:
+exportar com `scripts/exportar-legado.js`, **conferir os arquivos** (13/13
+legíveis, com saldo e listas), e só então apagar. O apagamento foi por lista
+de ids explícita, não por predicado — conferido antes que os 13 alvos eram
+exatamente o conjunto em texto puro e que nenhum deles estava cifrado. Estado
+depois: 5 linhas, 5 cifradas, 0 em texto puro. A cópia local ficou em
+`aoii-legado-2026-09-11/`, fora do repositório.
+
+**O que sobrou aberto:** a pendência 5 (chave do Gemini em texto puro no
+`localStorage`) e a 9 (`aoii_put` cria linha sem exigir token, e não pode ser
+diferente — se exigisse, ninguém ligaria a sincronização a primeira vez). As
+duas estão descritas em [SECURITY.md](SECURITY.md) e nenhuma expõe dado que já
+esteja lá.

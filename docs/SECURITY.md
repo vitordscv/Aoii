@@ -18,7 +18,7 @@ rotina e a situação de alguém.
 | quem | pode | hoje |
 |---|---|---|
 | quem pega o aparelho desbloqueado | ler tudo em `localStorage` | sem proteção — é o mesmo risco de qualquer app local |
-| quem descobre um código de sincronização | atacar a cópia na nuvem | branch cifra e exige token via RPC; acesso REST de produção ainda aberto até a parte 2 |
+| quem descobre um código de sincronização | atacar a cópia na nuvem | tabela fora do REST, escrita só por RPC com token, e todas as linhas cifradas desde 11/09/2026 — sem a senha, o código sozinho é endereço, não chave |
 | quem manda um backup/código adulterado | tentar injetar HTML e propriedades no objeto | branch valida as entradas e verifica escapes por lint |
 | o Google (Gemini) | ler o resumo financeiro enviado | só com a IA ligada; sem nome de pessoa, banco ou empregador — cartões vão numerados |
 | a Vercel | pageviews | script de analytics padrão |
@@ -38,19 +38,20 @@ rotina e a situação de alguém.
 **Enviado ao Supabase pelo branch**: envelope AES-GCM, inclusive nos snapshots
 novos. A senha não sai do aparelho; o token derivado é enviado à RPC. Depois da
 entrada, a string da senha é descartada e a sessão conserva uma `CryptoKey`
-não exportável. Registros antigos em produção continuam em texto puro até a
-migração; não foram alterados aqui.
+não exportável. Os registros antigos que ainda estavam em texto puro foram
+exportados e apagados em 11/09/2026 — hoje não há nenhum.
 
-> **Aberto — snapshots antigos anulam a criptografia da linha ativa.**
-> Conferido no banco em 10/09/2026: 14 linhas, **1 cifrada e 13 em texto puro**.
-> Três delas são snapshots mensais do código ativo, e o id de cada um é
-> **derivado do código de sincronização** (`AAAA1111-snap-2026-9`). Como
-> `aoii_get` aceita qualquer id e é acessível pela chave `anon`, quem descobrir
-> o código não abre a linha ativa — mas lê o mês inteiro no snapshot. O
-> atacante que a criptografia deveria deter tem outra porta, ao lado, aberta.
-> Saída: `scripts/exportar-legado.js` e depois
-> [`0007_apaga_legado.sql`](../supabase/migrations/0007_apaga_legado.sql).
-> Snapshots novos já nascem cifrados; isto é faxina do passado.
+> **Fechado em 11/09/2026 — não há mais texto puro na nuvem.**
+> Era assim: 18 linhas, 5 cifradas e **13 em texto puro**, três delas
+> snapshots mensais do código ativo, com o id **derivado do código de
+> sincronização** (`AAAA1111-snap-2026-9`). Como `aoii_get` aceita qualquer id
+> e responde à chave `anon`, quem descobrisse o código não abria a linha ativa
+> — mas lia o mês inteiro no snapshot ao lado.
+>
+> As 13 foram exportadas com `scripts/exportar-legado.js`, conferidas uma a
+> uma (13/13 legíveis e com conteúdo financeiro), e então apagadas. Estado
+> depois: **5 linhas, 5 cifradas, 0 em texto puro**. Snapshots novos já nascem
+> cifrados, então isto era faxina do passado, não remendo permanente.
 
 **Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
@@ -96,8 +97,9 @@ código e IV de 12 bytes novos a cada gravação), metadados amarrados como dado
 autenticados, e 31 testes contra a Web Crypto de verdade — inclusive adulteração
 de um byte, do IV, da revisão e do `device_id`.
 
-**A criptografia da linha ativa protege menos do que parece enquanto a
-pendência 10 estiver aberta.** Ver abaixo.
+A criptografia da linha ativa protegia menos do que parecia enquanto os
+snapshots em texto puro existiam ao lado dela. Deixaram de existir em
+11/09/2026 — ver a pendência 10.
 
 ### ~~2. Importação sem validação~~ — resolvido
 
@@ -284,9 +286,16 @@ paciente, dentro do teto por hora, ainda enche a tabela devagar. O Supabase
 oferece limitação de taxa no plano pago; enquanto não houver, os tetos são o que
 existe, e a view de crescimento é como se percebe.
 
-### 10. Snapshots antigos em texto puro, com id derivado do código — **aberta**
+### ~~10. Snapshots antigos em texto puro, com id derivado do código~~ — fechada em 11/09/2026
 
-A pior das que restam, porque anula em parte a pendência 1.
+Era a pior das que restavam, porque anulava em parte a pendencia 1.
+
+**Resolvida.** As 13 linhas em texto puro foram exportadas, conferidas e
+apagadas. Conferido no banco depois: `5 linhas, 5 cifradas, 0 em texto puro,
+0 snapshots expostos`. A copia local ficou em `aoii-legado-2026-09-11/`,
+fora do repositorio.
+
+O diagnostico original, para quem precisar do contexto:
 
 Conferido em 10/09/2026: das 14 linhas da `financas`, **1 está cifrada** (a
 ativa) e **13 estão em texto puro**. Três delas têm o id derivado do código de
@@ -320,7 +329,15 @@ Caminho, na ordem, e nenhum passo pula o anterior:
 
 **O passo 3 é irreversível.** Sem o passo 1 feito e conferido, não se faz.
 
-### 11. Gêmea de homologação aberta dentro da produção — **aberta**
+### ~~11. Gêmea de homologação aberta dentro da produção~~ — fechada em 11/09/2026
+
+**Resolvida** aplicando [`0008_remove_homologacao.sql`](../supabase/migrations/0008_remove_homologacao.sql). Conferido depois:
+tabela, as duas funcoes `aoii_*_homolog` e as quatro politicas abertas nao
+existem mais; sobraram `financas` e `aoii_limites`. A tabela tinha zero
+linhas, entao nao houve dado perdido. Rollback: reaplicar `0003` e `0005`.
+
+O diagnostico original:
+
 
 O `0003` criou `financas_homolog` para o ensaio, com as políticas abertas de
 propósito. O ensaio acabou; a tabela ficou. Conferido em 10/09/2026:
