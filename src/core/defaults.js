@@ -36,10 +36,13 @@ function defaultData(){
     reservaMeses:3,
     reservaNaConta:true,
     tema:'onda',
-    moeda:'BRL',
+    /* palpite do navegador, não português-e-real fixos: ver
+       idiomaDoNavegador(). Vale só pra quem começa agora — migrateData()
+       nunca mexe no que já está salvo. */
+    moeda:moedaDoNavegador(etiquetasDoNavegador()),
     onboardingCompleto:false,
     tourCompleto:false,
-    idioma:'pt',
+    idioma:idiomaDoNavegador(etiquetasDoNavegador()),
   };
 }
 

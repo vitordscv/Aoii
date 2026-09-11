@@ -1,6 +1,51 @@
+/* ── o palpite de quem está abrindo o app pela primeira vez ──────────────
+   O idioma e a moeda nasciam fixos em português e real. Um italiano abria o
+   app em português e só descobria a troca se lesse até o fim do primeiro
+   diálogo — num idioma que ele não fala. Vale para quem começa hoje: ambos
+   continuam no assistente de primeiro uso e nas Configurações, e o palpite
+   nunca sobrepõe uma escolha já feita.
+
+   As duas funções recebem a lista de idiomas em vez de ler o navigator, pra
+   serem testáveis e pra não haver navigator nenhum do lado do teste. */
+const IDIOMAS_SUPORTADOS=['pt','en','es','fr','it'];
+/* a moeda sai da REGIÃO quando ela vem na etiqueta: pt-PT é euro, pt-BR é
+   real, e adivinhar pelo idioma erraria um dos dois */
+const MOEDA_POR_REGIAO={BR:'BRL',US:'USD',GB:'GBP',
+  AT:'EUR',BE:'EUR',CY:'EUR',DE:'EUR',EE:'EUR',ES:'EUR',FI:'EUR',FR:'EUR',GR:'EUR',HR:'EUR',
+  IE:'EUR',IT:'EUR',LT:'EUR',LU:'EUR',LV:'EUR',MT:'EUR',NL:'EUR',PT:'EUR',SI:'EUR',SK:'EUR'};
+/* sem região utilizável, o idioma é o que sobra */
+const MOEDA_POR_IDIOMA={pt:'BRL',en:'USD',es:'EUR',fr:'EUR',it:'EUR'};
+
+function etiquetasDeIdioma(lista){
+  return (Array.isArray(lista)?lista:[lista]).filter(x=>typeof x==='string'&&x);
+}
+function idiomaDoNavegador(lista){
+  for(const etiqueta of etiquetasDeIdioma(lista)){
+    const base=etiqueta.toLowerCase().split('-')[0];
+    if(IDIOMAS_SUPORTADOS.includes(base)) return base;
+  }
+  return 'pt';
+}
+function moedaDoNavegador(lista){
+  const etiquetas=etiquetasDeIdioma(lista);
+  /* a primeira etiqueta com região conhecida ganha, mesmo que o idioma dela
+     não seja um dos cinco: quem lê o app em inglês na Alemanha gasta euro */
+  for(const etiqueta of etiquetas){
+    const partes=etiqueta.split('-');
+    const regiao=partes.length>1?partes[partes.length-1].toUpperCase():null;
+    if(regiao&&MOEDA_POR_REGIAO[regiao]) return MOEDA_POR_REGIAO[regiao];
+  }
+  return MOEDA_POR_IDIOMA[idiomaDoNavegador(etiquetas)]||'BRL';
+}
+/* o que o navegador oferece, na ordem de preferência de quem configurou */
+function etiquetasDoNavegador(){
+  if(typeof navigator==='undefined') return [];
+  return (navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language]).filter(Boolean);
+}
+
 /* ── preferências financeiras que afetam cálculos ── */
 function definirIdioma(idioma){
-  if(!['pt','en','es','fr','it'].includes(idioma)) return null;
+  if(!IDIOMAS_SUPORTADOS.includes(idioma)) return null;
   data.idioma=idioma;
   return idioma;
 }

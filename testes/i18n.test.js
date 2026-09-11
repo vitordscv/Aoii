@@ -106,4 +106,36 @@ module.exports=function(t){
   t.igual(ctxCat.C('Saúde'),'Saúde','categoria padrão mantém o rótulo em português');
   ctxCat.data.idioma='fr';
   t.igual(ctxCat.C('Pets'),'Pets','categoria criada pela pessoa nunca é renomeada');
+
+  /* ── palpite de idioma e moeda de quem abre o app pela primeira vez ──
+     Nasciam fixos em português e real: um italiano abria o app em português e
+     só descobria a troca lendo até o fim do primeiro diálogo, num idioma que
+     ele não fala. Vale só pra quem começa agora — quem já tem dados salvos
+     passa por migrateData(), que não encosta nesses dois campos. */
+  console.log('\n\x1b[1mIdioma e moeda do navegador\x1b[0m');
+  const {criarAmbiente}=require('./ambiente');
+  const cenario={saldoAtual:0,dinheiroVivo:0,tipoRenda:'mensal',rendaMensal:{valor:0,diaDoMes:5},
+    rendaDiaria:0,diasTrabalho:[1,2,3,4,5],idioma:'pt',dataAlvo:'2026-12-31',
+    gastosMensais:[],cartoes:[],faturas:[],transacoes:[],entradasExtras:[],comprasPlanejadas:[],
+    metas:[],rendasRecorrentes:[],investimentos:[],viagens:[],orcamentos:{},diasNaoTrabalhados:[]};
+  const ctxNav=criarAmbiente(cenario,'2026-09-05');
+
+  [[['it-IT'],'it','EUR','Itália'],
+   [['en-US','es'],'en','USD','Estados Unidos'],
+   [['pt-BR'],'pt','BRL','Brasil'],
+   [['pt-PT'],'pt','EUR','Portugal — mesma língua, outra moeda'],
+   [['en-GB'],'en','GBP','Reino Unido'],
+   [['en-DE'],'en','EUR','inglês na Alemanha: a região manda'],
+   [['de-DE','fr-FR'],'fr','EUR','idioma não suportado cede pro próximo'],
+   [['ja-JP'],'pt','BRL','nada reconhecido cai no padrão de casa'],
+   [[],'pt','BRL','navegador sem idioma nenhum'],
+   [['pt'],'pt','BRL','etiqueta sem região usa o idioma']].forEach(([lista,idioma,moeda,apelido])=>{
+    t.igual(ctxNav.idiomaDoNavegador(lista),idioma,`idioma em ${apelido}`);
+    t.igual(ctxNav.moedaDoNavegador(lista),moeda,`moeda em ${apelido}`);
+  });
+  /* o palpite precisa ser um valor que os comandos aceitem, senão entra torto */
+  t.verdadeiro(['pt','en','es','fr','it'].every(i=>ctxNav.definirIdioma(ctxNav.idiomaDoNavegador([i+'-XX']))!==null),
+    'todo idioma palpitado é aceito por definirIdioma()');
+  t.verdadeiro(['BR','US','GB','DE'].every(r=>ctxNav.definirMoeda(ctxNav.moedaDoNavegador(['xx-'+r]))!==null),
+    'toda moeda palpitada é aceita por definirMoeda()');
 };

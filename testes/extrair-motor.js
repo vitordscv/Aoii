@@ -62,6 +62,7 @@ function recortarBloco(src,marcaInicio,ateFimDe){
 /* blocos inteiros: [marca de início, função que fecha o bloco] */
 const BLOCOS=[
   ['const SCHEMA_VERSAO','validateAndNormalizeData'], // data/schema.js + data/validation.js
+  ['const IDIOMAS_SUPORTADOS','etiquetasDoNavegador'], // core/preferences.js: as tabelas de idioma/moeda e quem lê
   ['const LISTAS_PLANEJADAS','listaPlanejada'], // core/planned.js: o const e a busca
   ['const CRIPTO_FORMATO','decifrarDaNuvem'],     // storage/encryption.js
   ['const sync = {','migrarParaCifrado'],         // storage/sync-ciclo.js
