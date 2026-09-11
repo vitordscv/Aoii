@@ -28,11 +28,23 @@ function startTour(){
   callout.innerHTML=`<div class="tour-callout-title" id="tour-callout-title"></div><div class="tour-callout-text" id="tour-callout-text"></div><div class="tour-callout-foot"><span class="tour-callout-progress"></span><div class="tour-callout-actions"><button type="button" class="tour-skip">${L('tour.skip')}</button><button type="button" class="tour-next">${L('tour.next')}</button></div></div>`;
   document.body.append(blocker,spot,callout);
   let restaurar=null;
-  async function finish(){
+  /* O último passo aponta a engrenagem e diz "é o primeiro lugar para ir
+     agora" — e o tour só fechava, deixando a pessoa na mesma tela, com a
+     instrução na memória e nada feito. Quem chega ao fim é levado lá, na aba
+     da renda, que é o que o passo pede. Quem pula não: pular é dizer que não
+     quer ser conduzido, e abrir um painel por cima seria o oposto disso. */
+  async function finish(concluiu){
     data.tourCompleto=true; await persist();
     if(restaurar){ restaurar(); restaurar=null; }
     blocker.remove(); spot.remove(); callout.remove();
     window.removeEventListener('resize',position);
+    if(!concluiu) return;
+    /* depois de devolver o foco e soltar o inert do diálogo do tour, senão o
+       painel nasce dentro de uma árvore ainda inerte */
+    setTimeout(()=>{
+      document.getElementById('topbar-settings-btn')?.click();
+      document.getElementById('settings-tab-renda')?.click();
+    },60);
   }
   function position(){
     const step=steps[i]; if(!step) return;
@@ -70,15 +82,16 @@ function startTour(){
     }
   }
   function step_next(){
-    if(i>=steps.length){ finish(); return; }
+    if(i>=steps.length){ finish(true); return; }
     const step=steps[i];
     if(step.tab){ const tabBtn=document.querySelector(`.bn-item[data-target="${step.tab}"]`); if(tabBtn) tabBtn.click(); }
     setTimeout(position,step.tab?260:0);
   }
-  callout.querySelector('.tour-next').addEventListener('click',()=>{ i++; if(i>=steps.length) finish(); else step_next(); });
-  callout.querySelector('.tour-skip').addEventListener('click',finish);
+  callout.querySelector('.tour-next').addEventListener('click',()=>{ i++; if(i>=steps.length) finish(true); else step_next(); });
+  callout.querySelector('.tour-skip').addEventListener('click',()=>finish(false));
   window.addEventListener('resize',position);
-  restaurar=ativarDialogo(callout,blocker,callout.querySelector('.tour-next'),finish);
+  /* Esc é desistir, igual ao "pular" */
+  restaurar=ativarDialogo(callout,blocker,callout.querySelector('.tour-next'),()=>finish(false));
   step_next();
 }
 
