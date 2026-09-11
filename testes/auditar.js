@@ -253,6 +253,28 @@ titulo('CSS e marcação');
   const fantasmas=buscados.filter(i=>!new Set(ids).has(i)&&!criadosEmJs.has(i)&&!geradosPrefixo.some(p=>p&&i.startsWith(p)));
   fantasmas.length ? ruim('getElementById aponta pra id que não existe',fantasmas.join(', '))
                    : ok(buscados.length+' referências getElementById, todas resolvem');
+
+  /* ── nada que muda sozinho pode deslocar um botão ──
+     A barra do hero é ancorada pela direita. O #save-status vive ali dentro e
+     troca de texto sozinho a cada gravação: vazio, "salvando…", "salvo neste
+     aparelho ✓", o pendente, "em dia". Enquanto ele era o último filho, cada
+     uma dessas trocas empurrava o 🎨 uns 200 px pra esquerda e de volta —
+     trocar de tema duas vezes seguidas virava perseguir o botão pela tela.
+
+     A correção é de CSS (order:-1), então é o CSS que precisa ser guardado:
+     nada aqui reprova se alguém tirar a linha um dia. */
+  const barra=/\.hero-toolbar\s+\.save-status\s*\{([^}]*)\}/.exec(css);
+  if(!barra) ruim('não achei a regra de .hero-toolbar .save-status');
+  else{
+    const faltando=[
+      ['order:-1','sai da frente dos botões'],
+      ['text-overflow:ellipsis','encolhe em vez de empurrar'],
+    ].filter(([p])=>!barra[1].replace(/\s/g,'').includes(p));
+    faltando.length
+      ? ruim('o status do hero voltaria a deslocar o botão de tema',
+             faltando.map(([p,porque])=>p+' ('+porque+')').join('; '))
+      : ok('status do hero não desloca os botões de tema');
+  }
 }
 
 console.log('\n'+'─'.repeat(58));

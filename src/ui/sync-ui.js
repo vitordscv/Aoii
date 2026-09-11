@@ -57,7 +57,12 @@ function renderStatusSync(){
   el.textContent=L('sync.ativa').replace('{codigo}',codigo)+' · '+textoDoStatusSync()+
     (pendente?' · '+L('sync.pendente'):'')+
     (emHomologacao()?'  ⚠️ HOMOLOGAÇÃO':'');
-  if(pendente) setSaveStatus(L('sync.pendente'));
+  /* A barra do hero recebe a versão curta. A longa — "Salvo neste aparelho ·
+     envio pendente" — repete o que o persist() acabou de escrever ali mesmo,
+     duas atualizações antes, e é o que fazia o texto passar dos 200 px. Ela
+     continua inteira acima, em #sync-status-text, dentro das Configurações,
+     onde há espaço e onde ela explica alguma coisa. */
+  if(pendente) setSaveStatus(L('sync.pendenteCurto'));
   else if(sync.status==='sincronizada') setSaveStatus(L('sync.emDia'));
   renderSenhaLembrada();
 }

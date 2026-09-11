@@ -59,7 +59,29 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
 
 /* ── controles de tema/status dentro do hero ── */
 .hero-toolbar{position:absolute;top:16px;right:18px;z-index:2;display:flex;align-items:center;gap:10px;}
-.hero-toolbar .save-status{color:rgba(255,255,255,.72);}
+/* O status vem ANTES dos botões, mesmo estando depois na marcação.
+
+   A barra é ancorada pela direita, e o status era o último filho — então ele
+   ficava à direita do 🎨 e, crescendo, empurrava o botão pra esquerda. Trocar
+   o tema faz o texto passar por cinco tamanhos em menos de um segundo (vazio,
+   "salvando…", "salvo neste aparelho ✓", o pendente, "em dia"), e o botão
+   andava uns 200 px e voltava. Quem quisesse trocar de novo tinha que esperar
+   ele parar — e o menu de temas, ancorado no botão, viajava junto.
+
+   Com order:-1 quem fica colado na borda direita são os botões. O texto cresce
+   pra esquerda, e encolhe com reticências antes de empurrar qualquer coisa:
+   nenhuma tradução, por mais longa, move o alvo do dedo. */
+.hero-toolbar .save-status{
+  color:rgba(255,255,255,.72);
+  order:-1;
+  flex:0 1 auto;min-width:0;max-width:40vw;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* "Editar cores" também vem antes: ele aparece no instante em que se escolhe
+   o tema personalizado, e sem isto empurraria o 🎨 bem quando a pessoa ainda
+   pode querer tocá-lo de novo. O 🎨 é o único que fica na borda, sempre. */
+.hero-toolbar .ct-reopen-btn{order:-1;}
+.hero-toolbar .theme-menu-wrap,.hero-toolbar .ct-reopen-btn{flex:none;}
 
 .theme-menu-wrap{position:relative;}
 .theme-menu-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.3);color:var(--hero-text);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;}
@@ -76,7 +98,7 @@ html[data-theme="grafite"] .brand-mark-img{filter:grayscale(1);}
   .theme-menu-btn{width:30px;height:30px;font-size:13.5px;}
   .theme-menu{min-width:150px;}
   .theme-menu-item{font-size:12.5px;padding:7px 9px;}
-  .hero-toolbar .save-status{font-size:11px;}
+  .hero-toolbar .save-status{font-size:11px;max-width:52vw;}
 }
 
 /* ── HERO ── */
