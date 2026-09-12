@@ -45,8 +45,16 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
     }
   }
   function foco(e){ if(noTopo()&&!dg.contains(e.target)) focar(); }
+  /* A roda do mouse nao passa por `touch-action`, que so governa gesto de
+     dedo. Com a folha aberta, rolar o trackpad sobre o pano de fundo levava a
+     pagina de tras junto — 1112px de deslocamento medidos, e ao fechar a folha
+     a pessoa estava em outro lugar da tela. Fora do dialogo que esta no topo,
+     rolagem nao vale. Dentro dele, `overscroll-behavior:contain` ja impede o
+     encadeamento ao chegar no fim. */
+  function roda(e){ if(noTopo()&&!dg.contains(e.target)) e.preventDefault(); }
   document.addEventListener('keydown',teclado,true);
   document.addEventListener('focusin',foco,true);
+  document.addEventListener('wheel',roda,{passive:false,capture:true});
   focar();
   let fechado=false;
   return ()=>{
@@ -54,6 +62,7 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
     fechado=true;
     document.removeEventListener('keydown',teclado,true);
     document.removeEventListener('focusin',foco,true);
+    document.removeEventListener('wheel',roda,{capture:true});
     dialogosAtivos.splice(dialogosAtivos.indexOf(registro),1);
     alterados.reverse().forEach(([el,inert])=>{ el.inert=inert; });
     if(anterior&&anterior.isConnected&&!anterior.closest('[inert]')) anterior.focus();

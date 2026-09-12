@@ -891,3 +891,21 @@ da lista, onde tinha o tamanho de um mês e parecia um.
 Medido no navegador: nada vaza da faixa, nenhum alvo de toque abaixo de 32 px
 (a convenção do resto do app), todo campo de dinheiro formatado, e editar
 dentro de um mês aberto não o fecha.
+
+**A roda do mouse não passa por `touch-action`.** O conserto anterior do
+encadeamento de rolagem pôs `touch-action:pinch-zoom` nos panos de fundo, e isso
+resolve o dedo — mas `touch-action` só governa gesto de toque. No computador,
+rolar o trackpad sobre o pano de fundo com uma folha aberta continuava levando a
+página de trás junto: 1.112 px medidos, e ao fechar a folha a pessoa estava em
+outro lugar da tela.
+
+O cancelamento agora mora em `ativarDialogo()`, por onde toda folha e todo modal
+passam: enquanto o diálogo está no topo da pilha, um `wheel` cujo alvo está fora
+dele é cancelado. Dentro, nada muda — `overscroll-behavior:contain` já segura o
+encadeamento ao chegar no fim. Conferido nos três lugares roláveis (folha de
+gasto, Configurações e painel da IA): todos rolam por dentro, nenhum arrasta a
+página.
+
+Mesma lição de sempre, de outro ângulo: quando o conserto é medido num caminho
+só, o sintoma sobrevive no outro. `touch-action` foi medido com toque; a roda,
+não.
