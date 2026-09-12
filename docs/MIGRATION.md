@@ -953,3 +953,34 @@ cache virou a fonte.
 
 Lição: trocar a ordem entre cache e rede não é ajuste de desempenho. É mudar
 quem responde — e revela todo cache que estava errado sem ninguém perceber.
+
+### 12/09 — 172 KB de fonte na frente da primeira pintura
+
+As nove fontes moravam em base64 dentro de `styles/fonts.css`. O `<style>` vive
+dentro do HTML, e o navegador não pinta nada antes de o HTML chegar inteiro —
+então cada uma delas estava na frente da primeira imagem da tela, para todo
+mundo. O `font-display: swap` que já estava lá não tinha o que trocar: a fonte
+só existia depois de tudo já ter chegado.
+
+Medido antes: **526 KB precisavam chegar antes da primeira pintura**, de 1.252 KB
+no total. 172 KB eram fonte.
+
+Agora elas são arquivos em `public/assets/fonts/`. O texto aparece na hora com a
+fonte do sistema e troca quando a de verdade chega.
+
+| primeira visita | antes | depois |
+|---|---|---|
+| HTML | 1.282 KB | **1.107 KB** |
+| primeira pintura, 3G ruim | 9.484 ms | **5.872 ms** |
+| primeira pintura, 4G | 1.160 ms | **824 ms** |
+
+Um ganho que não estava no plano: o navegador só baixa a fonte que a tela usa.
+São **5 das 9** na abertura (72 KB) em vez das nove sempre. As quatro do IBM Plex
+Mono chegam quando alguma tela as pede.
+
+O service worker guarda `/assets/` com cache-primeiro, então a partir da segunda
+visita nenhuma volta à rede — conferido.
+
+`npm run audit` passou a reprovar fonte embutida no HTML. Reembutir uma é fácil
+de fazer sem perceber: o arquivo continua parecendo certo, e o custo aparece
+longe dali, na primeira visita de outra pessoa.

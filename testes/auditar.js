@@ -163,6 +163,16 @@ titulo('PWA e funcionamento offline');
 {
   if (/href="data:(?:image|application\/manifest)/.test(src)) ruim('ícone ou manifesto ainda está embutido no HTML');
   else ok('ícones e manifesto saem do HTML e podem ser cacheados separadamente');
+  /* As fontes já moraram dentro do <style>, e com elas 172 KB tinham que chegar
+     antes de a tela pintar pela primeira vez. Voltar a embutir uma é fácil de
+     fazer sem perceber — o arquivo continua parecendo certo. */
+  const fontesEmbutidas = (src.match(/data:font\/woff2?;base64/g) || []).length;
+  if (fontesEmbutidas) ruim(fontesEmbutidas + ' fonte(s) embutida(s) no HTML',
+    'elas atrasam a primeira pintura para todo mundo; use /assets/fonts/');
+  else {
+    const ligadas = (src.match(/url\("\/assets\/fonts\/[^"]+\.woff2"\)/g) || []).length;
+    ok(ligadas + ' fontes vêm de arquivo, fora do caminho da primeira pintura');
+  }
 
   const dir=path.dirname(ARQUIVO);
   const manifestPath=path.join(dir,'manifest.webmanifest');
