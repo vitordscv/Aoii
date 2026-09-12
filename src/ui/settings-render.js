@@ -40,6 +40,10 @@ function renderSettings(){
   if(pierreChave&&document.activeElement!==pierreChave) pierreChave.value=getPierreChave();
   if(pierreLembrar) pierreLembrar.checked=lembrarPierreChave();
   if(pierreAviso) pierreAviso.hidden=!lembrarPierreChave();
+  const pierreSaldo=document.getElementById('pierre-saldo-check');
+  const pierreLanc=document.getElementById('pierre-lanc-check');
+  if(pierreSaldo) pierreSaldo.checked=data.pierreTrazerSaldo!==false;
+  if(pierreLanc) pierreLanc.checked=data.pierreTrazerLancamentos!==false;
 
   const iaLembrar=document.getElementById('ia-lembrar-check');
   const iaLembrarAviso=document.getElementById('ia-lembrar-aviso');

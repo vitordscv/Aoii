@@ -171,6 +171,63 @@ const abrirPainel = cdp => avaliar(cdp, `
   conferir(segunda.quantas === 3, `continua com três (${segunda.quantas})`,
     'sem o id externo, cada sincronização dobraria o extrato');
 
+  titulo('escolher o que sincroniza');
+  {
+    /* as contas aparecem depois de verificar a chave, uma caixa cada */
+    const contas = await avaliar(cdp, `
+      const linhas=[...document.querySelectorAll('.pierre-conta')];
+      return {quantas:linhas.length,
+        todasMarcadas:linhas.every(l=>l.querySelector('input').checked),
+        bloco:document.getElementById('pierre-escolhas').style.display!=='none',
+        nomes:linhas.map(l=>l.querySelector('.pierre-conta-nome').textContent)};`);
+    conferir(contas.quantas === 3, `as três contas aparecem para escolher (${contas.quantas})`);
+    conferir(contas.todasMarcadas, 'e todas vêm marcadas: nada escolhido quer dizer tudo');
+    conferir(contas.nomes.some(n => /NUBANK/.test(n)) && contas.nomes.some(n => /INTER/.test(n)),
+      'com o banco no rótulo, pra dar pra distinguir');
+
+    /* desmarca a conta do Inter: os lançamentos dela e o saldo dela saem */
+    const escolhido = await avaliar(cdp, `
+      const linhas=[...document.querySelectorAll('.pierre-conta')];
+      const inter=linhas.find(l=>/INTER/.test(l.querySelector('.pierre-conta-nome').textContent));
+      const marca=inter.querySelector('input');
+      marca.checked=false; marca.dispatchEvent(new Event('change',{bubbles:true}));
+      await new Promise(r=>setTimeout(r,500));
+      return (JSON.parse(localStorage.getItem('financas-data')).pierreContas||[]);`);
+    conferir(escolhido.length === 2, `a escolha fica guardada (${escolhido.length} contas)`);
+
+    /* desliga o saldo e sincroniza: o plano tem que dizer isso */
+    const plano = await avaliar(cdp, `
+      const s=document.getElementById('pierre-saldo-check');
+      s.checked=false; s.dispatchEvent(new Event('change',{bubbles:true}));
+      await new Promise(r=>setTimeout(r,500));
+      const saldoAntes=JSON.parse(localStorage.getItem('financas-data')).saldoAtual;
+      document.getElementById('pierre-sync-btn').click();
+      await new Promise(r=>setTimeout(r,1400));
+      const p=document.getElementById('pierre-plano');
+      return {texto:p.textContent, saldoAntes,
+        guardado:JSON.parse(localStorage.getItem('financas-data')).pierreTrazerSaldo};`);
+    conferir(plano.guardado === false, 'desligar o saldo fica guardado');
+    conferir(/[Ss]aldo est/.test(plano.texto),
+      'e o plano avisa que o saldo não vem',
+      'mudar a escolha sem dizer o efeito deixa a pessoa no escuro');
+
+    /* confirma e confere que o saldo NAO mudou */
+    const depoisDoPlano = await avaliar(cdp, `
+      const b=[...document.querySelectorAll('#pierre-plano button')];
+      if(!b[0].disabled) b[0].click();
+      await new Promise(r=>setTimeout(r,1000));
+      return JSON.parse(localStorage.getItem('financas-data')).saldoAtual;`);
+    conferir(depoisDoPlano === plano.saldoAntes,
+      `o saldo ficou como estava (${depoisDoPlano})`,
+      'desligar o saldo e ele mudar assim mesmo é pior que não ter a opção');
+
+    /* volta o saldo pra não atrapalhar o resto do teste */
+    await avaliar(cdp, `
+      const s=document.getElementById('pierre-saldo-check');
+      s.checked=true; s.dispatchEvent(new Event('change',{bubbles:true}));
+      await new Promise(r=>setTimeout(r,400)); return 1;`);
+  }
+
   titulo('desligar a integração apaga a chave');
   await avaliar(cdp, `
     const c=document.getElementById('pierre-ativo-check');

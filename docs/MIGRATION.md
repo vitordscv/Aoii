@@ -1303,3 +1303,23 @@ a chave — justamente a parte que mais importa.
 documentação e não há tabela de planos nem limites; só que a API exige
 assinatura ativa, o que o proxy traduz em `sem-assinatura`. Preferi não
 inventar um aviso a respeito.
+
+**Escolher o que a sincronização traz.** Ela trazia tudo e decidia sozinha.
+Quem tem uma conta de uso e outra de reserva não quer as duas no mesmo saldo, e
+quem já lança à mão não quer o extrato inteiro por cima.
+
+Agora são três escolhas, guardadas: trazer o saldo, trazer os lançamentos, e de
+quais contas. **Lista de contas vazia quer dizer todas** — é como a integração
+se comporta antes de alguém escolher, e é o que mantém quem já usava sem
+surpresa. Marcar todas volta a gravar vazio, de propósito: assim uma conta nova
+que apareça depois no Pierre entra sozinha, em vez de ficar de fora calada.
+
+O filtro por conta liga pelo **nome**. A API devolve `accountId` em
+`get-accounts`, mas as transações só trazem `account_name` — não há id do outro
+lado para casar. Duas contas de mesmo nome andam juntas, e não há o que fazer
+quanto a isso daqui. Está escrito no código.
+
+O plano passou a dizer o que ficou de fora **por escolha**, e não só o que ficou
+de fora por regra: quantas vieram de contas dispensadas, e se saldo ou
+lançamentos estão desligados. Mudar a escolha sem mostrar o efeito deixaria a
+pessoa no escuro.

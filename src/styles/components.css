@@ -1256,3 +1256,9 @@ body{padding-bottom:78px;}
 .pierre-plano-acoes button{flex:1;min-width:130px;min-height:40px;}
 #pierre-verificar-btn{width:100%;margin-top:10px;}
 #pierre-sync-btn{margin-top:10px;}
+.pierre-contas{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
+.pierre-conta{display:flex;align-items:center;gap:10px;padding:9px 2px;min-height:44px;border-bottom:1px solid var(--line);cursor:pointer;}
+.pierre-conta:last-child{border-bottom:none;}
+.pierre-conta input{width:18px;height:18px;flex:none;accent-color:var(--disney-blue-deep);}
+.pierre-conta-nome{flex:1;min-width:0;font-size:12.5px;color:var(--ink-navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pierre-conta-tipo{font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted2);white-space:nowrap;}

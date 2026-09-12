@@ -60,7 +60,7 @@ function definirTema(tema){
   return tema;
 }
 function definirPreferenciaBooleana(chave,valor){
-  if(!['fundoIlustrado','temaAutoNoite','gastoDiario','iaAtiva','pierreAtivo'].includes(chave)||typeof valor!=='boolean') return null;
+  if(!['fundoIlustrado','temaAutoNoite','gastoDiario','iaAtiva','pierreAtivo','pierreTrazerSaldo','pierreTrazerLancamentos'].includes(chave)||typeof valor!=='boolean') return null;
   data[chave]=valor;
   return valor;
 }

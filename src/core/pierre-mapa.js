@@ -103,28 +103,51 @@ function saldoDoPierre(contas){
 /* O que uma sincronização traria, sem ainda mexer em nada. Devolver o plano
    antes de aplicá-lo é o que permite mostrar à pessoa o que vai acontecer —
    e o que permite testar a conta sem gravar nada. */
-function planoDeSincronizacaoPierre(contas,transacoes){
+function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
+  const {
+    contas:escolhidas=null,        /* null ou vazio = todas */
+    trazerLancamentos=true,
+    trazerSaldo=true,
+  }=escolhas||{};
+
+  const todas=contas||[];
+  const querTodas=!escolhidas||!escolhidas.length;
+  const aceitas=querTodas?todas:todas.filter(c=>escolhidas.includes(c.accountId));
+
+  /* O vinculo entre conta escolhida e transacao e o NOME: a transacao nao traz
+     o id da conta, so `account_name`. Duas contas com o mesmo nome andam
+     juntas — e a API nao da como separar. */
+  const nomesAceitos=new Set(aceitas.map(c=>semAcento(c.accountName)).filter(Boolean));
+
   const jaTem=new Set((data.transacoes||[]).map(t=>t.idExterno).filter(Boolean));
-  const novas=[], repetidas=[], doCartao=[], recusadas=[];
+  const novas=[], repetidas=[], doCartao=[], recusadas=[], deOutrasContas=[];
 
   (transacoes||[]).forEach(bruta=>{
     if(ehDeCartao(bruta)){ doCartao.push(bruta); return; }
+    if(!trazerLancamentos) return;
+    if(!querTodas){
+      const nome=semAcento(bruta.account_name||bruta.accountName);
+      /* transacao sem nome de conta nao da pra atribuir: fica de fora quando
+         ha escolha, porque adivinhar de qual conta ela e seria pior */
+      if(!nome||!nomesAceitos.has(nome)){ deOutrasContas.push(bruta); return; }
+    }
     const pronta=transacaoDoPierre(bruta);
     if(!pronta){ recusadas.push(bruta); return; }
     if(pronta.idExterno&&jaTem.has(pronta.idExterno)){ repetidas.push(pronta); return; }
-    /* duas iguais dentro da mesma leva também contam como repetida */
     if(pronta.idExterno) jaTem.add(pronta.idExterno);
     novas.push(pronta);
   });
 
-  const saldo=saldoDoPierre(contas);
+  const deBanco=aceitas.filter(c=>String(c&&c.accountType||'').toUpperCase()==='BANK');
+  const saldo=saldoDoPierre(aceitas);
   return {
-    novas, repetidas, doCartao, recusadas,
-    contasDeBanco:(contas||[]).filter(c=>String(c&&c.accountType||'').toUpperCase()==='BANK').length,
-    instituicoes:[...new Set((contas||[]).map(c=>c.providerCode).filter(Boolean))],
+    novas, repetidas, doCartao, recusadas, deOutrasContas,
+    trazerSaldo, trazerLancamentos,
+    contasDeBanco:deBanco.length,
+    instituicoes:[...new Set(aceitas.map(c=>c.providerCode).filter(Boolean))],
     saldo,
     saldoAtual:data.saldoAtual||0,
-    diferencaDeSaldo:saldo-(data.saldoAtual||0),
+    diferencaDeSaldo:trazerSaldo?saldo-(data.saldoAtual||0):0,
   };
 }
 
@@ -132,7 +155,9 @@ function planoDeSincronizacaoPierre(contas,transacoes){
    o plano primeiro e só chama isto depois de a pessoa confirmar. */
 function aplicarSincronizacaoPierre(plano,opcoes){
   if(!plano) return null;
-  const {trazerSaldo=true}=opcoes||{};
+  /* o plano ja carrega a escolha; `opcoes` so serve pra sobrepor na hora */
+  const trazerSaldo=(opcoes&&'trazerSaldo' in opcoes)?opcoes.trazerSaldo
+    :(plano.trazerSaldo!==false);
   if(!data.transacoes) data.transacoes=[];
   plano.novas.forEach(t=>{ data.transacoes.push(t); });
   if(trazerSaldo&&plano.contasDeBanco>0){

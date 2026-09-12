@@ -59,8 +59,11 @@ function pierreDesenharPlano(plano){
   if(plano.repetidas.length) linha(L('pierre.planoRepetidas').replace('{n}',plano.repetidas.length));
   if(plano.doCartao.length) linha(L('pierre.planoCartao').replace('{n}',plano.doCartao.length));
   if(plano.recusadas.length) linha(L('pierre.planoRecusadas').replace('{n}',plano.recusadas.length));
+  if(plano.deOutrasContas.length) linha(L('pierre.planoOutrasContas').replace('{n}',plano.deOutrasContas.length));
+  if(!plano.trazerLancamentos) linha(L('pierre.planoSemLancamentos'));
+  if(!plano.trazerSaldo) linha(L('pierre.planoSemSaldo'));
 
-  if(plano.contasDeBanco>0){
+  if(plano.trazerSaldo&&plano.contasDeBanco>0){
     linha(L('pierre.planoSaldo')
       .replace('{banco}',formatBRL(plano.saldo))
       .replace('{app}',formatBRL(plano.saldoAtual)));
@@ -93,10 +96,58 @@ function pierreDesenharPlano(plano){
 
   cancelar.addEventListener('click',()=>{ caixa.hidden=true; caixa.innerHTML=''; });
   umEnvioPorVez(confirmar,async()=>{
-    const r=aplicarSincronizacaoPierre(plano,{trazerSaldo:true});
+    const r=aplicarSincronizacaoPierre(plano);
     await persist(); render();
     caixa.hidden=true; caixa.innerHTML='';
     pierreEstado(L('pierre.pronto').replace('{n}',r.lancadas),'ok');
+  });
+}
+
+/* As contas que existem do outro lado, com uma caixa cada. Lista vazia em
+   `data.pierreContas` quer dizer TODAS — é como a integração se comporta antes
+   de alguém escolher, e é o que mantém quem já usava sem surpresa. */
+function pierreDesenharContas(contas){
+  const caixa=document.getElementById('pierre-contas-lista');
+  const bloco=document.getElementById('pierre-escolhas');
+  if(!caixa||!bloco) return;
+  caixa.innerHTML='';
+  bloco.style.display=contas.length?'block':'none';
+  const escolhidas=data.pierreContas||[];
+
+  contas.forEach(c=>{
+    const linha=document.createElement('label');
+    linha.className='pierre-conta';
+
+    const marca=document.createElement('input');
+    marca.type='checkbox';
+    marca.value=c.accountId;
+    /* nada escolhido = tudo escolhido */
+    marca.checked=!escolhidas.length||escolhidas.includes(c.accountId);
+    linha.appendChild(marca);
+
+    const texto=document.createElement('span');
+    texto.className='pierre-conta-nome';
+    /* nome de banco e de conta vêm de fora: texto, nunca marcação */
+    texto.textContent=[c.providerCode,c.accountName||c.accountMarketingName]
+      .filter(Boolean).join(' · ');
+    linha.appendChild(texto);
+
+    const tipo=document.createElement('span');
+    tipo.className='pierre-conta-tipo';
+    const ehBanco=String(c.accountType||'').toUpperCase()==='BANK';
+    tipo.textContent=ehBanco?formatBRL(parseNum(c.accountBalance)||0):L('pierre.naoEhConta');
+    linha.appendChild(tipo);
+
+    marca.addEventListener('change',async()=>{
+      const marcadas=[...caixa.querySelectorAll('input:checked')].map(i=>i.value);
+      const todas=contas.length;
+      /* todas marcadas volta a ser "vazio = todas": assim, uma conta nova que
+         apareça depois no Pierre entra sozinha, em vez de ficar de fora calada */
+      data.pierreContas=marcadas.length===todas?[]:marcadas;
+      await persist();
+    });
+
+    caixa.appendChild(linha);
   });
 }
 
@@ -140,6 +191,17 @@ function setupPierre(){
     entrada.focus();
   });
 
+  const saldoCheck=document.getElementById('pierre-saldo-check');
+  const lancCheck=document.getElementById('pierre-lanc-check');
+  [[saldoCheck,'pierreTrazerSaldo'],[lancCheck,'pierreTrazerLancamentos']].forEach(([el,chave])=>{
+    if(!el) return;
+    el.addEventListener('change',async e=>{
+      if(definirPreferenciaBooleana(chave,e.target.checked)===null) return;
+      vibrate(6);
+      await persist(); render();
+    });
+  });
+
   if(lembrar) lembrar.addEventListener('change',e=>{
     definirLembrarPierreChave(e.target.checked);
     vibrate(6); render();
@@ -156,6 +218,7 @@ function setupPierre(){
       pierreEstado(L('pierre.contasOk')
         .replace('{n}',r.quantas)
         .replace('{bancos}',r.instituicoes.join(', ')||'—'),'ok');
+      pierreDesenharContas(r.contas);
       if(sync) sync.style.display='block';
     }catch(e){ pierreEstado(pierreDizOErro(e),'erro'); }
   });
@@ -170,7 +233,12 @@ function setupPierre(){
         ? isoDate(new Date(new Date(data.pierreSincronizadoEm).getTime()-7*86400000))
         : '';
       const {lista}=await buscarTransacoesPierre(desde,todayISO());
-      const plano=planoDeSincronizacaoPierre(contas.contas,lista);
+      pierreDesenharContas(contas.contas);
+      const plano=planoDeSincronizacaoPierre(contas.contas,lista,{
+        contas:data.pierreContas||[],
+        trazerSaldo:data.pierreTrazerSaldo!==false,
+        trazerLancamentos:data.pierreTrazerLancamentos!==false,
+      });
       pierreEstado('');
       pierreDesenharPlano(plano);
     }catch(e){ pierreEstado(pierreDizOErro(e),'erro'); }

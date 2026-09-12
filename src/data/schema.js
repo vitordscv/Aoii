@@ -289,6 +289,11 @@ const ESQUEMA = {
      nuvem — ver src/integrations/pierre-key.js. */
   pierreAtivo: { tipo: 'booleano', padrao: false },
   pierreSincronizadoEm: { tipo: 'iso', nulo: true },
+  /* o que a sincronizacao traz. Lista vazia de contas = todas, que e como a
+     integracao se comporta antes de alguem escolher. */
+  pierreTrazerSaldo: { tipo: 'booleano', padrao: true },
+  pierreTrazerLancamentos: { tipo: 'booleano', padrao: true },
+  pierreContas: { tipo: 'listaTexto', max: 120 },
 
   /* marcadores de "já aconteceu" — sem eles o app repete a ação toda vez que
      abre: um snapshot novo na nuvem, o card de revisão do mês de volta */

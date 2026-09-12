@@ -152,4 +152,42 @@ module.exports=function(t){
     t.igual(c.categoriaDoPierre('Coisa que ninguém viu'),'Outros','e o desconhecido também');
   }
 
+  console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',2000,'NUBANK'),conta('b','BANK',500,'INTER')];
+    contas[0].accountName='Nu Conta'; contas[1].accountName='Inter Conta';
+    const vindas=[
+      doBanco('t1','Do Nu',-100,'DEBIT',{account_name:'Nu Conta'}),
+      doBanco('t2','Do Inter',-50,'DEBIT',{account_name:'Inter Conta'}),
+    ];
+
+    /* sem escolher nada, tudo entra: e o que acontecia antes desta opcao */
+    const tudo=c.planoDeSincronizacaoPierre(contas,vindas);
+    t.igual(tudo.novas.length,2,'sem escolha, vem de todas as contas');
+    t.valor(tudo.saldo,2500,'e o saldo soma todas');
+
+    const soUmBanco=c.planoDeSincronizacaoPierre(contas,vindas,{contas:['a']});
+    t.igual(soUmBanco.novas.length,1,'escolhendo uma conta, so os lancamentos dela entram');
+    t.igual(soUmBanco.novas[0].nome,'Do Nu','e sao os certos');
+    t.valor(soUmBanco.saldo,2000,'o saldo passa a ser so o dela');
+    t.igual(soUmBanco.deOutrasContas.length,1,'o que ficou de fora e contado, nao some calado');
+
+    const semLancamentos=c.planoDeSincronizacaoPierre(contas,vindas,{trazerLancamentos:false});
+    t.igual(semLancamentos.novas.length,0,'dispensando lancamentos, nenhum entra');
+    t.valor(semLancamentos.saldo,2500,'mas o saldo continua vindo');
+
+    const semSaldo=c.planoDeSincronizacaoPierre(contas,vindas,{trazerSaldo:false});
+    t.igual(semSaldo.novas.length,2,'dispensando o saldo, os lancamentos continuam');
+    t.igual(semSaldo.trazerSaldo,false,'e o plano diz que o saldo nao vem');
+
+    /* aplicar respeita o que o plano combinou, sem precisar repetir a escolha */
+    const dd=base(); const cc=criarAmbiente(dd,HOJE);
+    const plano=cc.planoDeSincronizacaoPierre(contas,vindas,{trazerSaldo:false});
+    cc.aplicarSincronizacaoPierre(plano);
+    t.valor(dd.saldoAtual,1000,'o saldo fica como estava');
+    t.igual(dd.transacoes.length,2,'e os lancamentos entram');
+  }
+
 };

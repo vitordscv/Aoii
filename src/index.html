@@ -813,6 +813,19 @@
             <button type="button" id="pierre-verificar-btn" class="reset-btn" data-i18n="pierre.verificar">Verificar chave e listar contas</button>
             <div class="help-text" id="pierre-estado" role="status" aria-live="polite" aria-atomic="true"></div>
 
+            <div id="pierre-escolhas" style="display:none;">
+              <div class="sheet-section-label" data-i18n="pierre.oQueTrazer">O que trazer</div>
+              <div class="rr-toggle-row">
+                <div><div class="t-txt" id="pierre-saldo-label" data-i18n="pierre.trazerSaldo">Saldo em conta</div></div>
+                <label class="toggle-switch"><input type="checkbox" id="pierre-saldo-check" aria-labelledby="pierre-saldo-label"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="rr-toggle-row">
+                <div><div class="t-txt" id="pierre-lanc-label" data-i18n="pierre.trazerLancamentos">Lançamentos para o Diário</div></div>
+                <label class="toggle-switch"><input type="checkbox" id="pierre-lanc-check" aria-labelledby="pierre-lanc-label"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="sheet-section-label" data-i18n="pierre.deQuaisContas">De quais contas</div>
+              <div id="pierre-contas-lista" class="pierre-contas"></div>
+            </div>
             <button type="button" id="pierre-sync-btn" class="gf-new-btn" style="display:none;" data-i18n="pierre.sincronizar">↻ Buscar saldo e lançamentos</button>
             <div class="ia-envio-aviso" id="pierre-plano" hidden></div>
             <div class="help-text" data-i18n="pierre.rodape">A chave vai em cada consulta para uma função deste site, que apenas repassa ao Pierre — o navegador não consegue falar com eles direto. Nada dela fica guardado no servidor.</div>

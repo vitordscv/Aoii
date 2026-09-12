@@ -47,6 +47,9 @@ function defaultData(){
        nunca mexe no que já está salvo. */
     moeda:moedaDoNavegador(etiquetasDoNavegador()),
     pierreAtivo:false,
+    pierreTrazerSaldo:true,
+    pierreTrazerLancamentos:true,
+    pierreContas:[],
     onboardingCompleto:false,
     tourCompleto:false,
     idioma:idiomaDoNavegador(etiquetasDoNavegador()),
@@ -208,6 +211,11 @@ function migrateData(d){
      sincronizacao nenhuma. `idExterno` fica ausente nos lancamentos antigos,
      que e o certo — eles nao vieram de fora. */
   if(typeof d.pierreAtivo!=='boolean') d.pierreAtivo=false;
+  /* quem ja tinha a integracao ligada sincronizava tudo: manter esse
+     comportamento e o certo, mudar a escolha de alguem numa atualizacao nao */
+  if(typeof d.pierreTrazerSaldo!=='boolean') d.pierreTrazerSaldo=true;
+  if(typeof d.pierreTrazerLancamentos!=='boolean') d.pierreTrazerLancamentos=true;
+  if(!Array.isArray(d.pierreContas)) d.pierreContas=[];
   d.viagens.forEach(v=>{ if(typeof v.orcamento!=='number') v.orcamento=0; });
   d.metas.forEach(m=>{ if(typeof m.aporteMensal!=='number') m.aporteMensal=0; if(!m.ultimoAporte) m.ultimoAporte=null; });
   d.transacoes.forEach(t=>{ if(!t.viagemId) t.viagemId=null; });
