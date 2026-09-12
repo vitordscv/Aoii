@@ -27,7 +27,11 @@ function setupIaChatSheet(){
     const loadingEl=addMsg('bot loading',L('ia.analisando'));
     sendBtn.disabled=true;
     try{
-      const resposta=await perguntarIAComHistorico(historico);
+      const resposta=await perguntarIAComHistorico(historico,()=>{
+        /* o balão de "analisando" vira "tentando de novo": a espera passa a
+           ter explicação em vez de parecer que morreu */
+        loadingEl.textContent=L('ia.tentandoDeNovo');
+      });
       loadingEl.className='ia-chat-msg bot';
       loadingEl.textContent=resposta;
       historico.push({role:'bot',texto:resposta});

@@ -70,42 +70,86 @@ Dívidas com pessoas (o que ainda falta pagar): ${deve}.
 Viagens/eventos com orçamento próprio: ${viagens}.`;
 }
 
+/* O resumo é uma FOTOGRAFIA com totais, não o extrato. Dizer isso ao modelo é
+   o que separa "não tenho esse dado" de um número inventado com confiança.
+
+   Sem esta lista, perguntar "quanto gastei com mercado em julho?" rendia uma
+   resposta redonda e plausível montada a partir do total de UM mês — que é o
+   único que existe aqui. Num app de dinheiro isso não pode acontecer. */
+function limitesDoResumoParaIA(){
+  return `O que você NÃO tem, e portanto não deve estimar nem inventar:
+- os lançamentos um a um (só existem os totais por categoria DESTE mês, sem descrição, data ou forma de pagamento);
+- qualquer histórico além da comparação deste mês com o anterior — nada de três, seis ou doze meses, nem por categoria;
+- o que há dentro de cada fatura (só o total de cada uma);
+- a projeção mês a mês (só o saldo final na data-alvo);
+- em que dias o dinheiro saiu.
+Se a pergunta depender de algo dessa lista, diga com todas as letras que o dado não está disponível e responda com o que dá, em vez de estimar.`;
+}
+
 function idiomaNomeCompleto(){ return ({pt:'português do Brasil',en:'English',es:'español',fr:'français',it:'italiano'})[data.idioma||'pt']; }
-async function perguntarIA(pergunta){
+async function perguntarIA(pergunta,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return chamarGemini(prompt);
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${limitesDoResumoParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return chamarGemini(prompt,aoTentarDeNovo);
 }
 
 /* ── mesma coisa, mas mantendo o histórico da conversa do chat (reanalisa os dados a cada pergunta) ── */
-async function perguntarIAComHistorico(historico){
+async function perguntarIAComHistorico(historico,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
   const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Consultor'}: ${h.texto}`).join('\n');
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return chamarGemini(prompt);
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${limitesDoResumoParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return chamarGemini(prompt,aoTentarDeNovo);
 }
 
-async function chamarGemini(prompt){
+/* Respostas do Google que passam sozinhas: 503 é "estou cheio agora", 429 é
+   ritmo, 500/502/504 são soluços do caminho. Todas dizem "tente de novo", e
+   até agora quem tentava de novo era a pessoa — na mão, lendo um texto em
+   inglês colado numa tela em português. */
+const IA_STATUS_PASSAGEIRO=new Set([429,500,502,503,504]);
+const IA_TENTATIVAS=3;
+
+async function chamarGemini(prompt,aoTentarDeNovo){
   const chave=getIaChave();
   const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`;
-  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),20000);
-  try{
-    const res=await fetch(url,{
-      method:'POST', signal:ctrl.signal,
-      headers:{'Content-Type':'application/json','x-goog-api-key':chave},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-    });
-    if(!res.ok){
+  let ultimoStatus=0;
+
+  for(let tentativa=1;tentativa<=IA_TENTATIVAS;tentativa++){
+    const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),20000);
+    try{
+      const res=await fetch(url,{
+        method:'POST', signal:ctrl.signal,
+        headers:{'Content-Type':'application/json','x-goog-api-key':chave},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+      });
+      if(res.ok){
+        const json=await res.json();
+        const texto=json?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if(!texto) throw new Error(L('ia.erroVazio'));
+        return texto.trim();
+      }
+      /* chave errada ou sem permissão não melhora tentando de novo */
       if(res.status===400||res.status===403) throw new Error(L('ia.erroChave'));
-      let detalhe='';
-      try{ const errJson=await res.json(); detalhe=errJson?.error?.message||''; }catch(e){}
-      throw new Error(L('ia.erroConexao').replace('{status}',res.status)+(detalhe?' '+detalhe:''));
+      ultimoStatus=res.status;
+      if(!IA_STATUS_PASSAGEIRO.has(res.status)){
+        let detalhe='';
+        try{ detalhe=(await res.json())?.error?.message||''; }catch(e){}
+        throw new Error(L('ia.erroConexao').replace('{status}',res.status)+(detalhe?' '+detalhe:''));
+      }
+    }catch(e){
+      /* o abort do nosso próprio relógio também merece outra chance */
+      if(e&&e.name==='AbortError') ultimoStatus=ultimoStatus||504;
+      else throw e;
+    }finally{ clearTimeout(to); }
+
+    if(tentativa<IA_TENTATIVAS){
+      if(aoTentarDeNovo) aoTentarDeNovo(tentativa);
+      /* espera crescente: 1,2 s e depois 2,4 s. Insistir no mesmo instante em
+         que o servidor disse "estou cheio" é pedir a mesma resposta. */
+      await new Promise(r=>setTimeout(r,1200*tentativa));
     }
-    const json=await res.json();
-    const texto=json?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if(!texto) throw new Error(L('ia.erroVazio'));
-    return texto.trim();
-  }finally{ clearTimeout(to); }
+  }
+  /* acabaram as tentativas: diz o que houve, na língua de quem lê */
+  throw new Error(L(ultimoStatus===429?'ia.erroLimite':'ia.erroOcupado'));
 }
 function renderIaPergunta(){
   const el=document.getElementById('ia-pergunta-card'); if(!el) return;
@@ -131,7 +175,8 @@ function renderIaPergunta(){
     if(!pergunta||!pergunta.trim()) return;
     btn.disabled=true; resp.className='ia-ask-resposta loading'; resp.textContent=L('ia.pensando');
     try{
-      const texto=await perguntarIA(pergunta.trim());
+      /* enquanto insiste, diz que está insistindo — senão parece travado */
+      const texto=await perguntarIA(pergunta.trim(),()=>{ resp.textContent=L('ia.tentandoDeNovo'); });
       resp.className='ia-ask-resposta'; resp.textContent=texto;
     }catch(err){
       resp.className='ia-ask-resposta'; resp.textContent='⚠️ '+(err.message||L('ia.erroGenerico'));
