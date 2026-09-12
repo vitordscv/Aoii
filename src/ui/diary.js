@@ -9,7 +9,9 @@
     showUndoToast(L('diary.repeated').replace('{name}',`"${t.nome}"`),()=>{ removerTransacao(t.id); });
   });
   const mesFiltroEl=document.getElementById('diario-mes-filtro');
-  if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; diarioVoltaAoTopo(); vibrate(6); renderTransacoesList(); });
+  if(mesFiltroEl) mesFiltroEl.addEventListener('change',e=>{ diarioMesFiltro=e.target.value; diarioMesEscolhido=true; diarioVoltaAoTopo(); vibrate(6); renderTransacoesList(); });
+  const tipoFiltroEl=document.getElementById('diario-tipo-filtro');
+  if(tipoFiltroEl) tipoFiltroEl.addEventListener('change',e=>{ diarioTipoFiltro=e.target.value; diarioVoltaAoTopo(); vibrate(6); renderTransacoesList(); });
   const csvBtn=document.getElementById('export-csv-btn');
   if(csvBtn) csvBtn.addEventListener('click',exportTransacoesCSV);
   bindUndoToast();
@@ -65,6 +67,13 @@ const DIARIO_PAGINA=10;
 let diarioMostrando=DIARIO_PAGINA;
 function diarioVoltaAoTopo(){ diarioMostrando=DIARIO_PAGINA; }
 let diarioMesFiltro='todos';
+/* O Diário abre no mês em que a pessoa está: é onde ela acabou de gastar, e é o
+   mesmo mês do card de resumo logo acima. Só na primeira montagem — depois
+   disso o filtro é dela. E só se houver lançamento nesse mês: senão o Diário
+   abriria vazio todo dia 1º, com a lista cheia logo abaixo do filtro. */
+let diarioMesEscolhido=false;
+/* entrada, saída, ou as duas */
+let diarioTipoFiltro='todos';
 /* Tudo que o Diário mostra: os lançamentos avulsos MAIS as parcelas de cada
    fatura. As compras no crédito são só de leitura — editá-las é dentro da
    fatura, na aba Fixos — mas aparecem na mesma lista, e por isso precisam
@@ -92,14 +101,31 @@ function renderDiarioMesOptions(itens){
     const parts=m.split('-');
     return `<option value="${m}">${MONTH_NAMES[parseInt(parts[1],10)-1]} ${parts[0]}</option>`;
   })).join('');
+  if(!diarioMesEscolhido&&sorted.length){
+    diarioMesEscolhido=true;
+    const mesDeHoje=isoDate(today()).slice(0,7);
+    if(sorted.includes(mesDeHoje)) diarioMesFiltro=mesDeHoje;
+  }
   sel.value=(diarioMesFiltro==='todos'||sorted.includes(diarioMesFiltro))?diarioMesFiltro:'todos';
+}
+
+function renderDiarioTipoOptions(){
+  const sel=document.getElementById('diario-tipo-filtro'); if(!sel) return;
+  /* remontado a cada render, como o de mês: assim troca de idioma junto */
+  sel.innerHTML=[['todos','diario.tipoTodos'],['entrada','diario.tipoEntradas'],['saida','diario.tipoSaidas']]
+    .map(([v,k])=>`<option value="${v}">${esc(L(k))}</option>`).join('');
+  sel.value=diarioTipoFiltro;
 }
 function renderTransacoesList(){
   const el=document.getElementById('transacoes-list'); if(!el) return;
   const all=itensDoDiario();
   renderDiarioMesOptions(all);
+  renderDiarioTipoOptions();
   const busca=diarioBusca.trim().toLowerCase();
   const list=all.filter(t=>{
+    /* compra no cartão não tem `tipo`; entrada é sempre 'receita' */
+    if(diarioTipoFiltro==='entrada'&&t.tipo!=='receita') return false;
+    if(diarioTipoFiltro==='saida'&&t.tipo==='receita') return false;
     if(transacoesFiltro==='__credito'&&t.metodo!=='credito') return false;
     if(transacoesFiltro!=='Todos'&&transacoesFiltro!=='__credito'&&t.categoria!==transacoesFiltro) return false;
     if(diarioMesFiltro!=='todos'&&String(t.data||'').slice(0,7)!==diarioMesFiltro) return false;
