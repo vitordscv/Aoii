@@ -369,6 +369,15 @@ html.bg-ilustrado[data-theme="noite"] .bg-pattern{
 }
 
 
+/* O poupa é um tema ESCURO, e a arte dele é um nascer do sol bege claro. Fora
+   dos cards, isso deixava texto claro sobre fundo claro: a legenda dava 1.74 de
+   contraste e o título da seção sumia junto. Com a arte ligada, o que fica
+   direto no fundo precisa das cores de um tema claro. */
+html.bg-ilustrado[data-theme="poupa"]{
+  --sobre-fundo:#434E48;
+  --sobre-fundo-forte:#243029;
+}
+
 /* ═══ TEMA POUPA: fundo ilustrado (nascer do sol, campos) ═══ */
 html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
   background-color:#EAD1A7; /* cor do céu da ilustração — preenche o espaço acima sem costura */

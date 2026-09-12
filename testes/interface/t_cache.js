@@ -67,7 +67,10 @@ async function abrirEMedir(cdp) {
   conferir(dois.bytesDaPagina < 50 * 1024,
     `a página não é baixada de novo (${(dois.bytesDaPagina / 1024).toFixed(0)} KB, era ${(um.bytesDaPagina / 1024).toFixed(0)} KB)`,
     'continua gastando dados a cada abertura');
-  conferir(dois.pronto < um.pronto, `e abre mais rápido (${dois.pronto}ms contra ${um.pronto}ms)`);
+  /* comparar com a primeira abertura mede a carga da máquina, não o cache:
+     781ms contra 848ms não quer dizer nada. O que importa é o absoluto. */
+  conferir(dois.pronto < 2500, `e abre depressa (${dois.pronto}ms)`);
+  conferir(dois.fcp < 700, `com a primeira pintura quase imediata (${dois.fcp}ms)`);
 
   console.log('\n  \x1b[1mchega uma publicação nova\x1b[0m');
   /* muda o arquivo publicado como uma publicação de verdade mudaria */

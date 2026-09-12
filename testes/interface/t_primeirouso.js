@@ -12,6 +12,18 @@ const conferir = (cond, msg, detalhe) => {
   else { falhas++; console.log('  \x1b[31m!!\x1b[0m ' + msg + (detalhe ? '\n       ' + detalhe : '')); }
 };
 
+/* Espera a condicao acontecer, nao o relogio passar: com a maquina carregada
+   qualquer prazo fixo vira aposta. */
+async function ate(cdp, expressao, oQue, limite = 12000) {
+  const fim = Date.now() + limite;
+  while (Date.now() < fim) {
+    if (await avaliar(cdp, `return !!(${expressao});`)) return true;
+    await esperar(150);
+  }
+  console.log(`     (${oQue} nao apareceu em ${limite / 1000}s)`);
+  return false;
+}
+
 (async () => {
   const cdp = await conectar();
   await cdp.enviar('Emulation.setUserAgentOverride', {
@@ -19,10 +31,12 @@ const conferir = (cond, msg, detalhe) => {
     acceptLanguage: IDIOMA,
   });
   /* apaga tudo: é preciso ser a PRIMEIRA abertura */
+  /* limpar so o localStorage nao basta: o service worker guarda a pagina, e o
+     teste roda contra a versao anterior do app sem nenhum aviso */
+  await require('./ajuda').limparAparelho(cdp);
   await irPara(cdp, URL);
-  await avaliar(cdp, `localStorage.clear(); return 1;`);
-  await irPara(cdp, URL);
-  await esperar(1500);
+  await ate(cdp, `(document.getElementById('onboarding-dialog')||{}).style?.display==='block'`,
+    'o assistente');
 
   console.log(`\n== primeira abertura com navegador em ${IDIOMA} ==`);
   const ob = await avaliar(cdp, `
@@ -74,7 +88,7 @@ const conferir = (cond, msg, detalhe) => {
 
   console.log('\n== depois de pular o assistente ==');
   await avaliar(cdp, `document.getElementById('ob-skip-btn').click();`);
-  await esperar(1200);
+  await ate(cdp, `document.querySelector('.tour-callout')`, 'o tour');
 
   const tela = await avaliar(cdp, `
     const saude=document.querySelector('.saude-card');

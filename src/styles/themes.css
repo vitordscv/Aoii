@@ -10,6 +10,7 @@ html[data-theme="noite"]{
   --warn-bg:#3A2A24; --warn-border:#6B4235; --warn-text:#F0B29B;
   --reset-border:#5B4A32; --reset-text:#E3BE86; --reset-hover:#2A2116;
   --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+  --sobre-fundo:var(--muted); --sobre-fundo-forte:var(--ink-navy);
 }
 
 /* ── TEMA: SAKURA ── */
@@ -24,6 +25,7 @@ html[data-theme="sakura"]{
   --warn-bg:#FBE4DE; --warn-border:#E3AFA4; --warn-text:#8A3B24;
   --reset-border:#E0B9A8; --reset-text:#8A5A2A; --reset-hover:#FBEFE0;
   --pattern-tint: color-mix(in srgb, var(--cream), black 11%);
+  --sobre-fundo:#685259; --sobre-fundo-forte:var(--ink-navy);
 }
 
 /* ── TEMA: MATCHA ── */
@@ -38,6 +40,7 @@ html[data-theme="matcha"]{
   --warn-bg:#F7EAD6; --warn-border:#D8B98B; --warn-text:#6B4A1E;
   --reset-border:#C3B36E; --reset-text:#6B5A2A; --reset-hover:#F5EFD8;
   --pattern-tint: color-mix(in srgb, var(--cream), black 11%);
+  --sobre-fundo:#505946; --sobre-fundo-forte:var(--ink-navy);
 }
 *,*::before,*::after{box-sizing:border-box;}
 
@@ -53,6 +56,7 @@ html[data-theme="poupa"]{
   --warn-bg:#3A2A24; --warn-border:#6B4235; --warn-text:#F0B29B;
   --reset-border:#23392C; --reset-text:#1FBE99; --reset-hover:#1D3327;
   --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+  --sobre-fundo:var(--muted); --sobre-fundo-forte:var(--ink-navy);
 }
 /* ── TEMA: GRAFITE (escuro monocromático — preto e cinza) ── */
 html[data-theme="grafite"]{
@@ -66,6 +70,7 @@ html[data-theme="grafite"]{
   --warn-bg:#2E2A28; --warn-border:#5A5250; --warn-text:#D8B9AC;
   --reset-border:#3A3A3A; --reset-text:#C7C7C7; --reset-hover:#242424;
   --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+  --sobre-fundo:var(--muted); --sobre-fundo-forte:var(--ink-navy);
 }
 /* ── TEMA: ROXO (roxo profundo sobre fundo escuro) ── */
 html[data-theme="roxo"]{
@@ -79,4 +84,5 @@ html[data-theme="roxo"]{
   --warn-bg:#33231B; --warn-border:#5E4433; --warn-text:#E0B894;
   --reset-border:#3A2352; --reset-text:#B47CE8; --reset-hover:#241234;
   --pattern-tint: color-mix(in srgb, var(--cream), white 9%);
+  --sobre-fundo:var(--muted); --sobre-fundo-forte:var(--ink-navy);
 }

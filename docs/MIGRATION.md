@@ -1105,3 +1105,52 @@ Três asserções minhas estavam erradas e o código, certo: `defaultData()` nã
 cria `categorias` (quem entrega as padrão é `CATS()`) nem `iaAtiva` — a IA nasce
 desligada por ausência, e quem lê exige `=== true`. E de 12 a 22 de setembro são
 onze dias, não dez: a contagem inclui as duas pontas.
+
+### 12/09 — o texto que fica direto sobre o fundo
+
+Relato: as legendas soltas sobre o fundo são difíceis de ler, "ainda mais quando
+a arte de fundo está ativada".
+
+`npm run audit` já confere contraste e dava tudo verde. Ele compara a cor do
+texto com a cor de fundo **declarada no tema** — e o fundo de verdade não é uma
+cor. É a textura das ondas, que escurece até `#D8D0BE`, e com a arte ilustrada
+é uma imagem inteira.
+
+Medindo o que está na tela — fotografando o fundo com o texto escondido e lendo
+os pixels — apareceu isto:
+
+| | antes | mínimo |
+|---|---|---|
+| onda, matcha (sem arte) | 4.30 | 4.5 |
+| sakura (sem arte) | 4.45 | 4.5 |
+| **poupa + arte, legenda** | **1.74** | 4.5 |
+| **poupa + arte, título da seção** | **1.30** | 4.5 |
+
+O caso do poupa não é "texto difícil": o tema é **escuro** e a arte dele é um
+nascer do sol **bege claro**. Fora dos cards, isso é texto claro sobre fundo
+claro — o título da seção desaparecia junto com as legendas. Havia até um
+remendo anterior para isso, um contorno no título, aplicado a onda, sakura e
+matcha; o poupa, o pior caso, tinha ficado de fora.
+
+Agora são dois tokens, `--sobre-fundo` e `--sobre-fundo-forte`, que cada tema
+declara, e que o poupa ilustrado redefine para as cores de um tema claro. Todas
+as 42 medidas passam, a pior em 4.95.
+
+**Uma armadilha na medição, que chegou a produzir um número errado.** A primeira
+versão separava letra de papel por brilho dentro de uma foto só. Isso funciona
+enquanto o texto é mais escuro que o fundo; nos temas escuros é o contrário, e a
+conta se inverte sem avisar — o `noite` aparecia reprovado em 2.01 quando está em
+5.45. Fotografar o fundo com o texto escondido resolve, e é o que
+`testes/interface/t_contraste.js` faz.
+
+Esse teste falha com as três linhas certas quando a correção do poupa é
+removida — foi conferido, porque um teste que nunca falhou não prova nada.
+
+**Três instabilidades da própria suíte, que só apareceram com ela cheia.** O
+teste de primeiro uso esperava `1500ms` pelo assistente; isso passa na máquina
+descansada e falha quando o teste é o décimo oitavo da fila. Agora espera pela
+coisa, não pelo relógio. O de cache afirmava que a segunda abertura é mais
+rápida que a primeira — 848 ms contra 781 ms não quer dizer nada, e a asserção
+virou um limite absoluto. E `limparAparelho()` limpava de dentro da página, o
+que depende de a página ter carregado a ponto de rodar o JS da limpeza; passou a
+usar `Storage.clearDataForOrigin`, que apaga de fora.

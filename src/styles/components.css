@@ -285,14 +285,14 @@ border-color:rgba(255,255,255,.42);}
 /* ── SECTIONS ── */
 .section{margin-top:46px;}
 .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
-.section-title{font-family:'Sora',sans-serif;font-weight:600;font-size:22px;}
+.section-title{font-family:'Sora',sans-serif;font-weight:600;font-size:22px;color:var(--sobre-fundo-forte);}
 html.bg-ilustrado[data-theme="onda"] .section-title,
 html.bg-ilustrado[data-theme="sakura"] .section-title,
 html.bg-ilustrado[data-theme="matcha"] .section-title{
   --title-outline:color-mix(in srgb, var(--ink-navy) 35%, white 65%);
   text-shadow:-1px -1px 0 var(--title-outline),1px -1px 0 var(--title-outline),-1px 1px 0 var(--title-outline),1px 1px 0 var(--title-outline),0 0 5px var(--title-outline);
 }
-.section-note{font-size:12.5px;color:var(--muted);max-width:420px;text-align:right;}
+.section-note{font-size:12.5px;color:var(--sobre-fundo);max-width:420px;text-align:right;}
 
 /* ── CHART ── */
 .chart-card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px clamp(10px,3vw,26px) 14px;}
@@ -547,7 +547,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 /* a zona de risco se anuncia antes de ser aberta */
 .settings-tab[data-pane="zona"]{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 35%,var(--line));}
 .settings-tab[data-pane="zona"].ativa{background:var(--neg);border-color:var(--neg);color:var(--white);}
-.view-tab-sub,.settings-tab-sub{font-size:11.5px;line-height:1.4;color:var(--muted);margin:0 2px 16px;}
+.view-tab-sub,.settings-tab-sub{font-size:11.5px;line-height:1.4;color:var(--sobre-fundo);margin:0 2px 16px;}
 .view-pane:focus,.settings-pane:focus{outline:none;}
 
 /* as gavetas das Configurações: seis linhas em vez de quatro telas */

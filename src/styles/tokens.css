@@ -18,6 +18,19 @@
   --pos:#3E6F5C; --neg:#A23B2E;
   --gold:#B8893F; --gold-ink:#8E5F15; --indigo-deep:#0B1830;
   --muted:#535D73; --muted2:#5D6685; --muted3:#6777A0; --on-accent:#FFFFFF; --accent-ink:var(--disney-blue-deep);
+
+  /* Texto que fica DIRETO sobre o fundo, sem card atrás: a legenda ao lado do
+     título, o subtítulo da aba, o próprio título da seção.
+
+     Ali o fundo não é uma cor. É a textura das ondas, que escurece até
+     #D8D0BE, e com a arte ilustrada é uma imagem inteira. `--muted` sozinho
+     dava 4.30 contra a parte escura da textura — abaixo do mínimo de 4.5 que
+     o WCAG pede para texto pequeno.
+
+     Cada tema declara os seus: nos escuros, o texto continua claro. Medido
+     fotografando a tela com o texto escondido, em testes/interface. */
+  --sobre-fundo:#4B5468;
+  --sobre-fundo-forte:var(--ink-navy);
   --hero-grad1:#24447C; --hero-neg-text:#F0E4D0; --hero-text:#F3EAD6;
   --warn-bg:#F7E4DC; --warn-border:#E3B5A4; --warn-text:#8A3B24;
   --reset-border:#D8B98B; --reset-text:#8A5A2A; --reset-hover:#FBEFE0;

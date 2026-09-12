@@ -37,6 +37,16 @@ function encerrar(frase) {
    worker. Sem isso um teste herda o estado do anterior — ou, pior, a página
    guardada de uma versão antiga do app. */
 async function limparAparelho(cdp) {
+  /* `Storage.clearDataForOrigin` apaga de FORA da pagina: localStorage, caches,
+     service workers e o resto, sem depender de a pagina ter carregado a ponto
+     de rodar o JS da limpeza. Limpar por dentro passava na maquina descansada e
+     deixava estado para tras quando o teste era o decimo oitavo da fila. */
+  try {
+    await cdp.enviar('Storage.clearDataForOrigin', {
+      origin: new URL(APP).origin,
+      storageTypes: 'local_storage,cache_storage,service_workers,indexeddb,websql,shader_cache',
+    });
+  } catch (e) { /* versao de Chrome sem o comando: a limpeza por dentro cobre */ }
   await irPara(cdp, APP);
   await avaliar(cdp, `
     try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
