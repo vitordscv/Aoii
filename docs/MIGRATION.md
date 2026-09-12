@@ -791,3 +791,40 @@ A lição: quando o sintoma persiste depois de um conserto que você mediu e
 aprovou, o mais provável é que existam duas causas, não que a medição
 estivesse errada. Medir o caminho certo teria mostrado isso de primeira —
 `visibilitychange` foi medido, mas "abrir o app do zero" não.
+
+### 12/09 — o resumo do mês somava dinheiro que ainda não existia
+
+O "Exportar resumo do mês" é o documento que a pessoa entrega ao contador.
+Gerado no dia 12 de setembro, ele dizia `Total de receitas R$ 17.500,80` —
+somando um salário que só cai no dia 20 — e `Total de despesas R$ 12.154,47`,
+misturando um débito do dia 3 com uma assinatura que vence no dia 20 e uma
+compra no cartão cuja fatura ninguém pagou.
+
+Nenhum desses dois números batia com extrato nenhum. Um demonstrativo assim
+não é conferível, e conferível é a única coisa que ele precisa ser.
+
+**O que mudou.** Toda linha de dinheiro passa a nascer com `realizado`, em
+regime de **caixa**: o dinheiro entrou ou saiu até hoje. O documento tem duas
+colunas, dois totais por seção e um total do mês; a caixa de resultado mostra o
+realizado no período e, abaixo e menor, o projetado para o mês fechado.
+
+O critério está impresso no próprio documento, logo abaixo do período — quem
+recebe o papel não precisa perguntar o que a coluna quer dizer:
+
+- renda mensal e recorrente contam depois do dia delas;
+- renda diária vira duas linhas, dias trabalhados e dias que faltam;
+- conta fixa: passou o dia, ou marcada como paga;
+- compra no cartão: fatura paga, ou vencida.
+
+Essa última regra é a mesma que o app já usava para parar de descontar uma
+despesa da projeção — e que já valia para conta fixa desde o `fixo-pago`. O
+relatório só passou a respeitá-la.
+
+**O que passou a aparecer.** Entradas ainda não recebidas (sumiam do documento
+inteiro), dívidas em aberto, investimentos, viagens, reserva de emergência com
+objetivo e custo essencial, e o patrimônio aberto em parcelas. Seção sem
+conteúdo não é impressa e a numeração se ajusta — quem não tem dívida não
+recebe uma folha dizendo "nenhuma dívida".
+
+**Onde mora.** `ui/report.js`, novo. Eram 127 das 400 linhas de `bindings.js`,
+e quase tudo ali é marcação de um documento inteiro.

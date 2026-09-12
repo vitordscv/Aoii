@@ -57,6 +57,9 @@ module.exports=function(t){
       'ela sumia do relatório e o contador não sabia que era esperada');
     t.igual(aReceber&&aReceber.realizado,false,'…do lado do previsto');
 
+    t.igual(acha(itens,'rp.rendaMensalPrincipal').data,'20/09','a linha diz o dia em que a renda cai');
+    t.igual(acha(itens,'Freela').data,'02/09','e o dia do lançamento avulso');
+
     t.valor(somar(itens,true),4300,'realizado = 3000 + 900 + 400');
     t.valor(somar(itens,false),8700,'previsto = 8000 + 700');
   }

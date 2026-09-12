@@ -72,6 +72,8 @@ function computeReceitasMesDetalhe(){
   const t=today(); const y=t.getFullYear(), m=t.getMonth();
   const itens=[];
   const jaChegou=dia=>dataNoMes(y,m+1,dia)<=t;
+  /* dd/mm — o contador precisa saber QUANDO cada linha cai, não só que cai */
+  const curta=d=>d.toLocaleDateString(localeAtual(),{day:'2-digit',month:'2-digit'});
 
   (data.transacoes||[]).forEach(tr=>{
     if(tr.tipo!=='receita') return;
@@ -80,7 +82,7 @@ function computeReceitasMesDetalhe(){
     /* lançamento com data futura existe: quem antecipa o registro de algo
        combinado. Ele é previsto até o dia chegar. */
     itens.push({nome:tr.nome||L('rp.entrada'),val:tr.valor,tag:L('rp.entradaAvulsa'),
-      realizado:startOfDay(d)<=t});
+      data:curta(d),realizado:startOfDay(d)<=t});
   });
 
   (data.entradasExtras||[]).forEach(e=>{
@@ -91,17 +93,17 @@ function computeReceitasMesDetalhe(){
     /* as não recebidas passam a aparecer também, do lado do previsto: antes
        sumiam do relatório e o contador não sabia que eram esperadas */
     itens.push({nome:e.nome||L('rp.entradaExtra'),val:e.valor,tag:L('rp.entradaExtra'),
-      realizado:!!e.feito});
+      data:curta(d),realizado:!!e.feito});
   });
 
   rendasRecorrentesAtivas().forEach(r=>{
     itens.push({nome:r.nome||L('rp.rendaRecorrente'),val:r.valor,tag:L('rp.rendaRecorrente'),
-      realizado:jaChegou(r.diaDoMes)});
+      data:curta(dataNoMes(y,m+1,r.diaDoMes)),realizado:jaChegou(r.diaDoMes)});
   });
 
   if(data.tipoRenda==='mensal'&&data.rendaMensal&&data.rendaMensal.valor>0){
     itens.push({nome:L('rp.rendaMensalPrincipal'),val:data.rendaMensal.valor,tag:L('rp.rendaFixa'),
-      realizado:jaChegou(data.rendaMensal.diaDoMes)});
+      data:curta(dataNoMes(y,m+1,data.rendaMensal.diaDoMes)),realizado:jaChegou(data.rendaMensal.diaDoMes)});
   }else if(data.tipoRenda==='diaria'&&data.rendaDiaria>0){
     /* a diária vira duas linhas: os dias já trabalhados e os que faltam. Uma
        linha só obrigaria a chamar o mês inteiro de recebido. */
