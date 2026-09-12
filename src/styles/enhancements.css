@@ -374,7 +374,7 @@ html.bg-ilustrado[data-theme="noite"] .bg-pattern{
    contraste e o título da seção sumia junto. Com a arte ligada, o que fica
    direto no fundo precisa das cores de um tema claro. */
 html.bg-ilustrado[data-theme="poupa"]{
-  --sobre-fundo:#434E48;
+  --sobre-fundo:#2D3531;
   --sobre-fundo-forte:#243029;
 }
 

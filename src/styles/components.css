@@ -547,7 +547,7 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 /* a zona de risco se anuncia antes de ser aberta */
 .settings-tab[data-pane="zona"]{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 35%,var(--line));}
 .settings-tab[data-pane="zona"].ativa{background:var(--neg);border-color:var(--neg);color:var(--white);}
-.view-tab-sub,.settings-tab-sub{font-size:11.5px;line-height:1.4;color:var(--sobre-fundo);margin:0 2px 16px;}
+.view-tab-sub,.settings-tab-sub{font-size:12px;line-height:1.45;color:var(--sobre-fundo);margin:0 2px 16px;}
 .view-pane:focus,.settings-pane:focus{outline:none;}
 
 /* as gavetas das Configurações: seis linhas em vez de quatro telas */

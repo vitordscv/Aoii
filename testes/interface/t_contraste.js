@@ -18,7 +18,12 @@ const { APP, titulo, conferir, encerrar, limparAparelho } = require('./ajuda');
 
 const TEMAS = ['onda', 'sakura', 'matcha', 'noite', 'poupa', 'grafite', 'roxo'];
 const SELETORES = ['.section-note', '.view-tab-sub', '.section-title'];
-const MINIMO = 4.5;          // WCAG AA, texto pequeno
+/* O minimo da norma e 4.5. Aqui o piso e 6.5 de proposito: mirando em 4.5, a
+   correcao anterior levou a legenda de 4.30 pra 4.95 — passou na conta e
+   ninguem viu diferenca nenhuma, oito pontos de cor em cada canal. O titulo da
+   secao, que se le bem nessa mesma textura, fica em 8. E dele que a legenda
+   precisa se aproximar; 6.5 e a folga abaixo do alvo de 7. */
+const MINIMO = 6.5;
 
 function lum([r, g, b]) {
   const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };

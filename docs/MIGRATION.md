@@ -1181,3 +1181,26 @@ que eu tinha acabado de escrever. Agora guarda uma cópia e devolve dela. E
 preparada para commit — quem rodasse `git commit -a` depois publicaria o
 passado. Duas capturas de tela que eram saída de teste também estavam
 commitadas; foram para a pasta ignorada, junto das outras.
+
+**E depois: "recarreguei e nada mudou".** Estava certo. A mudança tinha chegado
+— a cor na tela era mesmo a nova —, só que ela era invisível. De `#535D73` para
+`#4B5468` são oito pontos em cada canal.
+
+Eu tinha mirado no **mínimo da norma**: 4.30 → 4.95. Passa no WCAG e não muda
+nada para quem lê. O alvo errado.
+
+A referência certa estava ali do lado: o título da seção, na mesma textura, fica
+em 8.05 — e esse se lê sem esforço. O alvo virou 7.0, e o subtítulo da aba, o
+menor texto da tela, subiu de 11,5 para 12 px.
+
+| tema onda, a legenda | contraste |
+|---|---|
+| como estava | 4.30 |
+| primeira correção | 4.95 (invisível) |
+| agora | **7.07** |
+
+O piso do teste subiu junto, para 6.5 — mirar em 4.5 foi exatamente o que
+produziu uma correção que ninguém viu.
+
+Lição: passar na métrica não é o mesmo que resolver o problema. O relato era
+"custa ler", não "está abaixo de 4.5", e eu respondi ao segundo.
