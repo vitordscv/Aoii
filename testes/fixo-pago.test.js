@@ -128,6 +128,14 @@ module.exports=function(t){
   t.igual(detalhe.find(x=>x.nome==="Internet").pago,true,"o mês concorda: internet não sai mais");
   t.igual(detalhe.find(x=>x.nome==="Aluguel").pago,true,"e o aluguel também não, porque já venceu");
 
+  /* `custo` é o que AINDA falta sair, e por isso zera quando a conta já saiu.
+     A tela precisa também do valor cheio: sem ele, a linha do tempo mostrava
+     "Aluguel R$ 0,00" no mês corrente, e quem lia entendia que o aluguel era
+     zero em vez de já pago. */
+  t.valor(detalhe.find(x=>x.nome==="Internet").custo,0,"internet paga: nada mais a sair");
+  t.valor(detalhe.find(x=>x.nome==="Internet").valor,120,"…mas a conta continua sendo de 120");
+  t.valor(detalhe.find(x=>x.nome==="Aluguel").valor,900,"e o aluguel, de 900");
+
   /* conta pausada não é pendente: não vai sair de jeito nenhum */
   const dp2=base(); const cp2=criarAmbiente(dp2,HOJE);
   dp2.gastosMensais.find(g=>g.id==="net").ativo=false;

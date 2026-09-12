@@ -124,7 +124,10 @@ function monthMetrics(fatura){
        paga antes dele. Quem decide é gastoFixoPendenteEm(), a mesma função
        que o aviso e a caixinha consultam. */
     const pendente=gastoFixoPendenteEm(g,ano,mes);
-    return {nome:g.nome,custo:pendente?g.valor:0,pago:!pendente};
+    /* `valor` é a conta cheia e `custo` é o que ainda falta sair. Quem desenha
+       precisa dos dois: com só o custo, uma conta já paga aparecia como
+       "R$ 0,00" — que se lê como "essa conta é zero", não como "já paguei". */
+    return {nome:g.nome,valor:g.valor,custo:pendente?g.valor:0,pago:!pendente};
   });
   const gastosMensaisCusto=gastosMensaisDetalhe.reduce((s,g)=>s+g.custo,0);
   const despesas=faturaCusto+gastosCusto+gastosMensaisCusto;
