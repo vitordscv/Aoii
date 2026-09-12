@@ -89,6 +89,7 @@
     "core/networth.js",
     "ui/networth.js",
     "ui/settings-render.js",
+    "ui/report.js",
     "ui/bindings.js",
     "ui/diary.js",
     "ui/onboarding.js",
