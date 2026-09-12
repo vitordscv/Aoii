@@ -16,7 +16,7 @@
 .section-head{gap:7px;}
 .section-title{letter-spacing:-.015em;}
 .section-note{max-width:62ch;line-height:1.5;}
-.list-panel,.limit-card,.cat-card,.month-card,.chart-card,.patrimonio-card{
+.list-panel,.limit-card,.cat-card,.month-grid,.mes-lista-passados,.chart-card,.patrimonio-card{
   box-shadow:0 12px 30px -20px rgba(11,24,48,.48);
 }
 .list-panel{padding:20px 18px 16px;}
@@ -56,7 +56,7 @@
 .tt-guide.visible{opacity:.7;}
 
 /* barras de progresso animadas (preenchem ao aparecer) */
-.cat-bar-fill,.mini-bar-fill{transition:width .6s cubic-bezier(.25,.8,.3,1);}
+.cat-bar-fill,.mes-peso-fill{transition:width .6s cubic-bezier(.25,.8,.3,1);}
 .limit-bar-fill,.meta-bar-fill,.gf-health-bar-fill{transition:width .6s cubic-bezier(.25,.8,.3,1);}
 
 /* swipe nos itens de lista */
@@ -426,7 +426,7 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
 /* área de toque de 32px sem mudar o tamanho desenhado */
 /* área de toque de 32px nas caixinhas de marcar, sem mudar o desenho */
 .item-check::before,.gasto-pago-check::before,.mini-check input::before,
-.month-fatura-check input::before,.item-cartao-toggle input::before,
+.item-cartao-toggle input::before,
 .gf-pago-check input::before,
 .gasto-checkbox-label input[type="checkbox"]::before{
   content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;
@@ -440,7 +440,7 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
    Botão de ícone fica de fora — crescer mudaria o desenho da barra; esses
    ganham área invisível pelo ::after, logo abaixo. */
 .csv-btn,.metas-add-btn,#metas-add,#add-month-btn,#calc-atualizar-taxas,
-.add-month-card select,.add-month-card input,
+.mes-add .add-gasto-form select,.mes-add .add-gasto-form input,
 .diario-search-row select,.diario-search-row input,
 .item-modo,.timeline-toolbar select{
   min-height:40px;box-sizing:border-box;
@@ -462,11 +462,11 @@ html.bg-ilustrado[data-theme="poupa"] .bg-pattern{
    aqui. Já esqueci três vezes — a caixinha da conta paga, o chip do link e o X
    das configurações. */
 .info-tip-btn::after,.revisao-close::after,.item-del::after,.gasto-del::after,
-.gasto-del-parc::after,.month-del::after,.cat-manage-del::after,.gm-del::after,
+.gasto-del-parc::after,.cat-manage-del::after,.gm-del::after,
 .item-link::after,.settings-close-btn::after{
   content:'';position:absolute;top:50%;left:50%;width:32px;height:32px;transform:translate(-50%,-50%);
 }
-.revisao-close,.item-del,.gasto-del,.gasto-del-parc,.month-del,.cat-manage-del,.gm-del{position:relative;}
+.revisao-close,.item-del,.gasto-del,.gasto-del-parc,.cat-manage-del,.gm-del{position:relative;}
 /* Havia uma chave a mais no meio desta regra: o `}` fechava o ::after e o
    resto — cursor, margem, alinhamento, entrelinha — virava lixo solto, que o
    navegador descarta calado. Nenhum botão informativo do app tinha

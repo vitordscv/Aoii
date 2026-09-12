@@ -240,7 +240,7 @@ border-color:rgba(255,255,255,.42);}
   .gm-row{flex-wrap:wrap;row-gap:6px;}
   .gm-row .gm-nome{flex-basis:100%;order:-1;}
   .gm-row select.cat-select{font-size:11.5px;padding:6px;padding-right:26px;}
-  .month-fatura-edit input[inputmode=decimal]{width:64px;}
+  .mes-fatura-valor{width:76px;}
 }
 
 /* ── CHIPS ── */
@@ -264,7 +264,7 @@ border-color:rgba(255,255,255,.42);}
   .chips{grid-template-columns:1fr;}
 }
 /* sombra leve padrão pra caixas flutuantes (cards) */
-.chip,.chart-card,.month-card,.list-panel,.limit-card,.cat-card,.gf-health-card,.patrimonio-card,.parcelamento-card{
+.chip,.chart-card,.month-grid,.mes-lista-passados,.list-panel,.limit-card,.cat-card,.gf-health-card,.patrimonio-card,.parcelamento-card{
   box-shadow:0 3px 14px -6px rgba(11,24,48,0.14);
 }
 .chip{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;}
@@ -306,91 +306,118 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .chart-legend span{display:inline-flex;align-items:center;gap:6px;}
 .chart-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
 
-/* ── MONTH GRID — estilo extrato/ficha, sóbrio ── */
-.month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;align-items:start;}
-.month-grid-passados{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:4px;grid-column:1/-1;}
-#toggle-passados-btn{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--cream);border:1px dashed var(--line);border-radius:12px;padding:12px 16px;font-size:12.5px;font-weight:700;color:var(--muted);margin:4px 0 12px;transition:background .15s,border-color .15s;}
+/* ── LINHA DO TEMPO — lista de meses que abrem ──
+   Era uma grade de cards com tudo aberto: onze meses davam quase treze mil
+   pixels no telefone. Fechada, a faixa cabe em 62px e diz o essencial. */
+.month-grid,.mes-lista-passados{display:flex;flex-direction:column;gap:0;}
+.mes-lista-passados{margin-top:2px;}
+#toggle-passados-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--cream);border:1px dashed var(--line);border-radius:12px;padding:12px 16px;font-size:12.5px;font-weight:700;color:var(--muted);margin:10px 0 2px;width:100%;transition:background .15s,border-color .15s;}
 #toggle-passados-btn:hover{background:var(--mist-lilac);border-color:var(--disney-blue-deep);color:var(--ink-navy);}
 #toggle-passados-btn .tp-chevron{transition:transform .2s;font-size:11px;}
 #toggle-passados-btn[data-open="1"] .tp-chevron{transform:rotate(180deg);}
-#toggle-passados-btn .tp-count{background:var(--mist-lilac);color:var(--ink-navy);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;}
-#toggle-passados-btn:hover .tp-count{background:var(--white);}
-.month-card.compacto .month-row,.month-card.compacto .gasto-row,.month-card.compacto .month-checkbox,.month-card.compacto .mini-bars,.month-card.compacto .gastos-divider{display:none;}
-.month-card{background:var(--white);border:1px solid var(--line);border-left:3px solid var(--disney-blue-deep);border-radius:8px;padding:14px 16px 14px;position:relative;display:flex;flex-direction:column;gap:7px;}
-.month-card.passado{opacity:.55;border-left-color:var(--muted3);}
-#month-atual{position:relative;box-shadow:0 6px 26px -4px color-mix(in srgb,var(--disney-blue-deep) 65%,transparent),0 0 0 2px color-mix(in srgb,var(--disney-blue-deep) 30%,transparent);}
-#month-atual::before{content:'';position:absolute;top:0;bottom:0;left:0;width:5px;background:var(--disney-blue-deep);border-radius:8px 0 0 8px;}
-#month-atual .month-name::after{content:'AGORA';font-size:9px;font-weight:800;letter-spacing:.06em;background:var(--disney-blue-deep);color:var(--on-accent);border-radius:5px;padding:2px 6px;margin-left:8px;vertical-align:middle;}
-.month-stamp{display:none;}
-.month-name{font-size:13.5px;font-weight:700;color:var(--ink-navy);font-family:'Sora',sans-serif;padding-right:32px;display:block;}
-.month-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);padding:3px 0;}
-.month-section-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px;}
+
+.mes-item{background:var(--white);border:1px solid var(--line);border-top-width:0;position:relative;}
+.mes-item:first-child{border-top-width:1px;border-radius:10px 10px 0 0;}
+.mes-item:last-child{border-radius:0 0 10px 10px;}
+.mes-item:only-child{border-radius:10px;}
+.mes-item.passado{background:var(--cream);}
+.mes-item.passado .mes-nome,.mes-item.passado .mes-saldo{opacity:.6;}
+/* o fio do tempo: a barra vertical que liga as faixas umas às outras */
+.mes-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line);}
+.mes-item.agora::before{background:var(--disney-blue-deep);}
+.mes-item.passado::before{background:var(--line);}
+
+.mes-cabeca{display:grid;grid-template-columns:1fr;gap:6px;width:100%;background:none;border:none;text-align:left;padding:12px 14px 12px 17px;cursor:pointer;font-family:inherit;transition:background .13s;}
+.mes-cabeca:hover{background:var(--mist-lilac);}
+.mes-cabeca:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:-2px;}
+.mes-titulo{display:flex;align-items:center;gap:8px;}
+.mes-nome{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;color:var(--ink-navy);}
+.mes-nome i{font-style:normal;font-weight:400;color:var(--muted);}
+.mes-agora{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--disney-blue-deep);color:var(--on-accent);border-radius:5px;padding:2px 6px;}
+.mes-seta{margin-left:auto;color:var(--muted2);font-size:11px;transition:transform .2s;}
+.mes-item.aberto .mes-seta{transform:rotate(180deg);}
+
+.mes-resumo{display:flex;align-items:center;gap:12px;}
+/* quanto da renda do mês as despesas comem. Eram duas barras sem legenda
+   nem escala — não diziam nada, e ninguém sabia o que mediam. */
+.mes-peso{flex:0 1 130px;min-width:40px;height:6px;border-radius:4px;background:var(--mist-lilac);overflow:hidden;}
+.mes-peso.vazia{background:transparent;}
+.mes-peso-fill{display:block;height:100%;border-radius:4px;background:var(--disney-blue-deep);}
+.mes-peso.estouro .mes-peso-fill{background:var(--neg);}
+/* saldo e "previsto" empilhados a direita: lado a lado, o previsto era a
+   primeira coisa a nao caber, e some justo na largura de telefone */
+.mes-numeros{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:0;}
+.mes-saldo{font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;}
+.mes-conta{font-size:10.5px;color:var(--muted2);white-space:nowrap;}
+.mes-conta b{font-family:'Nunito Sans',sans-serif;font-weight:600;color:var(--muted);}
+
+.mes-corpo{padding:2px 14px 14px 17px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:2px;}
+.mes-peso-texto{font-size:11px;color:var(--muted2);line-height:1.5;margin:8px 0 4px;}
+.mes-linha{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);padding:5px 0;}
+.mes-linha .v{font-family:'Nunito Sans',sans-serif;font-weight:500;color:var(--num-color);white-space:nowrap;}
+.mes-linha.paga .v{color:var(--pos);font-weight:600;}
+.mes-linha.paga s{color:var(--muted3);font-weight:400;}
+
+/* a linha da fatura: o nome do cartão podia crescer sem limite e passava por
+   cima do campo de valor — com nome de cartão comprido, o campo sumia */
+.mes-fatura{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;}
+.mes-fatura-rotulo{display:flex;align-items:center;gap:6px;min-width:0;}
+.mes-fatura-valor{width:92px;flex:none;border:1px solid transparent;background:none;border-radius:7px;padding:5px 7px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--num-color);text-align:right;transition:background .15s,border-color .15s;}
+.mes-fatura-valor:hover,.mes-fatura-valor:focus{border-color:var(--line);background:var(--cream);}
+
+/* caixinha de pago: 18px de desenho, 40px de alvo. Checkbox não aceita
+   ::after de área de toque como os ícones do resto do app. */
+.mes-check{display:flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;margin:-11px -11px -11px -11px;cursor:pointer;}
+.mes-check input{appearance:none;-webkit-appearance:none;width:18px;height:18px;flex:none;border:1.5px solid var(--line);border-radius:5px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
+.mes-check input:checked{background:var(--pos);border-color:var(--pos);}
+.mes-check input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:11px;font-weight:800;line-height:1;}
+.mes-check input:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+
+.mes-remover{align-self:flex-start;margin-top:10px;background:none;border:1px solid var(--line);border-radius:8px;color:var(--muted2);font-size:11.5px;font-weight:600;padding:7px 12px;min-height:34px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.mes-remover:hover{background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-text);}
+
+/* o "+ adicionar mês" era um card do tamanho de um mês, no meio da lista,
+   como se fosse mais um mês */
+.mes-add{margin-top:10px;}
+.mes-add-btn{width:100%;background:none;border:1px dashed var(--line);border-radius:10px;color:var(--accent-ink);font-size:12.5px;font-weight:600;padding:11px 14px;min-height:42px;cursor:pointer;transition:background .15s;}
+.mes-add-btn:hover{background:var(--mist-lilac);}
+.mes-add .add-gasto-form{margin-top:8px;}
+
+.mes-item-erro{border-color:var(--neg);}
+.mes-erro-msg{padding:0 14px 14px 17px;font-size:12px;color:var(--neg);}
+
+.month-section-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px;}
 .month-section-label:first-of-type{margin-top:2px;}
-.month-row .v{font-family:'Nunito Sans',sans-serif;font-weight:500;color:var(--num-color);}
-.month-fatura-edit{display:flex;align-items:center;}
-.month-row-fatura{gap:8px;}
-.month-row-fatura>span:nth-child(2){flex:1;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;}
-.month-fatura-check{display:flex;align-items:center;flex:none;cursor:pointer;}
-.month-fatura-check input{appearance:none;-webkit-appearance:none;width:16px;height:16px;flex:none;border:1.5px solid var(--line);border-radius:5px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
-.month-fatura-check input:checked{background:var(--pos);border-color:var(--pos);}
-.month-fatura-check input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:10px;font-weight:800;line-height:1;}
 .gastos-toggle-label{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.gastos-toggle-btn{background:none;border:none;color:var(--accent-ink);font-size:10px;font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer;padding:0;}
+.gastos-toggle-btn{background:none;border:none;color:var(--accent-ink);font-size:10px;font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer;padding:6px 0;}
 .gastos-toggle-btn:hover{text-decoration:underline;}
 .gastos-wrap.colapsado{display:none;}
-.month-fatura-edit input[inputmode=decimal]{width:76px;border:1px solid transparent;background:none;border-radius:7px;padding:3px 6px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--num-color);text-align:right;transition:background .15s,border-color .15s;}
-.month-fatura-edit input[inputmode=decimal]:hover,.month-fatura-edit input[inputmode=decimal]:focus{border-color:var(--line);background:var(--cream);}
-.month-checkbox{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:0;padding:3px 0;cursor:pointer;}
-.month-checkbox input{appearance:none;-webkit-appearance:none;width:17px;height:17px;flex:none;border:1.5px solid var(--line);border-radius:5px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
-.month-checkbox input:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
-.month-checkbox input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:11px;font-weight:800;line-height:1;}
-.month-checkbox input:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
-.mini-bars{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-.mini-bar-track{height:6px;border-radius:4px;background:var(--mist-lilac);overflow:hidden;}
-.mini-bar-fill{height:100%;border-radius:4px;}
-.month-saldo{margin-top:6px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;}
-.month-saldo .label{font-size:11.5px;color:var(--muted);}
-.month-saldo .v{font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:15px;color:var(--num-color);}
-.month-conta{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;}
-.month-conta span:first-child{font-size:10.5px;color:var(--muted2);}
-.month-conta span:last-child{font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted);font-weight:500;}
 .pos{color:var(--pos);}
 .neg{color:var(--neg);}
-.month-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted2);font-size:13px;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;}
-.month-del:hover{background:var(--mist-lilac);color:var(--ink-navy);}
 
-/* ── GASTOS EXTRAS POR MÊS ── */
-.gastos-divider{display:none;}
+/* ── GASTOS DA FATURA, DENTRO DO MÊS ── */
 .gasto-row{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 0;}
-.gasto-pago-check{appearance:none;-webkit-appearance:none;flex:none;width:15px;height:15px;border:1.5px solid var(--line);border-radius:4px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
+.gasto-pago-check{appearance:none;-webkit-appearance:none;flex:none;width:18px;height:18px;border:1.5px solid var(--line);border-radius:5px;background:var(--white);position:relative;cursor:pointer;transition:background .15s,border-color .15s;}
 .gasto-pago-check:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
-.gasto-pago-check:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:10px;font-weight:800;line-height:1;}
+.gasto-pago-check:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:11px;font-weight:800;line-height:1;}
+.gasto-pago-check:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
 .gasto-nome{flex:1;border:none;background:none;font-size:12px;font-family:'Nunito Sans',sans-serif;color:var(--ink-navy);padding:1px 0;min-width:0;}
 .gasto-nome.riscado{text-decoration:line-through;color:var(--muted3);}
-.gasto-valor-input{width:58px;border:1px solid transparent;background:none;font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--num-color);text-align:right;padding:2px 4px;border-radius:5px;flex:none;}
+.gasto-valor-input{width:82px;border:1px solid transparent;background:none;font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--num-color);text-align:right;padding:4px 5px;border-radius:5px;flex:none;}
 .gasto-valor-input:hover,.gasto-valor-input:focus{border-color:var(--line);background:var(--cream);}
 .gasto-del{background:none;border:none;color:var(--muted2);font-size:11px;width:16px;height:16px;border-radius:4px;flex:none;display:flex;align-items:center;justify-content:center;padding:0;}
 .gasto-del:hover{background:var(--mist-lilac);color:var(--ink-navy);}
 .gasto-del-parc{background:none;border:none;color:var(--muted2);font-size:11px;width:16px;height:16px;border-radius:4px;flex:none;display:flex;align-items:center;justify-content:center;padding:0;}
 .gasto-del-parc:hover{background:var(--warn-bg);color:var(--warn-text);}
 
-.add-gasto-btn{background:none;border:1px dashed var(--line);border-radius:7px;color:var(--accent-ink);font-size:11px;font-weight:600;padding:4px 8px;width:100%;text-align:center;cursor:pointer;transition:background .15s;}
+.add-gasto-btn{background:none;border:1px dashed var(--line);border-radius:7px;color:var(--accent-ink);font-size:11px;font-weight:600;padding:10px 8px;min-height:40px;width:100%;text-align:center;cursor:pointer;transition:background .15s;}
 .add-gasto-btn:hover{background:var(--mist-lilac);}
 .add-gasto-form{display:none;flex-direction:column;gap:5px;margin-top:2px;}
 .add-gasto-form.visible{display:flex;}
-.add-gasto-form input[type=text],.add-gasto-form input[inputmode=decimal]{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;}
-.add-gasto-form select{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:12px;width:100%;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
-.add-gasto-form input[inputmode=decimal]{font-family:'Nunito Sans',sans-serif;}
-.add-gasto-confirm{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;}
+.add-gasto-form input[type=text],.add-gasto-form input[inputmode=decimal]{border:1px solid var(--line);border-radius:6px;padding:7px;font-size:12px;width:100%;font-family:'Nunito Sans',sans-serif;}
+.add-gasto-form select{border:1px solid var(--line);border-radius:6px;padding:7px;font-size:12px;width:100%;background-color:var(--white);color:var(--ink-navy);padding-right:26px;}
+.add-gasto-confirm{background:var(--disney-blue-deep);color:var(--on-accent);border:none;border-radius:6px;padding:9px;font-size:12px;font-weight:600;min-height:38px;}
 .add-gasto-confirm:hover{background:var(--ink-navy);}
-
-/* ── ADD MONTH CARD ── */
-.add-month-card{background:transparent;border:2px dashed var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;justify-content:center;}
-.add-month-card select,.add-month-card input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;font-family:'Nunito Sans',sans-serif;width:100%;}
-.add-month-card select{padding-right:26px;}
-.add-month-card .num{font-family:'Nunito Sans',sans-serif;color:var(--num-color);}
-.add-month-card button{background:var(--ink-navy);color:var(--cream);border:none;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600;}
-.add-month-card button:hover{background:var(--disney-blue-deep);}
 
 /* ── LISTS ── */
 .lists-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
@@ -492,8 +519,6 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .item-cartao-toggle input:checked{background:var(--disney-blue-deep);border-color:var(--disney-blue-deep);}
 .item-cartao-toggle input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:9px;font-weight:800;line-height:1;}
 .item-nota{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:2px;}
-.month-card-erro{border-color:var(--neg);}
-.month-erro-msg{font-size:11.5px;color:var(--neg);font-weight:600;padding:8px 0;}
 
 /* ── abas das Configurações ──
    A barra rola no eixo x porque seis rótulos não cabem em 375 px sem virar
@@ -611,7 +636,10 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .limit-card-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
 .limit-card-nome{font-size:13px;font-weight:700;color:var(--ink-navy);margin-bottom:6px;}
 .transacoes-title{font-size:13px;font-weight:700;color:var(--ink-navy);margin:18px 0 4px;}
-.month-cartao-tag{display:inline-block;flex:none;margin-left:0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);background:var(--mist-lilac);border-radius:6px;padding:2px 7px;vertical-align:middle;}
+/* `flex:none` aqui deixava a etiqueta crescer sem limite: com nome de cartao
+   comprido ela passava POR CIMA do campo de valor da fatura, que ficava
+   inalcancavel. Encolhe e corta com reticencias. */
+.mes-cartao-tag{display:inline-block;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);background:var(--mist-lilac);border-radius:6px;padding:2px 7px;vertical-align:middle;}
 
 /* ── CATEGORIAS ── */
 .cat-card-wrap{display:flex;flex-direction:column;gap:16px;}
@@ -853,18 +881,6 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .gasto-checkbox-label input[type="checkbox"]:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:12px;font-weight:800;line-height:1;}
 .gasto-dividir-toggle #gasto-dividir-fields{margin-top:10px;}
 .timeline-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
-.compacto-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-.compacto-toggle input{position:absolute;opacity:0;width:0;height:0;}
-/* mesmas medidas e mesma cor acesa do .toggle-switch: um interruptor só no app */
-.compacto-toggle-track{width:51px;height:31px;border-radius:16px;background:var(--line);position:relative;flex:none;transition:background .2s ease-out;}
-.compacto-toggle-thumb{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:transform .2s ease-out;}
-.compacto-toggle input:checked+.compacto-toggle-track{background:var(--pos);}
-.compacto-toggle input:checked+.compacto-toggle-track .compacto-toggle-thumb{transform:translateX(20px);}
-@media(prefers-reduced-motion:reduce){
-  .compacto-toggle-track,.compacto-toggle-thumb{transition:none;}
-}
-.compacto-toggle input:focus-visible+.compacto-toggle-track{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
-.compacto-toggle-label{font-size:12.5px;font-weight:600;color:var(--muted);}
 .gasto-valor-hint{text-align:center;font-size:11.5px;color:var(--muted);margin-top:6px;}
 .gasto-dividir-preview{margin-top:8px;font-size:12.5px;font-weight:700;color:var(--pos);}
 .gasto-tipo-toggle{display:flex;gap:8px;margin-bottom:14px;}
@@ -1203,7 +1219,7 @@ body{padding-bottom:78px;}
 /* ── sombras extras nas caixas/cards para destacá-las do fundo ── */
 .chip,
 .chart-card,
-.month-card,
+.month-grid,
 .list-panel,
 .limit-card,
 .cat-card,

@@ -843,3 +843,51 @@ planilha fecham com os do documento impresso, centavo por centavo.
 
 O CSV do Diário continua onde estava; ele responde outra pergunta ("o que eu
 lancei"), e misturar as duas em um arquivo só é o que criava a confusão.
+
+### 12/09 — a linha do tempo por onde só dava pra rolar
+
+Com onze meses cadastrados, a Linha do tempo tinha **12.992 px de altura no
+telefone**. Cada mês era um card com tudo aberto — renda, fixos, fatura,
+compras, saldo — e ocupava quase uma tela inteira. Comparar setembro com
+janeiro custava meio minuto de rolagem, e todos os cards se pareciam. Uma
+linha do tempo por onde só se pode rolar não é uma linha do tempo.
+
+Virou uma lista de faixas que abrem. Fechada, a faixa tem 67 px e diz o que se
+quer saber de relance: mês, peso das despesas sobre a renda, saldo e o previsto
+em conta. Aberta, é o mesmo detalhe editável de antes. **12.992 px → 1.417 px**,
+de quinze telas para menos de duas, e sete meses visíveis de uma vez.
+
+O estado de aberto mora em `mesesAbertos`, um Set fora da montagem. `render()`
+remonta a lista a cada valor que muda; com o estado no DOM, editar um gasto
+fechava o mês debaixo do dedo.
+
+**Quatro defeitos que apareceram na medição**, e que valiam por si:
+
+1. **O campo de valor da fatura estava soterrado.** `.month-cartao-tag` tinha
+   `flex:none` — com nome de cartão comprido ("Nubank Ultravioleta Mastercard
+   Black") a etiqueta crescia sem limite, passava por cima do campo e recebia o
+   clique no lugar dele. No desktop ainda vazava 112 px para fora do card,
+   invadindo o mês vizinho. Com nome de cartão curto ninguém notava.
+2. **Número cru ao lado de número formatado:** `430.2` e `R$ 0,00` no mesmo
+   card, em 17 campos. Agora tudo passa por `formatValorSemMoeda()` e volta
+   por `parseNum()`.
+3. **Quatro linhas dizendo "R$ 0,00" no mês corrente.** O card desenhava o
+   `custo` — o que ainda falta sair — que zera quando o dia passa. Lia-se
+   "meu aluguel é zero". Agora mostra o valor cheio riscado com "paga ✓", e a
+   renda já recebida diz "tudo recebido ✓".
+4. **Alturas desencontradas**, de 417 a 641 px na mesma fileira. O formato de
+   lista resolve por construção: toda faixa fechada tem a mesma altura.
+
+**As duas barrinhas** do topo do card não tinham legenda nem escala — ninguém
+sabia o que mediam. Viraram uma barra só, com significado declarado: quanto da
+renda do mês as despesas comem, em vermelho quando passa de 100%, e o número
+por extenso dentro da faixa aberta. Quando não há renda prevista, a barra não
+é desenhada em vez de fingir uma proporção.
+
+O **modo compacto** saiu: era um interruptor tudo-ou-nada que escondia todas as
+linhas, e a faixa fechada já é o compacto. O **"+ Adicionar mês"** saiu do meio
+da lista, onde tinha o tamanho de um mês e parecia um.
+
+Medido no navegador: nada vaza da faixa, nenhum alvo de toque abaixo de 32 px
+(a convenção do resto do app), todo campo de dinheiro formatado, e editar
+dentro de um mês aberto não o fecha.
