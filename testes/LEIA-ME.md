@@ -68,3 +68,18 @@ Alguns exemplos do que está travado aqui:
 Rode a suíte antes de publicar. Se um teste falhar e a mudança for
 proposital, ajuste o teste junto — mas ajuste conscientemente, porque
 cada um desses números já esteve errado uma vez.
+
+## E a suíte de interface
+
+`testes/interface/` roda o app num navegador de verdade, por CDP, e mede o que
+esta suíte aqui não alcança: se um elemento cobre outro, o tamanho do alvo de
+toque, quantos bytes uma abertura custa, se a rolagem encadeia, se o cache serve
+a página certa.
+
+```bash
+npm run ui
+```
+
+Fica fora do `npm run check` de propósito: precisa do Chrome instalado, e o
+`check` tem que rodar em qualquer lugar. Detalhes em
+[interface/LEIA-ME.md](interface/LEIA-ME.md).

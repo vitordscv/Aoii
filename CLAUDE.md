@@ -13,6 +13,7 @@ npm test         # build + suíte do motor financeiro
 npm run audit    # build + auditoria estrutural (tradução, contraste, CSS, ids)
 npm run lint     # fronteiras entre camadas + higiene dos arquivos
 npm run check    # tudo acima, na ordem. Rode antes de concluir qualquer coisa.
+npm run ui       # o app num navegador de verdade (fora do check: precisa do Chrome)
 ```
 
 ## O que se edita e o que é gerado
@@ -24,6 +25,7 @@ npm run check    # tudo acima, na ordem. Rode antes de concluir qualquer coisa.
 | `dist/` | **gerado.** Fora do git. Nunca edite, nunca leia pra entender o app. |
 | `scripts/` | build, lint, servidor de desenvolvimento, extração histórica |
 | `testes/` | suíte do motor + auditoria estrutural |
+| `testes/interface/` | o app num navegador de verdade, por CDP (`npm run ui`) |
 
 `dist/index.html` tem 1 MB e é a concatenação de tudo. Ler esse arquivo pra
 entender o projeto é desperdício: o mesmo conteúdo está em `src/`, dividido em
@@ -119,6 +121,13 @@ anterior.
 **Mexer em cálculo.** Leia primeiro `docs/DATA-MODEL.md` e o teste do assunto em
 `testes/`. Cálculo sem teste que o cubra não deve ser alterado — escreva o teste
 que descreve o comportamento atual, depois mude.
+
+**Mexer na tela.** `npm test` mede as contas e não vê o que só existe depois de
+o navegador desenhar: elemento cobrindo elemento, alvo de toque pequeno demais,
+bytes por abertura, rolagem que encadeia, cache servindo a página errada. Todos
+esses quebraram aqui. Para isso é `npm run ui` — sobe servidor e Chrome
+sozinho, sem dependência de npm. Leia `testes/interface/LEIA-ME.md` antes de
+escrever um: metade das armadilhas é o teste medindo o que não está pintado.
 
 **Dividir um módulo grande.** Corte em ponto de fronteira de assunto, mantenha a
 ordem original no manifesto, rode `npm run check`.

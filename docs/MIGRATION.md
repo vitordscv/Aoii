@@ -1033,3 +1033,40 @@ Também corrigido um texto que a mudança tornou falso: a ajuda dizia "sua chave
 fica salva só neste aparelho", o que deixou de ser verdade quando ela não é
 salva em lugar nenhum. Passou a falar só do que continua certo — que ela não
 sai daqui, exceto para falar com o Google.
+
+### 12/09 — o arreio de navegador entra no projeto
+
+Os testes que acharam os defeitos mais caros desta semana viviam numa pasta
+temporária, fora do git. Todos os que estão na lista abaixo passaram por
+`npm test` sem despertar nada:
+
+| o que quebrou | o que a suíte do motor via |
+|---|---|
+| a etiqueta do cartão cobria o campo de valor da fatura e recebia o clique | nada: os valores estavam certos |
+| o app rebaixava 1,2 MB a cada abertura, sem nada ter mudado | nada: não é conta |
+| o cache guardava a fita de cotações sob a chave da página | nada: só aparecia offline |
+| onze meses davam 12.992 px de altura no telefone | nada: os totais batiam |
+| quatro contas fixas exibindo "R$ 0,00" no mês corrente | nada: zero era o valor certo do campo errado |
+| rolar sobre o pano de fundo levava a página 1.112 px | nada |
+
+Agora é `npm run ui`, com 20 arquivos em `testes/interface/`. Sobe o servidor e
+o Chrome sozinho e derruba os dois no fim; precisa do Chrome instalado e de mais
+nada — o driver do CDP são 90 linhas em cima do `WebSocket` que o Node já traz.
+
+**Fica fora do `npm run check`** de propósito. O `check` precisa rodar em
+qualquer lugar, e esta suíte depende de um navegador.
+
+Dos 35 arquivos do rascunho, entraram 20. Ficaram de fora os que não tinham
+asserção nenhuma — eram sondas de investigação, não testes — e dois que falam
+com o Supabase de verdade: uma suíte que qualquer um roda não pode depender de
+credencial nem de rede.
+
+**Três defeitos dos próprios testes, corrigidos na mudança.** Um lia o cenário
+de dentro do código-fonte de outro com uma expressão regular. Outro afirmava que
+`navigator.onLine` vira `false` sob emulação de rede, o que não acontece — ele
+reprovava um app que estava certo. E um terceiro usava `elementFromPoint` sem
+garantir que o elemento estava na tela, então passava ou falhava conforme a
+rolagem que sobrasse do passo anterior.
+
+O `LEIA-ME.md` da pasta guarda essas armadilhas. Metade delas é a mesma coisa: o
+teste medindo o que o navegador não pintou.

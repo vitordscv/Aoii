@@ -6,3 +6,6 @@ referencia/
 
 node_modules/
 .DS_Store
+
+# saída dos testes de interface
+testes/interface/fotos/
