@@ -30,12 +30,7 @@ function computeSaudeFinanceira(){
   }else{ score+=20; }
   const proj=computeTotals().projetado;
   if(proj>=0){ score+=30; motivos.push(L('saude.saldoPositivo')); } else motivos.push(L('saude.saldoNegativo'));
-  const atrasada=(data.faturas||[]).some(f=>{
-    if(f.pago) return false;
-    const cartao=(data.cartoes||[]).find(c=>c.id===f.cartaoId);
-    const dia=Math.min(31,Math.max(1,(cartao&&cartao.diaVencimento)||data.diaVencimentoFatura||10));
-    return startOfDay(dataNoMes(f.ano,f.mes,dia))<t;
-  });
+  const atrasada=(data.faturas||[]).some(f=>!f.pago&&startOfDay(vencimentoDaFatura(f))<t);
   if(!atrasada){ score+=20; } else motivos.push(L('saude.faturaAtrasada'));
   const guardouAlgo=(data.metas||[]).some(m=>m.aporteMensal>0)
     ||(data.metas||[]).some(m=>(m.valorGuardado||0)>0)
@@ -63,31 +58,65 @@ function computeWeekSummary(){
 }
 
 /* ── total realmente gasto num mês (transações + fatura do mês + fixos ativos), p/ comparação mês a mês ── */
-/* ── receitas efetivamente realizadas no mês (linha a linha), pro relatório contábil ── */
+/* ── receitas do mês, linha a linha, separando o que JÁ CAIU do que ainda vai
+      cair ─────────────────────────────────────────────────────────────────
+
+   Cada item leva `realizado`. Sem essa marca o relatório somava tudo num
+   total só, e quem recebesse o documento não tinha como conciliar com
+   extrato nenhum: um salário que cai no dia 20 aparecia como recebido num
+   documento emitido no dia 3.
+
+   O critério é de CAIXA — "o dinheiro entrou até hoje" —, que é o que dá
+   para conferir contra um extrato bancário. */
 function computeReceitasMesDetalhe(){
   const t=today(); const y=t.getFullYear(), m=t.getMonth();
   const itens=[];
+  const jaChegou=dia=>dataNoMes(y,m+1,dia)<=t;
+
   (data.transacoes||[]).forEach(tr=>{
-    if(tr.tipo==='receita'){
-      const d=new Date(tr.data+'T12:00:00');
-      if(!isNaN(d)&&d.getFullYear()===y&&d.getMonth()===m) itens.push({nome:tr.nome||L('rp.entrada'),val:tr.valor,tag:L('rp.entradaAvulsa')});
-    }
+    if(tr.tipo!=='receita') return;
+    const d=new Date(tr.data+'T12:00:00');
+    if(isNaN(d)||d.getFullYear()!==y||d.getMonth()!==m) return;
+    /* lançamento com data futura existe: quem antecipa o registro de algo
+       combinado. Ele é previsto até o dia chegar. */
+    itens.push({nome:tr.nome||L('rp.entrada'),val:tr.valor,tag:L('rp.entradaAvulsa'),
+      realizado:startOfDay(d)<=t});
   });
+
   (data.entradasExtras||[]).forEach(e=>{
-    if(!e.feito) return;
     const quando=e.feitoEm||e.dataPrevista;
-    if(!quando) return;                 // sem data não dá pra dizer que foi deste mês
+    if(!quando) return;                 // sem data não dá pra dizer que é deste mês
     const d=new Date(quando+'T12:00:00');
     if(isNaN(d)||d.getFullYear()!==y||d.getMonth()!==m) return;
-    itens.push({nome:e.nome||L('rp.entradaExtra'),val:e.valor,tag:L('rp.entradaExtra')});
+    /* as não recebidas passam a aparecer também, do lado do previsto: antes
+       sumiam do relatório e o contador não sabia que eram esperadas */
+    itens.push({nome:e.nome||L('rp.entradaExtra'),val:e.valor,tag:L('rp.entradaExtra'),
+      realizado:!!e.feito});
   });
-  rendasRecorrentesAtivas().forEach(r=>{ itens.push({nome:r.nome||L('rp.rendaRecorrente'),val:r.valor,tag:L('rp.rendaRecorrente')}); });
+
+  rendasRecorrentesAtivas().forEach(r=>{
+    itens.push({nome:r.nome||L('rp.rendaRecorrente'),val:r.valor,tag:L('rp.rendaRecorrente'),
+      realizado:jaChegou(r.diaDoMes)});
+  });
+
   if(data.tipoRenda==='mensal'&&data.rendaMensal&&data.rendaMensal.valor>0){
-    itens.push({nome:L('rp.rendaMensalPrincipal'),val:data.rendaMensal.valor,tag:L('rp.rendaFixa')});
+    itens.push({nome:L('rp.rendaMensalPrincipal'),val:data.rendaMensal.valor,tag:L('rp.rendaFixa'),
+      realizado:jaChegou(data.rendaMensal.diaDoMes)});
   }else if(data.tipoRenda==='diaria'&&data.rendaDiaria>0){
+    /* a diária vira duas linhas: os dias já trabalhados e os que faltam. Uma
+       linha só obrigaria a chamar o mês inteiro de recebido. */
     const folgas=new Set(data.diasNaoTrabalhados||[]);
-    const diasUteisNoMes=(()=>{ let c=0; const diasNoMes=new Date(y,m+1,0).getDate(); for(let d=1;d<=diasNoMes;d++){ const dt=new Date(y,m,d); if((data.diasTrabalho||[]).includes(dt.getDay())&&!folgas.has(isoDate(dt))) c++; } return c; })();
-    itens.push({nome:L('rp.rendaPorDia').replace('{n}',diasUteisNoMes),val:data.rendaDiaria*diasUteisNoMes,tag:L('rp.rendaDiaria')});
+    const diasNoMes=new Date(y,m+1,0).getDate();
+    let ateHoje=0, depois=0;
+    for(let d=1;d<=diasNoMes;d++){
+      const dt=new Date(y,m,d);
+      if(!(data.diasTrabalho||[]).includes(dt.getDay())||folgas.has(isoDate(dt))) continue;
+      if(startOfDay(dt)<=t) ateHoje++; else depois++;
+    }
+    if(ateHoje) itens.push({nome:L('rp.rendaPorDia').replace('{n}',ateHoje),
+      val:data.rendaDiaria*ateHoje,tag:L('rp.rendaDiaria'),realizado:true});
+    if(depois) itens.push({nome:L('rp.rendaPorDia').replace('{n}',depois),
+      val:data.rendaDiaria*depois,tag:L('rp.rendaDiaria'),realizado:false});
   }
   return itens;
 }

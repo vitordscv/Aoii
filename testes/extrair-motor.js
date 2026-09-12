@@ -88,7 +88,7 @@ const FUNCOES=[
   'atualizarTransacao','removerTransacao','restaurarTransacao','gastoFixoAtivoEm',
   'gastoFixoPagoEm','gastoFixoPendenteEm','definirGastoFixoPago','camposGastoFixo','criarGastoFixo','atualizarGastoFixo','removerGastoFixo','restaurarGastoFixo',
   'rendasRecorrentesAtivas','rendasRecorrentesEntre','camposRendaRecorrente','criarRendaRecorrente','atualizarRendaRecorrente',
-  'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown',
+  'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown','vencimentoDaFatura','computeCategoryDetalhe','computeCategoryPrevMonth',
   'computeGastoMesPorCategoria','definirOrcamento','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'temDadoParaSaude','computeSaudeFinanceira',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','taxaAnualDisponivel','atualizarTaxasManuais','jurosProjetados',
