@@ -909,3 +909,47 @@ página.
 Mesma lição de sempre, de outro ângulo: quando o conserto é medido num caminho
 só, o sintoma sobrevive no outro. `touch-action` foi medido com toque; a roda,
 não.
+
+### 12/09 — o app rebaixava 1,2 MB por abertura, e o cache guardava a fita
+
+O service worker era rede-primeiro para a página. Toda abertura esperava o
+download inteiro antes de desenhar qualquer coisa, e baixava **1,2 MB de novo
+mesmo com a cópia salva, mesmo sem nada ter mudado** — cerca de 11 MB por mês de
+dados móveis para quem abre o app uma vez por dia.
+
+Agora o cache responde na hora e a rede corre atrás.
+
+| segunda abertura | antes | depois |
+|---|---|---|
+| baixado | 1.252 KB | **3 KB** |
+| primeira pintura (4G) | 424 ms | **124 ms** |
+| offline | 324 ms | **140 ms** |
+
+A primeira visita não muda — é outro trabalho.
+
+**Três armadilhas no caminho, e a terceira já estava lá.**
+
+*Recarregar sem laço.* `setupAutoUpdate()` sondava a publicação por `HEAD` e
+recarregava. Com o cache respondendo, ele veria a versão nova antes de o cache
+trocar, recarregaria, o cache velho responderia outra vez, e o laço não
+terminaria. Quem sabe que a troca aconteceu é o worker: ele avisa por
+`postMessage` depois de gravar, e a página recarrega então — se puder. Sem
+service worker, a sondagem por `HEAD` continua como estava.
+
+*Comparar sem clonar.* `clone()` divide um stream em dois ramos. A página lia
+um; a comparação leria o outro segundos depois, e com 1,2 MB o buffer entre
+eles enche e **a leitura da página trava** — o app abria em branco. A
+comparação passou a reler o cache com `match()`, que devolve uma resposta
+independente. (O servidor deste projeto não manda `ETag`, `Last-Modified` nem
+`Content-Length`; sem comparar o conteúdo, o aviso nunca sairia e a pessoa
+ficaria presa numa versão antiga para sempre.)
+
+*Navegação não quer dizer "a página".* A fita de cotações roda num iframe, e um
+iframe navega. O worker respondia a ela com o index inteiro e, pior, **gravava a
+fita sob a chave `/`**: o cache da página passava a conter 3 KB de ticker, e era
+isso que aparecia offline. Esse defeito **já existia** — com rede-primeiro ficava
+escondido, porque a página certa sempre vinha da rede. Só apareceu quando o
+cache virou a fonte.
+
+Lição: trocar a ordem entre cache e rede não é ajuste de desempenho. É mudar
+quem responde — e revela todo cache que estava errado sem ninguém perceber.
