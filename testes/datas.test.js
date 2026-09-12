@@ -108,4 +108,54 @@ module.exports=function(t){
       `${tz} (offset ${r.offset}) devolveu ${JSON.stringify(r)}`);
     t.igual(r.impossivel,false,`30 de fevereiro continua recusada em ${apelido}`);
   });
+  console.log(String.fromCharCode(10)+String.fromCharCode(27)+"[1mContagens de prazo que ninguem executava"+String.fromCharCode(27)+"[0m");
+  {
+    /* Quatro contas de data que a suite nunca chegava a rodar. Uma delas,
+       remainingWorkDaysUntil(), decide quanto uma pessoa de renda diaria ainda
+       vai receber ate a data-alvo — e portanto o saldo projetado dela. */
+    const d6=base();
+    d6.diasNaoTrabalhados=[];
+    const c6=criarAmbiente(d6,"2026-09-12");   // sabado
+
+    const ate=iso=>new Date(iso+"T12:00:00");
+
+    /* de sabado 12/09 a sexta 18/09: os dias uteis sao 14, 15, 16, 17 e 18 */
+    t.valor(c6.remainingWorkDaysUntil([1,2,3,4,5],ate("2026-09-18")),5,
+      "conta os dias uteis que faltam, sem os fins de semana");
+    t.valor(c6.remainingWorkDaysUntil([1,2,3,4,5],ate("2026-09-12")),0,
+      "o proprio sabado nao conta como dia util");
+    t.valor(c6.remainingWorkDaysUntil([6,0],ate("2026-09-13")),2,
+      "quem trabalha no fim de semana conta sabado e domingo");
+    t.valor(c6.remainingWorkDaysUntil([1,2,3,4,5],ate("2026-09-01")),0,
+      "data-alvo no passado nao devolve numero negativo");
+
+    /* feriado marcado sai da conta: e o que faz o saldo projetado cair quando
+       alguem avisa que nao vai trabalhar */
+    d6.diasNaoTrabalhados=["2026-09-15","2026-09-16"];
+    t.valor(c6.remainingWorkDaysUntil([1,2,3,4,5],ate("2026-09-18")),3,
+      "dia marcado como nao trabalhado sai da contagem");
+
+    /* quantas vezes uma conta mensal ainda vence ate a data-alvo */
+    t.valor(c6.remainingInternetCountUntil(20,ate("2026-12-31")),4,
+      "conta quantas vezes uma conta do dia 20 ainda vence ate dezembro");
+    t.valor(c6.remainingInternetCountUntil(5,ate("2026-09-30")),0,
+      "o dia 5 deste mes ja passou, entao nao conta de novo");
+    t.valor(c6.remainingInternetCountUntil(31,ate("2026-11-30")),3,
+      "dia 31 cai no ultimo dia dos meses que nao o tem, e conta uma vez por mes");
+
+    /* prazo de meta, que a tela mostra ao lado de cada objetivo */
+    /* conta as duas pontas: de 12 a 22 sao onze dias, nao dez. E o mesmo
+       criterio de "no proprio dia ainda resta um dia" logo abaixo. */
+    t.valor(c6.metaDaysRemaining("2026-09-22"),11,"de hoje ate a data da meta, incluindo as duas pontas");
+    t.valor(c6.metaDaysRemaining("2026-09-12"),1,"no proprio dia ainda resta o dia de hoje");
+    t.verdadeiro(c6.metaDaysRemaining("2026-09-01")<0,"prazo vencido devolve negativo");
+    t.igual(c6.metaDaysRemaining("nao-e-data"),null,"texto que nao e data devolve null");
+
+    t.valor(c6.metaMonthsRemaining("2026-12-12"),4,"e o prazo em meses, arredondado pra cima");
+    t.valor(c6.metaMonthsRemaining("2026-09-13"),1,
+      "menos de um mes ainda conta como um: dividir por zero mes daria aporte infinito");
+    t.valor(c6.metaMonthsRemaining("2026-09-01"),0,"prazo vencido nao tem mes nenhum");
+    t.igual(c6.metaMonthsRemaining("nao-e-data"),null,"e o texto invalido segue null");
+  }
+
 };

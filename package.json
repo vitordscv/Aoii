@@ -13,6 +13,7 @@
     "test": "npm run build && node testes/executar.js",
     "audit": "npm run build && node testes/auditar.js",
     "ui": "node testes/interface/executar.js",
+    "cobertura": "node testes/cobertura.js",
     "lint": "node scripts/lint.js",
     "check": "node scripts/lint.js && node scripts/build.js && node testes/executar.js && node testes/auditar.js && node scripts/build.js --check",
     "homolog": "node testes/ciclo-homologacao.js"

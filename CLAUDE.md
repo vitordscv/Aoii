@@ -14,6 +14,7 @@ npm run audit    # build + auditoria estrutural (tradução, contraste, CSS, ids
 npm run lint     # fronteiras entre camadas + higiene dos arquivos
 npm run check    # tudo acima, na ordem. Rode antes de concluir qualquer coisa.
 npm run ui       # o app num navegador de verdade (fora do check: precisa do Chrome)
+npm run cobertura# quais funções do motor a suíte chega a executar
 ```
 
 ## O que se edita e o que é gerado
@@ -121,6 +122,11 @@ anterior.
 **Mexer em cálculo.** Leia primeiro `docs/DATA-MODEL.md` e o teste do assunto em
 `testes/`. Cálculo sem teste que o cubra não deve ser alterado — escreva o teste
 que descreve o comportamento atual, depois mude.
+
+Para saber se algo tem cobertura, use `npm run cobertura`, não `grep`. Procurar
+o nome da função nos testes erra nos dois sentidos: `moverSaldoParaMeta()` não
+aparece em teste nenhum e é exercitada três vezes, por dentro dos comandos que
+a chamam.
 
 **Mexer na tela.** `npm test` mede as contas e não vê o que só existe depois de
 o navegador desenhar: elemento cobrindo elemento, alvo de toque pequeno demais,

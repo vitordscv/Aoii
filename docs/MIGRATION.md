@@ -1070,3 +1070,38 @@ rolagem que sobrasse do passo anterior.
 
 O `LEIA-ME.md` da pasta guarda essas armadilhas. Metade delas é a mesma coisa: o
 teste medindo o que o navegador não pintou.
+
+### 12/09 — a cobertura que eu media errado
+
+Eu tinha dito que 62 funções do motor estavam sem teste, e que a mais grave era
+`moverSaldoParaMeta()` — a que tira dinheiro da conta e põe numa meta.
+
+**Estava errado.** Eu procurava o nome de cada função nos arquivos de teste, e
+essa nunca aparece em nenhum: ela é chamada por dentro de `atualizarMeta()`,
+`removerMeta()` e `restaurarMeta()`, e os três têm testes que conferem o saldo e
+a conservação do patrimônio. A conta por texto erra nos dois sentidos — dá por
+descoberto o que só é chamado de dentro de outra função, e dá por coberto o que
+aparece só num comentário.
+
+Medindo de verdade — instrumentando o ambiente de teste e contando chamadas —
+eram **189 de 218**. Isso virou `npm run cobertura`, para ninguém repetir a
+medição ruim; ele separa o que é `core/`, onde moram as contas, do resto.
+
+Com a medida certa apareceram lacunas reais, todas fechadas:
+
+| o que ninguém executava | por que importa |
+|---|---|
+| `computeCartao()` | é o número que diz se cabe mais uma compra, e aparece em três telas |
+| `computeCategoryPrevMonth()` | alimenta a comparação com o mês passado no documento do contador |
+| `invalidarTimeline()` | invariante do guia: sem invalidar, a tela mostra número velho |
+| `defaultData()` | o estado que toda pessoa nova recebe |
+| `remainingWorkDaysUntil()` | decide quanto quem tem renda diária ainda vai receber |
+| `remainingInternetCountUntil()`, `metaDaysRemaining()`, `metaMonthsRemaining()` | contagens de prazo que a tela mostra |
+
+**93%**, e nada de `core/` fora. O que sobra é encanamento de sincronização que
+depende de navegador.
+
+Três asserções minhas estavam erradas e o código, certo: `defaultData()` não
+cria `categorias` (quem entrega as padrão é `CATS()`) nem `iaAtiva` — a IA nasce
+desligada por ausência, e quem lê exige `=== true`. E de 12 a 22 de setembro são
+onze dias, não dez: a contagem inclui as duas pontas.

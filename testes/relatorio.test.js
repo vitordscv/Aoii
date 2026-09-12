@@ -108,6 +108,33 @@ module.exports=function(t){
       'fatura paga torna os itens dela realizados');
   }
 
+  console.log('\n\x1b[1mO mes anterior, que o documento usa pra comparar\x1b[0m');
+  {
+    /* `computeCategoryPrevMonth()` alimenta a seta de "AUMENTOU 21%" ao lado de
+       cada categoria. Nenhum teste a executava, e e ela que decide se o
+       documento diz que a pessoa gastou mais ou menos que no mes passado. */
+    const d=base();
+    d.transacoes=d.transacoes.concat([
+      {id:'t9',tipo:'gasto',nome:'Mercado de agosto',valor:500,data:'2026-08-10',categoria:'Mercado',metodo:'debito'},
+      {id:'t10',tipo:'receita',nome:'Algo que entrou',valor:900,data:'2026-08-12',categoria:'Mercado'},
+    ]);
+    d.faturas.push({cartaoId:'c1',ano:2026,mes:8,valor:0,pago:true,gastos:[
+      {id:'g8',nome:'Compra de agosto',valor:250,categoria:'Casa'},
+    ]});
+    const c=criarAmbiente(d,HOJE);
+    const antes=c.computeCategoryPrevMonth();
+
+    /* a receita de agosto tem categoria 'Mercado' e NAO pode entrar aqui:
+       soma-la faria o mes passado parecer mais caro do que foi, e a seta de
+       comparacao apontaria para o lado errado */
+    t.valor(antes['Mercado']||0,500,'soma o gasto do mes anterior, e entrada nao conta como gasto');
+    t.valor(antes['Casa']||0,2170,'inclui a fatura de agosto e as contas fixas daquele mes');
+    t.igual(antes['Lazer'],undefined,'categoria sem gasto no mes anterior fica de fora');
+
+    const agora=c.computeCategoryDetalhe();
+    t.verdadeiro((agora['Mercado']||[]).every(i=>!/agosto/.test(i.nome)),
+      'e o mes corrente nao traz nada de agosto');
+  }
   console.log('\n\x1b[1mResumo do mês: fatura vencida e não marcada conta como paga\x1b[0m');
   {
     /* mesmo critério das contas fixas: passou o dia, o app presume que saiu.
