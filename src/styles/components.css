@@ -804,7 +804,11 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 .meta-add-row button:hover{background:var(--ink-navy);}
 
 /* ── categoria select nos formulários ── */
-select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);flex:none;}
+/* `padding-right` separado, e nao o atalho: a regra generica de `select` mais
+   abaixo reserva 28px pra seta, e um atalho `padding` apaga essa reserva sem
+   avisar. Era o que fazia a seta do filtro de ano cair em cima do "s" de
+   "Todos os anos". */
+select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px;padding-right:28px;font-size:12.5px;background-color:var(--white);color:var(--ink-navy);flex:none;}
 
 /* ── AVISO SALDO NEGATIVO / FATURA ── */
 .warn-banner{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;margin-top:16px;display:flex;align-items:center;gap:8px;}

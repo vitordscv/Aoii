@@ -1204,3 +1204,20 @@ produziu uma correção que ninguém viu.
 
 Lição: passar na métrica não é o mesmo que resolver o problema. O relato era
 "custa ler", não "está abaixo de 4.5", e eu respondi ao segundo.
+
+### 12/09 — a seta do select em cima do texto
+
+No filtro de ano da Linha do tempo, a seta pousava sobre o "s" de "Todos os
+anos". Medido: sobrava exatamente `0px` entre o fim do texto e a borda.
+
+A causa é uma armadilha do CSS. O app desenha a própria seta — a do sistema muda
+de forma e de cor em cada navegador — e a regra genérica de `select` reserva
+28px à direita para ela. Mas `select.cat-select` definia `padding:7px 8px`, e o
+**atalho** `padding` define os quatro lados: apagou a reserva, com especificidade
+maior, sem nenhum aviso. Os outros nove selects do app repunham o
+`padding-right` explicitamente; esse era o único que não.
+
+`npm run audit` não via nada — a regra é válida e a classe existe. É um defeito
+que só aparece medindo o texto contra a seta, e é isso que
+`testes/interface/t_selects.js` passa a fazer, nos nove selects, em cinco telas
+e nas configurações.
