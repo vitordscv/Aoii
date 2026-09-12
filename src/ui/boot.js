@@ -25,10 +25,20 @@ function setupAutoUpdate(){
   /* Quem vai recarregar quando puder. Fica pendente se a pessoa esta digitando
      ou com uma folha aberta: trocar a pagina debaixo da mao e pior do que
      esperar mais um minuto. */
-  let esperandoTrocarDeVersao=false;
+  let esperandoTrocarDeVersao=false, vigia=null;
   function recarregarQuandoDer(){
     esperandoTrocarDeVersao=true;
-    if(podeRecarregar()) location.reload();
+    if(podeRecarregar()){ location.reload(); return; }
+    /* Nao deu agora — tem folha aberta, ou alguem esta digitando. Sem isto, a
+       proxima tentativa so viria na troca de aba: quem fecha a folha e continua
+       na pagina ficava com a versao antiga na tela por tempo indefinido, sem
+       nada indicando que havia outra esperando. */
+    if(vigia) return;
+    vigia=setInterval(()=>{
+      if(!podeRecarregar()) return;
+      clearInterval(vigia); vigia=null;
+      location.reload();
+    },2000);
   }
 
   async function checkForUpdate(){

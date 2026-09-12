@@ -5,7 +5,7 @@ const { conectar, avaliar, irPara, tirarFoto, esperar } = require('./cdp');
 
 const URL = process.argv[2] || 'http://localhost:4173/';
 const IDIOMA = process.argv[3] || 'pt-BR';
-const AQUI = __dirname;
+const AQUI = require('./fotos').PASTA_FOTOS;   /* saida, nao fonte: fica fora do git */
 let falhas = 0;
 const conferir = (cond, msg, detalhe) => {
   if (cond) console.log('  \x1b[32mok\x1b[0m ' + msg);

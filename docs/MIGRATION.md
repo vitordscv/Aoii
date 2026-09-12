@@ -1154,3 +1154,30 @@ rápida que a primeira — 848 ms contra 781 ms não quer dizer nada, e a asser�
 virou um limite absoluto. E `limparAparelho()` limpava de dentro da página, o
 que depende de a página ter carregado a ponto de rodar o JS da limpeza; passou a
 usar `Storage.clearDataForOrigin`, que apaga de fora.
+
+**"Não mudou nada."** O relato veio depois da publicação, e o servidor já tinha
+a versão nova — conferido: `aoiii.vercel.app` entregava o build
+`aoii-81068fbc1757`, idêntico ao local, com os quatro tokens novos.
+
+O que atrasava era o cache que eu mesmo tinha acabado de pôr. Reproduzido com a
+versão anterior instalada de verdade: a página que aparece é a guardada, a nova
+chega por trás e a troca acontece sozinha **em ~410 ms**. Com uma diferença que
+importa: se houver folha aberta ou alguém digitando, a troca é adiada — e nesse
+caso a tentativa seguinte só vinha quando a pessoa trocasse de aba. Quem
+fechasse a folha e continuasse na página podia ficar na versão antiga por tempo
+indefinido. Agora volta a tentar de dois em dois segundos.
+
+`testes/interface/t_atualiza.js` anda esse caminho com a versão anterior
+instalada. O caminho do adiamento **não** está lá: a revalidação chega antes de
+qualquer interação que o teste consiga encenar, e com a rede estrangulada para
+alargar a janela o app nem termina de montar. Três tentativas, todas passando
+sem testar nada ou falhando por motivo errado — está escrito no arquivo, para
+ninguém achar que foi esquecimento.
+
+**Dois defeitos do próprio teste, achados rodando.** Ele restaurava o `src/` com
+`git checkout HEAD --`, o que apaga trabalho não commitado: apagou a correção
+que eu tinha acabado de escrever. Agora guarda uma cópia e devolve dela. E
+`git checkout -- caminho` também escreve no índice, deixando a versão antiga
+preparada para commit — quem rodasse `git commit -a` depois publicaria o
+passado. Duas capturas de tela que eram saída de teste também estavam
+commitadas; foram para a pasta ignorada, junto das outras.
