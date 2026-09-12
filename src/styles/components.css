@@ -978,8 +978,17 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .ia-chat-msg.user{align-self:flex-end;background:var(--disney-blue-deep);color:var(--on-accent);border-bottom-right-radius:4px;}
 .ia-chat-msg.bot{align-self:flex-start;background:var(--cream);color:var(--ink-navy);border-bottom-left-radius:4px;}
 .ia-chat-msg.bot.loading{color:var(--muted);}
-.ia-chat-input-row{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line);}
-.ia-chat-input-row input{flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:16px;}
+/* o botão fica no pé da linha: com o campo crescendo, "stretch" esticaria o
+   Enviar junto e ele viraria uma barra alta ao lado do texto */
+.ia-chat-input-row{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line);align-items:flex-end;}
+/* 16px não é escolha de estilo: abaixo disso o iOS dá zoom sozinho ao focar */
+.ia-chat-input-row textarea{
+  flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:16px;
+  font-family:inherit;line-height:1.4;resize:none;
+  /* a altura quem calcula é o JS, pelo conteúdo; aqui fica só o teto —
+     cinco linhas mais o respiro. Passando disso, rola dentro do campo. */
+  max-height:calc(1.4em * 5 + 20px);overflow-y:auto;overscroll-behavior:contain;
+}
 .ia-chat-input-row button{border:none;background:var(--disney-blue-deep);color:var(--on-accent);border-radius:9px;padding:10px 16px;font-size:13.5px;font-weight:700;cursor:pointer;}
 .ia-chat-input-row button:disabled{opacity:.5;}
 

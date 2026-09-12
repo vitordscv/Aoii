@@ -18,10 +18,36 @@ function setupIaChatSheet(){
     return div;
   }
 
+  /* O campo cresce com o que se escreve, até o teto que o CSS define.
+
+     Três armadilhas, todas medidas antes de escrever isto:
+
+     1. Zerar a altura antes de ler o scrollHeight é obrigatório. Sem isso ele
+        devolve a altura ATUAL quando o texto encolhe, e o campo só cresce.
+     2. Com o campo VAZIO, o Chrome mede o placeholder — que ocupa duas linhas
+        nesta largura. Medido: scrollHeight 65 com clientHeight 42. O campo
+        nascia e voltava alto sem ter nada escrito. Vazio não se mede: devolve
+        a altura natural de uma linha, que o rows="1" já define.
+     3. box-sizing é border-box, então `height` inclui a borda e o scrollHeight
+        não. Atribuir um pelo outro deixava o campo 2 px curto e a primeira
+        linha já nascia rolando por dentro. */
+  let _bordaCampo=null;
+  function ajustarAltura(){
+    if(_bordaCampo===null){
+      const cs=getComputedStyle(input);
+      _bordaCampo=(parseFloat(cs.borderTopWidth)||0)+(parseFloat(cs.borderBottomWidth)||0);
+    }
+    input.style.height='auto';
+    if(!input.value){ input.style.height=''; return; }
+    input.style.height=(input.scrollHeight+_bordaCampo)+'px';
+  }
+  input.addEventListener('input',ajustarAltura);
+
   async function enviar(){
     const pergunta=input.value.trim();
     if(!pergunta) return;
     input.value='';
+    ajustarAltura();                 // volta a uma linha depois de enviar
     addMsg('user',pergunta);
     historico.push({role:'user',texto:pergunta});
     const loadingEl=addMsg('bot loading',L('ia.analisando'));
@@ -55,7 +81,15 @@ function setupIaChatSheet(){
   backdrop.addEventListener('click',close);
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sheet.style.display==='flex') close(); });
   sendBtn.addEventListener('click',enviar);
-  input.addEventListener('keydown',e=>{ if(e.key==='Enter') enviar(); });
+  /* Enter continua enviando, como antes — mudar isso surpreenderia quem já usa.
+     Shift+Enter (ou Alt/Ctrl) passa a quebrar linha, que é o que faltava pra
+     escrever uma pergunta de duas frases. O preventDefault é o que impede o
+     Enter de enviar E deixar um "\n" no campo recém-limpo. */
+  input.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'||e.shiftKey||e.altKey||e.ctrlKey||e.metaKey) return;
+    e.preventDefault();
+    enviar();
+  });
 }
 
 function setupGastoSheet(){

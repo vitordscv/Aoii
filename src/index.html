@@ -1144,7 +1144,11 @@
     <div class="sheet-subtitle" data-i18n="ia.consultorSub">Analisa saldo, gastos, cartões, metas e viagens antes de responder</div>
     <div id="ia-chat-messages" class="ia-chat-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
     <div class="ia-chat-input-row">
-      <input type="text" inputmode="text" enterkeyhint="send" id="ia-chat-input" placeholder="Pergunte algo sobre suas finanças…" data-i18n-placeholder="ia.perguntePlaceholder" aria-label="Pergunte ao consultor" data-i18n-aria-label="ia.consultorTitle2">
+      <!-- textarea de uma linha que cresce enquanto se digita: pergunta longa
+           precisa ser relida antes de enviar, e num input de linha única só se
+           enxerga o fim dela. Sem quebra de linha dentro da marcação, senão
+           vira valor inicial e o campo nasce com um "\n" dentro. -->
+      <textarea rows="1" enterkeyhint="send" id="ia-chat-input" placeholder="Pergunte algo sobre suas finanças…" data-i18n-placeholder="ia.perguntePlaceholder" aria-label="Pergunte ao consultor" data-i18n-aria-label="ia.consultorTitle2"></textarea>
       <button type="button" id="ia-chat-send" data-i18n="ia.enviar">Enviar</button>
     </div>
   </div>
