@@ -984,3 +984,23 @@ visita nenhuma volta à rede — conferido.
 `npm run audit` passou a reprovar fonte embutida no HTML. Reembutir uma é fácil
 de fazer sem perceber: o arquivo continua parecendo certo, e o custo aparece
 longe dali, na primeira visita de outra pessoa.
+
+**E 125 KB de máscara na primeira linha do primeiro CSS.** O padrão de ondas do
+fundo era um SVG em base64 dentro de `tokens.css` — decoração pura, num
+`.bg-pattern` com `z-index:-2`, atrás do app inteiro. Ninguém deve esperar por
+ele para ver o saldo, e no entanto ele vinha antes de tudo.
+
+Somando as duas extrações:
+
+| primeira visita | antes | depois |
+|---|---|---|
+| a esperar antes da 1ª pintura | 526 KB | **230 KB** |
+| HTML | 1.252 KB | **957 KB** |
+| primeira pintura, 3G ruim | 9.484 ms | **3.324 ms** |
+| primeira pintura, 4G | 1.160 ms | **588 ms** |
+| primeira pintura, wi-fi | 1.616 ms | **408 ms** |
+
+**O que continua ruim, e por quê.** Em 3G a tela aparece em 3,3 s, mas o app só
+fica *utilizável* aos 24 s: faltam os 533 KB de JavaScript, que ainda são um
+`<script>` único. Dividi-lo significa quebrar o IIFE de escopo compartilhado
+que sustenta todo o resto — outra ordem de mudança, e não cabia aqui.
