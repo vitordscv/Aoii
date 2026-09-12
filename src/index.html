@@ -762,8 +762,19 @@
             <label class="toggle-switch"><input type="checkbox" id="ia-ativa-check" aria-labelledby="ia-ativa-check-label"><span class="toggle-slider"></span></label>
           </div>
           <div id="ia-fields" style="display:none;">
-            <input type="text" id="ia-chave-input" class="ia-chave-input" placeholder="Cole sua chave da API do Google Gemini" data-i18n-placeholder="ph.colaChaveGemini" data-i18n-aria-label="ph.colaChaveGemini">
-            <div class="help-text"><span data-i18n="settings.iaHelp">Sua chave fica salva só neste aparelho (nunca sai daqui, exceto pra falar direto com o Google). Pegue a sua grátis em</span> <a class="help-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.</div>
+            <div class="ia-chave-linha">
+              <input type="password" id="ia-chave-input" class="ia-chave-input" autocomplete="off" spellcheck="false" placeholder="Cole sua chave da API do Google Gemini" data-i18n-placeholder="ph.colaChaveGemini" data-i18n-aria-label="ph.colaChaveGemini">
+              <button type="button" id="ia-chave-ver" class="ia-chave-ver" aria-pressed="false" title="Mostrar a chave" data-i18n-title="tt.mostrarChave">👁</button>
+            </div>
+            <div class="rr-toggle-row ia-lembrar-row">
+              <div>
+                <div class="t-txt" id="ia-lembrar-label" data-i18n="settings.iaLembrar">Lembrar a chave neste aparelho</div>
+                <div class="t-sub" data-i18n="settings.iaLembrarSub">Sem isso, você cola a chave de novo cada vez que abrir o app — ela vale só enquanto esta aba estiver aberta.</div>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="ia-lembrar-check" aria-labelledby="ia-lembrar-label"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="ia-lembrar-aviso" id="ia-lembrar-aviso" hidden data-i18n="settings.iaLembrarRisco">Guardada no aparelho, a chave fica legível para extensões do navegador e para quem usar este aparelho. Ela continua fora do backup e da sincronização.</div>
+            <div class="help-text"><span data-i18n="settings.iaHelp">A chave nunca sai daqui, exceto para falar direto com o Google. Pegue a sua grátis em</span> <a class="help-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.</div>
             <!-- a ajuda acima fala só da chave. Quem liga a IA precisa saber o
                  que dos DADOS sai daqui — ver montarResumoFinanceiroParaIA() -->
             <div class="ia-envio-aviso">

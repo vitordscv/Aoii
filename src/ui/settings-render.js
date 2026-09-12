@@ -28,6 +28,12 @@ function renderSettings(){
     if(iaFields) iaFields.style.display=data.iaAtiva===true?'block':'none';
   }
   if(iaChaveInput && document.activeElement!==iaChaveInput) iaChaveInput.value=getIaChave();
+  const iaLembrar=document.getElementById('ia-lembrar-check');
+  const iaLembrarAviso=document.getElementById('ia-lembrar-aviso');
+  if(iaLembrar) iaLembrar.checked=lembrarIaChave();
+  /* o que custa guardar so aparece depois de a pessoa escolher guardar: antes
+     disso e um aviso sobre algo que nao esta acontecendo */
+  if(iaLembrarAviso) iaLembrarAviso.hidden=!lembrarIaChave();
   document.getElementById('cfg-dias-trabalho').innerHTML=WEEKDAY_ABBR.map((nm,idx)=>`
     <label class="weekday-chip">
       <input type="checkbox" data-weekday="${idx}" ${(data.diasTrabalho||[]).includes(idx)?'checked':''}>

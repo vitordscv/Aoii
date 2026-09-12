@@ -1004,3 +1004,32 @@ Somando as duas extrações:
 fica *utilizável* aos 24 s: faltam os 533 KB de JavaScript, que ainda são um
 `<script>` único. Dividi-lo significa quebrar o IIFE de escopo compartilhado
 que sustenta todo o resto — outra ordem de mudança, e não cabia aqui.
+
+### 12/09 — a chave da IA morava no disco sem ninguém ter pedido
+
+Era a última pendência aberta do [SECURITY.md](SECURITY.md), das onze.
+
+A chave do Gemini ficava em `localStorage`, **sempre**, sem escolha, num campo
+`type="text"` que a mostrava por inteiro na tela — e continuava lá anos depois
+de a pessoa ter parado de usar a IA. Guardada assim, é legível para qualquer
+extensão do navegador e para quem pegar o aparelho destrancado.
+
+O padrão passou a ser a sessão: a chave vale enquanto a aba estiver aberta e
+some ao fechar. Quem não quer colar de novo marca "lembrar", e aí ela desce para
+o disco — com o que isso custa dito ao lado do interruptor, e **só depois** da
+escolha, porque antes seria um aviso sobre algo que não está acontecendo.
+Desligar a IA apaga a chave dos dois lugares.
+
+Ligar e desligar "lembrar" nunca obriga a colar de novo: ligar desce para o
+disco o que já está na sessão, desligar sobe o caminho contrário.
+
+**A parte que mais importava é a de quem já usava.** A chave dessas pessoas
+estava no `localStorage` porque era o único jeito que existia. Uma atualização
+que a apagasse quebraria o recurso sem aviso, na cara de quem não fez nada
+errado. Então a presença antiga vale como escolha: "lembrar" aparece já ligado,
+e nada se move.
+
+Também corrigido um texto que a mudança tornou falso: a ajuda dizia "sua chave
+fica salva só neste aparelho", o que deixou de ser verdade quando ela não é
+salva em lugar nenhum. Passou a falar só do que continua certo — que ela não
+sai daqui, exceto para falar com o Google.

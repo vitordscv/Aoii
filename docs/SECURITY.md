@@ -154,13 +154,31 @@ e na mensagem de erro do lint.
 Continuam existindo 94 `innerHTML`, agora sob essa regra. Trocá-los por
 `createElement` seria bom para clareza, não para segurança.
 
-### 5. Chave do Gemini em texto puro
+### ~~5. Chave do Gemini em texto puro~~ — fechada em 12/09/2026
 
-Fica em `localStorage` sob `financas-ia-chave`, e o campo do formulário não é
-`type="password"`. Não entra em backup nem em sincronização — isso está certo.
+Ela ficava em `localStorage`, **sempre**, sem a pessoa escolher, num campo
+`type="text"` que a mostrava por inteiro na tela — e continuava lá anos depois
+de alguém ter parado de usar a IA.
 
-Falta: campo de senha com mostrar/ocultar, não guardar por padrão, explicar o
-risco quando a pessoa escolher guardar, e oferecer apagar ao desligar a IA.
+As quatro partes que faltavam:
+
+| | como ficou |
+|---|---|
+| campo de senha | `type="password"`, com um botão de olho para revelar e esconder (quem cola uma chave precisa conferir se colou inteira) |
+| não guardar por padrão | o padrão é `sessionStorage`: vale enquanto a aba estiver aberta e some ao fechar |
+| explicar o risco | o custo de guardar aparece ao lado do interruptor, e **só depois** de a pessoa escolher guardar — antes disso seria um aviso sobre algo que não está acontecendo |
+| apagar ao desligar | desligar a IA apaga a chave dos dois lugares, e limpa o campo na tela |
+
+Ligar e desligar "lembrar" nunca faz a pessoa colar de novo: ligar desce para o
+disco o que já está na sessão, desligar sobe o caminho contrário.
+
+**Quem já usava não perde nada.** A chave dessas pessoas estava no `localStorage`
+porque era o único jeito que existia; tirá-la debaixo delas numa atualização
+seria quebrar o recurso sem aviso. A presença antiga vale como escolha, e
+"lembrar" aparece já ligado.
+
+A chave continua fora do backup e da sincronização. Tudo em
+`src/integrations/gemini-key.js`, o único lugar que sabe onde ela mora.
 
 ### ~~6. Consentimento sobre o que vai para a IA~~ — fechada em 11/09/2026
 

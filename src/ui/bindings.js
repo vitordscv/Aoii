@@ -83,12 +83,35 @@ function bindStatic(){
   });
   document.getElementById('ia-ativa-check')?.addEventListener('change',async e=>{
     if(definirPreferenciaBooleana('iaAtiva',e.target.checked)===null) return;
+    /* desligar apaga a chave: guardar a credencial de um recurso que a pessoa
+       acabou de dispensar nao serve a ninguem */
+    if(!e.target.checked){
+      esquecerIaChave();
+      const campo=document.getElementById('ia-chave-input');
+      if(campo) campo.value='';
+    }
     vibrate(8);
     await persist(); render();
   });
   document.getElementById('ia-chave-input')?.addEventListener('input',e=>{
     setIaChave(e.target.value.trim());
     render();
+  });
+  document.getElementById('ia-lembrar-check')?.addEventListener('change',e=>{
+    definirLembrarIaChave(e.target.checked);
+    vibrate(6);
+    render();
+  });
+  /* mostrar/ocultar: quem cola uma chave precisa conferir se colou inteira */
+  document.getElementById('ia-chave-ver')?.addEventListener('click',e=>{
+    const campo=document.getElementById('ia-chave-input');
+    if(!campo) return;
+    const mostrando=campo.type==='text';
+    campo.type=mostrando?'password':'text';
+    const b=e.currentTarget;
+    b.setAttribute('aria-pressed',mostrando?'false':'true');
+    b.title=L(mostrando?'tt.mostrarChave':'tt.ocultarChave');
+    campo.focus();
   });
   document.getElementById('cfg-moeda').addEventListener('change',async e=>{
     if(definirMoeda(e.target.value)){ await persist(); render(); }

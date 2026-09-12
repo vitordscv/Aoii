@@ -1091,7 +1091,14 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 /* nasceu sem classe e sem regra: herdava só o reset genérico de base.css
    (cor e fonte, sem borda) e ficava com a cara nua do navegador ao lado de
    campos com borda por toda a casa. */
-.ia-chave-input{display:block;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:'Nunito Sans',sans-serif;font-size:13px;margin-top:10px;}
+.ia-chave-linha{display:flex;align-items:stretch;gap:8px;margin-top:10px;}
+.ia-chave-input{flex:1;min-width:0;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:'Nunito Sans',sans-serif;font-size:13px;letter-spacing:.04em;}
+.ia-chave-ver{flex:none;width:44px;min-height:40px;border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--muted);font-size:15px;line-height:1;cursor:pointer;transition:background .15s,color .15s;}
+.ia-chave-ver:hover{background:var(--mist-lilac);color:var(--ink-navy);}
+.ia-chave-ver[aria-pressed="true"]{background:var(--mist-lilac);color:var(--ink-navy);border-color:var(--disney-blue-deep);}
+.ia-chave-ver:focus-visible{outline:2px solid var(--disney-blue-deep);outline-offset:2px;}
+.ia-lembrar-row{margin-top:12px;}
+.ia-lembrar-aviso{margin-top:8px;padding:9px 11px;border-left:3px solid var(--line);background:var(--cream);border-radius:0 8px 8px 0;font-size:11.5px;line-height:1.55;color:var(--muted);}
 /* o que dos dados sai do aparelho quando a IA está ligada: destacado do resto
    da ajuda porque é a informação que decide se alguém quer ligar isso */
 .ia-envio-aviso{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--cream);}
