@@ -38,7 +38,7 @@ const ESPERADO = {
       .map(b=>({pane:b.dataset.pane, rotulo:b.textContent.trim(), controla:b.getAttribute('aria-controls')}));
   `);
   console.log('\n  ordem das abas: ' + abas.map(a => a.rotulo).join(' › ') + '\n');
-  conferir(abas.length === 7, `${abas.length} abas`);
+  conferir(abas.length === 8, `${abas.length} abas`);
 
   for (const aba of abas) {
     const r = await avaliar(cdp, `

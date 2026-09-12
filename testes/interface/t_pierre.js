@@ -49,11 +49,15 @@ const DUBLE = `
 const abrirPainel = cdp => avaliar(cdp, `
   document.getElementById('topbar-settings-btn').click();
   await new Promise(r=>setTimeout(r,600));
-  document.getElementById('settings-tab-dados').click();
+  document.getElementById('settings-tab-banco').click();
   await new Promise(r=>setTimeout(r,500));
-  document.getElementById('pierre-bloco').scrollIntoView({block:'center'});
+  const bloco=document.getElementById('pierre-bloco');
+  bloco.scrollIntoView({block:'center'});
   await new Promise(r=>setTimeout(r,250));
-  return 1;`);
+  /* pintado de verdade, e nao so presente no DOM: o painel mora na aba
+     Banco, e clicar nela tem que ser o caminho que funciona */
+  return {visivel:bloco.offsetParent!==null,
+    aba:bloco.closest('.settings-pane').id};`);
 
 (async () => {
   const cdp = await conectar();
@@ -62,7 +66,13 @@ const abrirPainel = cdp => avaliar(cdp, `
   await limparAparelho(cdp);
   await abrirApp(cdp, { largura: 430, altura: 860 });
   await avaliar(cdp, DUBLE);
-  await abrirPainel(cdp);
+  titulo('o painel tem aba própria');
+  const ondeEsta = await abrirPainel(cdp);
+  conferir(ondeEsta.aba === 'settings-pane-banco',
+    `o painel mora na aba Banco (${ondeEsta.aba})`);
+  conferir(ondeEsta.visivel,
+    'e clicar na aba o deixa pintado na tela',
+    'estar no DOM não é estar visível: o teste antigo passava com o painel escondido');
 
   titulo('a integração nasce desligada');
   const inicio = await avaliar(cdp, `
@@ -91,6 +101,24 @@ const abrirPainel = cdp => avaliar(cdp, `
   conferir(ondeMora.naSessao && !ondeMora.noDisco,
     'ela fica na sessão, e não no disco');
   conferir(!ondeMora.noObjeto, 'e fora do objeto que vai pro backup e pra nuvem');
+
+  titulo('o caminho até a chave aparece antes do campo');
+  const tutorial = await avaliar(cdp, `
+    const passos=[...document.querySelectorAll('.pierre-passos li')];
+    const campo=document.getElementById('pierre-chave-input');
+    const lista=document.querySelector('.pierre-passos');
+    return {quantos:passos.length,
+      /* quem ainda não tem a chave precisa ler o caminho ANTES de olhar
+         pro campo vazio, não depois de rolar até o fim */
+      antesDoCampo:lista.getBoundingClientRect().top<campo.getBoundingClientRect().top,
+      pintado:lista.offsetParent!==null,
+      links:[...document.querySelectorAll('.pierre-passos a')].map(a=>a.getAttribute('href'))};`);
+  conferir(tutorial.quantos === 4, `os quatro passos estão lá (${tutorial.quantos})`);
+  conferir(tutorial.pintado && tutorial.antesDoCampo,
+    'e vêm acima do campo da chave');
+  conferir(tutorial.links.includes('https://pierre.finance/api-key'),
+    'com o link direto da página da chave',
+    'mandar a pessoa "procurar no site" é o mesmo que não explicar');
 
   titulo('verificar a chave lista o que existe do outro lado');
   await avaliar(cdp, `

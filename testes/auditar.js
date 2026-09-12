@@ -96,7 +96,7 @@ titulo('Tradução');
   const html=src
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'')
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'');
-  const permitidos=new Set(['Aoii','CDI','Selic','Português','English','Español','Français','Italiano','R$','aistudio.google.com/apikey']);
+  const permitidos=new Set(['Aoii','CDI','Selic','Português','English','Español','Français','Italiano','R$','aistudio.google.com/apikey','pierre.finance/login','pierre.finance/api-key']);
   const fixos=[];
   const folha=/<([a-z][a-z0-9-]*)([^>]*)>([^<>]*[A-Za-zÀ-ÿ][^<>]*)<\/\1>/gi;
   let no;

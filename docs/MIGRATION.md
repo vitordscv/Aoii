@@ -1323,3 +1323,22 @@ O plano passou a dizer o que ficou de fora **por escolha**, e não só o que fic
 de fora por regra: quantas vieram de contas dispensadas, e se saldo ou
 lançamentos estão desligados. Mudar a escolha sem mostrar o efeito deixaria a
 pessoa no escuro.
+
+**Aba própria, e o caminho até a chave.** O painel tinha nascido no fim da aba
+"Assistente com IA", encostado no bloco do Gemini. Ficou lá por ser o outro
+lugar do app que guarda chave de API, mas a semelhança acaba aí: uma coisa é
+conselho automático, a outra é o extrato do banco. Quem procura o banco não
+abre a aba da IA. Agora é a aba **Banco** (`settings-pane-banco`), antes da zona
+de risco.
+
+E o campo da chave vinha sem dizer de onde ela sai. O caminho agora está na
+própria tela, em quatro passos, **acima** do campo — quem chega ali ainda não
+tem a chave, e ler depois de rolar até o fim não serve. Os passos são os da
+documentação deles: criar conta em `pierre.finance/login`, conectar o banco pelo
+Open Finance, copiar a chave em `pierre.finance/api-key`, colar aqui. O segundo
+passo diz onde a autorização acontece, que é lá e não aqui.
+
+O teste de navegador confere que o painel está **pintado** na aba Banco, e não
+só presente no DOM: o teste antigo clicava em "Dados e sincronização" e passava
+mesmo com o painel escondido em outra aba, porque `getElementById` acha o que
+está oculto.

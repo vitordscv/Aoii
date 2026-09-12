@@ -582,6 +582,7 @@
         <button type="button" class="view-tab settings-tab" id="settings-tab-preferencias" data-sub="settings.preferenciasSub" role="tab" aria-controls="settings-pane-preferencias" aria-selected="false" tabindex="-1" data-pane="preferencias"><span data-i18n="settings.preferencias">Preferências</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-dados" data-sub="settings.dadosSub" role="tab" aria-controls="settings-pane-dados" aria-selected="false" tabindex="-1" data-pane="dados"><span data-i18n="settings.dados">Dados e sincronização</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-ia" data-sub="settings.iaSub" role="tab" aria-controls="settings-pane-ia" aria-selected="false" tabindex="-1" data-pane="ia"><span data-i18n="settings.ia">Assistente com IA</span></button>
+        <button type="button" class="view-tab settings-tab" id="settings-tab-banco" data-sub="settings.bancoSub" role="tab" aria-controls="settings-pane-banco" aria-selected="false" tabindex="-1" data-pane="banco"><span data-i18n="settings.banco">Banco</span></button>
         <button type="button" class="view-tab settings-tab" id="settings-tab-zona" data-sub="settings.zonaSub" role="tab" aria-controls="settings-pane-zona" aria-selected="false" tabindex="-1" data-pane="zona"><span data-i18n="settings.zona">Zona de risco</span></button>
       </div>
       </div>
@@ -785,6 +786,8 @@
         </div>
 
       
+      </div>
+      <div class="view-pane settings-pane" id="settings-pane-banco" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-banco" hidden>
         <div class="field-group" id="pierre-bloco">
           <label data-i18n="pierre.titulo">Banco conectado (Pierre Finance)</label>
           <div class="rr-toggle-row">
@@ -796,6 +799,17 @@
           </div>
 
           <div id="pierre-campos" style="display:none;">
+            <!-- quem chega aqui ainda nao tem a chave: o caminho ate ela vem
+                 antes do campo, nao depois -->
+            <div class="ia-envio-aviso">
+              <div class="ia-envio-titulo" data-i18n="pierre.comoPegar">Onde pegar a chave</div>
+              <ol class="pierre-passos">
+                <li><span data-i18n="pierre.passo1">Crie sua conta em</span> <a class="help-link" href="https://pierre.finance/login" target="_blank" rel="noopener noreferrer">pierre.finance/login</a></li>
+                <li data-i18n="pierre.passo2">No Pierre, conecte o seu banco pelo Open Finance. A autoriza&ccedil;&atilde;o acontece l&aacute;, com o seu banco &mdash; aqui nada disso passa.</li>
+                <li><span data-i18n="pierre.passo3">Abra</span> <a class="help-link" href="https://pierre.finance/api-key" target="_blank" rel="noopener noreferrer">pierre.finance/api-key</a> <span data-i18n="pierre.passo3b">e copie a chave que come&ccedil;a com "sk-".</span></li>
+                <li data-i18n="pierre.passo4">Cole a chave no campo abaixo e toque em "Verificar chave e listar contas".</li>
+              </ol>
+            </div>
             <div class="ia-chave-linha">
               <input type="password" id="pierre-chave-input" class="ia-chave-input" autocomplete="off" spellcheck="false" placeholder="sk-..." data-i18n-placeholder="pierre.colaChave" data-i18n-aria-label="pierre.colaChave">
               <button type="button" id="pierre-chave-ver" class="ia-chave-ver" aria-pressed="false" title="Mostrar a chave" data-i18n-title="tt.mostrarChave">&#128065;</button>
