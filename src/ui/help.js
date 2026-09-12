@@ -123,6 +123,7 @@ async function init(){
     }
   });
   setupSettingsModal();
+  setupPierre();
   setupCalculadoraSheet();
   setupConversorSheet();
   setupGastoSheet();

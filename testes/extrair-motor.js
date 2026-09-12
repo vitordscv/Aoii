@@ -95,6 +95,8 @@ const FUNCOES=[
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
+  'semAcento','categoriaDoPierre','ehEntradaNoPierre','ehDeCartao','transacaoDoPierre',
+  'saldoDoPierre','planoDeSincronizacaoPierre','aplicarSincronizacaoPierre',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'empurrarParaNuvem','conteudoFinanceiroParaConflito','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',
@@ -110,8 +112,11 @@ function montarMotor(arquivo){
   const tiposRenda=/const TIPOS_RENDA\s*=\s*\[[\s\S]*?\n\];/.exec(src);
   /* os símbolos de moeda: formatBRL() os consulta antes de cair no Intl */
   const moedas=/const CURRENCY_INFO\s*=\s*\{[\s\S]*?\n\};/.exec(src);
+  /* o De-Para das categorias do Pierre: categoriaDoPierre() consulta */
+  const catsPierre=/const PIERRE_CATEGORIAS\s*=\s*\{[\s\S]*?\n\};/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
-    (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'');
+    (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
+    (catsPierre?catsPierre[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

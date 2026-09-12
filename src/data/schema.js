@@ -74,6 +74,10 @@ const ITEM_GASTO_FATURA = {
   viagemId: { tipo: 'ref', de: 'viagens', nulo: true },
   tags: { tipo: 'listaTexto', max: LIMITES.tag },
   nota: { tipo: 'texto', max: LIMITES.nota, nulo: true },
+  /* de onde veio, quando veio de fora: e o id da transacao no Pierre. E o que
+     faz a segunda sincronizacao reconhecer o que ja entrou em vez de lancar
+     tudo de novo. Texto curto porque e identificador de outro sistema. */
+  idExterno: { tipo: 'texto', max: 120, nulo: true },
 };
 
 const ITEM_FATURA = {
@@ -280,6 +284,11 @@ const ESQUEMA = {
   onboardingCompleto: { tipo: 'booleano', padrao: false },
   tourCompleto: { tipo: 'booleano', padrao: false },
   iaAtiva: { tipo: 'booleano', padrao: false },
+  /* a integracao com o Pierre. A CHAVE nao esta aqui de proposito: como a da
+     IA, ela mora fora do objeto, e por isso nao entra em backup nem sobe pra
+     nuvem — ver src/integrations/pierre-key.js. */
+  pierreAtivo: { tipo: 'booleano', padrao: false },
+  pierreSincronizadoEm: { tipo: 'iso', nulo: true },
 
   /* marcadores de "já aconteceu" — sem eles o app repete a ação toda vez que
      abre: um snapshot novo na nuvem, o card de revisão do mês de volta */

@@ -46,6 +46,7 @@ function defaultData(){
        idiomaDoNavegador(). Vale só pra quem começa agora — migrateData()
        nunca mexe no que já está salvo. */
     moeda:moedaDoNavegador(etiquetasDoNavegador()),
+    pierreAtivo:false,
     onboardingCompleto:false,
     tourCompleto:false,
     idioma:idiomaDoNavegador(etiquetasDoNavegador()),
@@ -203,6 +204,10 @@ function migrateData(d){
   if(typeof d.reservaNaConta!=='boolean') d.reservaNaConta=true;
   if(typeof d.reservaMeses!=='number')    d.reservaMeses=3;
   if(typeof d.iaAtiva!=='boolean') d.iaAtiva=false;
+  /* quem ja usava o app nunca teve a integracao: desligada, e sem data de
+     sincronizacao nenhuma. `idExterno` fica ausente nos lancamentos antigos,
+     que e o certo — eles nao vieram de fora. */
+  if(typeof d.pierreAtivo!=='boolean') d.pierreAtivo=false;
   d.viagens.forEach(v=>{ if(typeof v.orcamento!=='number') v.orcamento=0; });
   d.metas.forEach(m=>{ if(typeof m.aporteMensal!=='number') m.aporteMensal=0; if(!m.ultimoAporte) m.ultimoAporte=null; });
   d.transacoes.forEach(t=>{ if(!t.viagemId) t.viagemId=null; });

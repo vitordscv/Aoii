@@ -1248,3 +1248,58 @@ dificuldade de achar — fundo sólido, 46px de altura.
 `testes/interface/t_teclado.js` preenche uma renda digitando de verdade e salva
 com Enter, confere a diretiva do viewport e a barra presa no rodapé, e mede se
 o botão do mês tem fundo próprio.
+
+### 12/09 — integração com o Pierre Finance
+
+Pedido: ler saldo e extrato do banco pela API do Pierre, guardando a chave como
+já se guarda a da IA.
+
+**O padrão da IA não servia inteiro, por dois motivos verificados antes de
+escrever código.**
+
+*A API não fala com navegador.* Testado contra o servidor deles: o preflight
+responde `204` sem nenhum `Access-Control-Allow-Origin`, e na página o `fetch`
+morre em "Failed to fetch" com ou sem `Authorization`. CORS é decisão de quem
+serve — não há o que escrever no cliente que resolva. Então existe
+`api/pierre.js`, uma função na Vercel: o app chama a própria origem, e de lá a
+chamada sai de um servidor.
+
+*A chave é de outra ordem.* A documentação do Pierre diz que ela dá "acesso
+completo aos dados financeiros" e manda guardá-la em variável de ambiente. A do
+Gemini, vazando, custa dinheiro; esta abre o extrato bancário. Como o app é
+usado por umas três pessoas, **a chave não pode ser do projeto**: uma chave em
+variável de ambiente mostraria o extrato de uma pessoa para as outras. Ela vai
+no cabeçalho de cada chamada, é repassada e não fica guardada do outro lado — e
+no aparelho segue o padrão que a chave da IA ganhou hoje: sessão por padrão,
+disco só se alguém pedir, apagada ao desligar.
+
+O que isso **não** resolve está escrito na função e na tela: a chave passa pelo
+proxy em trânsito, e quem controla o deploy poderia registrá-la. Nada é
+registrado, e quem usa merece saber por onde a credencial passa.
+
+**Três decisões do De-Para, que valem mais que o código:**
+
+1. **Compra no cartão não entra no Diário.** O Pierre devolve transações de
+   todo tipo de conta. No Aoii, crédito mora dentro da fatura — e o guia é
+   claro: gasto entra uma vez por mês, nunca uma vez por fatura. Trazer as do
+   cartão para `transacoes` contaria o mesmo real duas vezes. Ficam de fora, e
+   a tela diz quantas ficaram, senão a pessoa acha que sumiram.
+2. **Cada lançamento guarda `idExterno`.** Ninguém sincroniza uma vez só; sem
+   o id do Pierre, a segunda vez dobraria o extrato.
+3. **O saldo é a soma das contas `BANK`.** Cartão tem saldo negativo (é dívida)
+   e investimento não é dinheiro em conta: somar os três daria um número que
+   não existe em lugar nenhum.
+
+**Nada é gravado antes de a pessoa ver.** Sincronizar monta um plano — quantas
+entram, quantas já estavam, quantas são do cartão, e qual saldo o banco diz
+contra o que está no app — e só grava depois do "confirmar".
+
+**Um defeito achado pelo teste**, e que teria passado despercebido:
+`definirPreferenciaBooleana()` tem uma lista fechada de chaves, e `pierreAtivo`
+não estava nela. O interruptor não salvava, e desligar a integração não apagava
+a chave — justamente a parte que mais importa.
+
+**O que não confirmei:** o limite de 1 banco do plano gratuito. Procurei na
+documentação e não há tabela de planos nem limites; só que a API exige
+assinatura ativa, o que o proxy traduz em `sem-assinatura`. Preferi não
+inventar um aviso a respeito.

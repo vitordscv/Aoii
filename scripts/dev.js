@@ -39,6 +39,27 @@ http.createServer((req, res) => {
   let rel = decodeURIComponent(req.url.split('?')[0]);
   if (rel === '/' || rel.endsWith('/')) rel += 'index.html';
 
+  /* As funções de api/ a Vercel serve sozinha em produção; aqui elas precisam
+     de alguém. Sem isto, a integração com o Pierre só dava pra experimentar
+     publicando — e o que não se testa na máquina não se testa. */
+  if (rel.startsWith('/api/')) {
+    const nome = rel.slice(5).replace(/\.js$/, '');
+    const arquivo = path.join(RAIZ, 'api', nome + '.js');
+    if (!arquivo.startsWith(path.join(RAIZ, 'api')) || !fs.existsSync(arquivo)) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ erro: 'sem-funcao', mensagem: 'não achei api/' + nome + '.js' }));
+      return;
+    }
+    /* recarrega a cada chamada: editar a função e recarregar a página basta */
+    delete require.cache[require.resolve(arquivo)];
+    Promise.resolve(require(arquivo)(req, res)).catch(e => {
+      if (res.headersSent) return;
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ erro: 'funcao-quebrou', mensagem: String(e && e.message || e) }));
+    });
+    return;
+  }
+
   /* remonta antes de servir a página; os assets não precisam */
   if (rel.endsWith('.html')) {
     const erro = montar();

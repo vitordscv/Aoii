@@ -28,6 +28,19 @@ function renderSettings(){
     if(iaFields) iaFields.style.display=data.iaAtiva===true?'block':'none';
   }
   if(iaChaveInput && document.activeElement!==iaChaveInput) iaChaveInput.value=getIaChave();
+  const pierreCheck=document.getElementById('pierre-ativo-check');
+  const pierreCampos=document.getElementById('pierre-campos');
+  const pierreChave=document.getElementById('pierre-chave-input');
+  const pierreLembrar=document.getElementById('pierre-lembrar-check');
+  const pierreAviso=document.getElementById('pierre-lembrar-aviso');
+  if(pierreCheck){
+    pierreCheck.checked=data.pierreAtivo===true;
+    if(pierreCampos) pierreCampos.style.display=data.pierreAtivo===true?'block':'none';
+  }
+  if(pierreChave&&document.activeElement!==pierreChave) pierreChave.value=getPierreChave();
+  if(pierreLembrar) pierreLembrar.checked=lembrarPierreChave();
+  if(pierreAviso) pierreAviso.hidden=!lembrarPierreChave();
+
   const iaLembrar=document.getElementById('ia-lembrar-check');
   const iaLembrarAviso=document.getElementById('ia-lembrar-aviso');
   if(iaLembrar) iaLembrar.checked=lembrarIaChave();

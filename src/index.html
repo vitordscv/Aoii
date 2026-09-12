@@ -784,6 +784,40 @@
           </div>
         </div>
 
+      
+        <div class="field-group" id="pierre-bloco">
+          <label data-i18n="pierre.titulo">Banco conectado (Pierre Finance)</label>
+          <div class="rr-toggle-row">
+            <div>
+              <div class="t-txt" id="pierre-ativo-label" data-i18n="pierre.ativar">Trazer saldo e extrato do banco</div>
+              <div class="t-sub" data-i18n="pierre.ativarSub">Lê as contas que você conectou no Pierre e traz os lançamentos para o Diário.</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" id="pierre-ativo-check" aria-labelledby="pierre-ativo-label"><span class="toggle-slider"></span></label>
+          </div>
+
+          <div id="pierre-campos" style="display:none;">
+            <div class="ia-chave-linha">
+              <input type="password" id="pierre-chave-input" class="ia-chave-input" autocomplete="off" spellcheck="false" placeholder="sk-..." data-i18n-placeholder="pierre.colaChave" data-i18n-aria-label="pierre.colaChave">
+              <button type="button" id="pierre-chave-ver" class="ia-chave-ver" aria-pressed="false" title="Mostrar a chave" data-i18n-title="tt.mostrarChave">&#128065;</button>
+            </div>
+
+            <div class="rr-toggle-row ia-lembrar-row">
+              <div>
+                <div class="t-txt" id="pierre-lembrar-label" data-i18n="settings.iaLembrar">Lembrar a chave neste aparelho</div>
+                <div class="t-sub" data-i18n="pierre.lembrarSub">Sem isso, você cola a chave de novo cada vez que abrir o app.</div>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="pierre-lembrar-check" aria-labelledby="pierre-lembrar-label"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="ia-lembrar-aviso" id="pierre-lembrar-aviso" hidden data-i18n="pierre.lembrarRisco">Esta chave abre o seu extrato bancário inteiro. Guardada no aparelho, fica legível para extensões do navegador e para quem usar este aparelho. Ela não entra no backup nem na sincronização, e é apagada se você desligar a integração.</div>
+
+            <button type="button" id="pierre-verificar-btn" class="reset-btn" data-i18n="pierre.verificar">Verificar chave e listar contas</button>
+            <div class="help-text" id="pierre-estado" role="status" aria-live="polite" aria-atomic="true"></div>
+
+            <button type="button" id="pierre-sync-btn" class="gf-new-btn" style="display:none;" data-i18n="pierre.sincronizar">↻ Buscar saldo e lançamentos</button>
+            <div class="ia-envio-aviso" id="pierre-plano" hidden></div>
+            <div class="help-text" data-i18n="pierre.rodape">A chave vai em cada consulta para uma função deste site, que apenas repassa ao Pierre — o navegador não consegue falar com eles direto. Nada dela fica guardado no servidor.</div>
+          </div>
+        </div>
       </div>
       <div class="view-pane settings-pane settings-danger-zone" id="settings-pane-zona" role="tabpanel" tabindex="0" aria-labelledby="settings-tab-zona" hidden>
         <div class="field-group">

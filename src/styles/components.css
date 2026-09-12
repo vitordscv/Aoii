@@ -1247,3 +1247,12 @@ body{padding-bottom:78px;}
 .diario-summary-card{
   box-shadow:0 10px 26px -10px rgba(11,24,48,0.28);
 }
+
+/* ── INTEGRAÇÃO COM O PIERRE ── */
+.pierre-erro{color:var(--neg);font-weight:600;}
+.pierre-ok{color:var(--pos);font-weight:600;}
+.pierre-amostra{font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted2);padding-left:2px;}
+.pierre-plano-acoes{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.pierre-plano-acoes button{flex:1;min-width:130px;min-height:40px;}
+#pierre-verificar-btn{width:100%;margin-top:10px;}
+#pierre-sync-btn{margin-top:10px;}
