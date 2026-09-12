@@ -57,8 +57,8 @@ module.exports=function(t){
       'ela sumia do relatório e o contador não sabia que era esperada');
     t.igual(aReceber&&aReceber.realizado,false,'…do lado do previsto');
 
-    t.igual(acha(itens,'rp.rendaMensalPrincipal').data,'20/09','a linha diz o dia em que a renda cai');
-    t.igual(acha(itens,'Freela').data,'02/09','e o dia do lançamento avulso');
+    t.igual(acha(itens,'rp.rendaMensalPrincipal').iso,'2026-09-20','a linha diz o dia em que a renda cai');
+    t.igual(acha(itens,'Freela').iso,'2026-09-02','e o dia do lançamento avulso');
 
     t.valor(somar(itens,true),4300,'realizado = 3000 + 900 + 400');
     t.valor(somar(itens,false),8700,'previsto = 8000 + 700');
@@ -89,6 +89,10 @@ module.exports=function(t){
     t.igual(acha(casa,'Notebook').realizado,false,
       'compra no cartão só sai da conta quando a fatura é paga');
     t.igual(acha(map['Mercado']||[],'Mercado').realizado,true,'débito do dia 03 saiu');
+
+    t.igual(acha(casa,'Notebook').iso,'2026-09-15',
+      'a compra no cartão é datada pelo vencimento da fatura — é esse dia que sai do extrato');
+    t.igual(acha(casa,'Internet').iso,'2026-09-20','a conta fixa é datada pelo vencimento dela');
   }
 
   console.log('\n\x1b[1mResumo do mês: marcar como pago antecipa o realizado\x1b[0m');

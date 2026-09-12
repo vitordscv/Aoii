@@ -33,6 +33,12 @@ function dataCurtaRelatorio(iso){
   const d=new Date(iso+'T12:00:00');
   return isNaN(d)?'':d.toLocaleDateString(localeAtual());
 }
+/* dd/mm: dentro de uma tabela do mes corrente o ano so ocupa espaco */
+function diaEMesRelatorio(iso){
+  if(!iso) return '';
+  const d=new Date(iso+'T12:00:00');
+  return isNaN(d)?'':d.toLocaleDateString(localeAtual(),{day:'2-digit',month:'2-digit'});
+}
 
 function imprimirRelatorioDoMes(){
   const t=today();
@@ -45,7 +51,7 @@ function imprimirRelatorioDoMes(){
   const receitaFeita=somaRelatorio(receitaItens,true);
   const receitaPrevista=somaRelatorio(receitaItens,false);
   const rowsReceitas=receitaItens.map(i=>linhaRelatorio(
-    `${esc(i.nome)}${i.data?` <span class="muted">· ${i.data}</span>`:''} <span class="muted tag">${esc(i.tag)}</span>`,i.val,i.realizado
+    `${esc(i.nome)}${i.iso?` <span class="muted">· ${diaEMesRelatorio(i.iso)}</span>`:''} <span class="muted tag">${esc(i.tag)}</span>`,i.val,i.realizado
   )).join('')||`<tr><td colspan="3" class="muted">${L('rp.semReceita')}</td></tr>`;
 
   /* ── 2. despesas por categoria ── */
@@ -67,7 +73,7 @@ function imprimirRelatorioDoMes(){
       `<td class="num cat-head">${feito?formatBRL(feito):'—'}</td>`+
       `<td class="num cat-head">${previsto?formatBRL(previsto):'—'}</td></tr>`;
     const linhas=itens.map(it=>linhaRelatorio(
-      `${esc(it.nome)}${it.data?` <span class="muted">· ${it.data}</span>`:''} <span class="muted tag">${esc(it.origem||'')}</span>`,
+      `${esc(it.nome)}${it.iso?` <span class="muted">· ${diaEMesRelatorio(it.iso)}</span>`:''} <span class="muted tag">${esc(it.origem||'')}</span>`,
       it.val,it.realizado,'sub')).join('');
     return cabeca+linhas;
   }).join('')||`<tr><td colspan="3" class="muted">${L('rp.semDespesa')}</td></tr>`;
@@ -255,4 +261,55 @@ function imprimirRelatorioDoMes(){
     ifr.contentWindow.print();
     setTimeout(()=>ifr.remove(),1000);
   },250);
+}
+
+/* ── O mesmo mês do documento impresso, em planilha ──────────────────────
+
+   O CSV que já existia era do Diário: só `data.transacoes`. No cenário de
+   teste isso deixava R$ 6.065,80 de R$ 12.154,47 de fora — a fatura do cartão
+   e as contas fixas inteiras. Quem recebesse os dois arquivos via dois totais
+   diferentes do mesmo mês e não tinha como saber qual valia.
+
+   Este sai do MESMO cálculo que imprime o documento, linha por linha, com a
+   coluna que diz se o dinheiro já passou pela conta. Confere com o papel. */
+
+/* o emoji ajuda a ler na tela e atrapalha numa célula de planilha */
+function semEmoji(s){
+  return String(s||'').replace(/[\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F2FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️‍]/gu,'').replace(/\s+/g,' ').trim();
+}
+function celulaCsv(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+function numeroCsv(v){
+  /* sem separador de milhar: planilha nenhuma lê "1.234,56" como número */
+  return Number(v||0).toLocaleString(localeAtual(),{useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function exportarMovimentosDoMesCSV(){
+  const t=today();
+  const situacao=r=>r?L('rp.realizado'):L('rp.previsto');
+  const linhas=[[L('csv.date'),L('csv.type'),L('rp.situacao'),L('csv.name'),
+                 L('csv.category'),L('csv.origem'),L('csv.value')]];
+
+  computeReceitasMesDetalhe().forEach(i=>{
+    linhas.push([i.iso||'',L('csv.income'),situacao(i.realizado),i.nome||'',
+                 semEmoji(i.tag),'',numeroCsv(i.val)]);
+  });
+
+  const detalhe=computeCategoryDetalhe();
+  Object.keys(detalhe).sort().forEach(cat=>{
+    detalhe[cat].forEach(it=>{
+      linhas.push([it.iso||'',L('csv.expense'),situacao(it.realizado),it.nome||'',
+                   categoriaLabel(cat),semEmoji(it.origem),numeroCsv(it.val)]);
+    });
+  });
+
+  const csv='﻿'+linhas.map(r=>r.map(celulaCsv).join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='aoii-'+t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-movimentos.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  vibrate(10);
+  setSaveStatus(L('st.csvExportado'));
 }

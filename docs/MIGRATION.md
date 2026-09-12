@@ -828,3 +828,18 @@ recebe uma folha dizendo "nenhuma dívida".
 
 **Onde mora.** `ui/report.js`, novo. Eram 127 das 400 linhas de `bindings.js`,
 e quase tudo ali é marcação de um documento inteiro.
+
+**A planilha, logo depois.** O CSV que existia era do Diário: só
+`data.transacoes`. No mesmo cenário isso deixava de fora R$ 6.065,80 de
+R$ 12.154,47 — a fatura do cartão e as contas fixas inteiras. Quem recebesse os
+dois arquivos via dois totais do mesmo mês e não tinha como saber qual valia.
+
+O botão novo, ao lado do de imprimir, sai do MESMO cálculo do documento: uma
+linha por lançamento, com data ISO, a coluna `Situação` (Realizado/Previsto) e
+sem emoji dentro de célula. A compra no cartão é datada pelo **vencimento da
+fatura**, que é o dia em que o dinheiro sai da conta — é essa data que bate com
+o extrato, não a da compra. Conferido no navegador: os quatro subtotais da
+planilha fecham com os do documento impresso, centavo por centavo.
+
+O CSV do Diário continua onde estava; ele responde outra pergunta ("o que eu
+lancei"), e misturar as duas em um arquivo só é o que criava a confusão.

@@ -36,7 +36,7 @@ function vencimentoDaFatura(f){
    projeção: passou o dia, ou foi marcada como paga. */
 function computeCategoryDetalhe(){
   const map={};
-  const add=(cat,nome,val,data_,origem,realizado)=>{ cat=cat||'Outros'; if(!map[cat]) map[cat]=[]; map[cat].push({nome,val,data:data_,origem,realizado}); };
+  const add=(cat,nome,val,iso,origem,realizado)=>{ cat=cat||'Outros'; if(!map[cat]) map[cat]=[]; map[cat].push({nome,val,iso,origem,realizado}); };
   const hoje0=new Date();
   const t=today();
   const ano=hoje0.getFullYear(), mes=hoje0.getMonth()+1;
@@ -44,19 +44,23 @@ function computeCategoryDetalhe(){
     if(f.ano!==ano||f.mes!==mes) return;
     /* a fatura vencida e não marcada conta como paga pelo mesmo motivo das
        contas fixas: não dá pra supor que o cartão segue em aberto pra sempre */
-    const saiu=!!f.pago||startOfDay(vencimentoDaFatura(f))<=t;
-    (f.gastos||[]).forEach(g=>{ add(g.categoria,g.nome,g.valor,null,'💳 '+(nomeCartao(f.cartaoId)||L('rp.cartao')),saiu||!!g.pago); });
+    /* a data da compra no cartão é o dia em que a FATURA sai da conta — é
+       essa que bate com o extrato, não o dia em que se passou o cartão */
+    const vence=vencimentoDaFatura(f);
+    const saiu=!!f.pago||startOfDay(vence)<=t;
+    (f.gastos||[]).forEach(g=>{ add(g.categoria,g.nome,g.valor,isoDate(vence),'💳 '+(nomeCartao(f.cartaoId)||L('rp.cartao')),saiu||!!g.pago); });
   });
   (data.gastosMensais||[]).forEach(g=>{
     if(!gastoFixoAtivoEm(g,ano,mes)) return;
-    const saiu=gastoFixoPagoEm(g,ano,mes)||startOfDay(dataNoMes(ano,mes,g.diaDoMes))<=t;
-    add(g.categoria,g.nome,g.valor,null,'🔁 '+L('rp.fixoDia').replace('{dia}',g.diaDoMes),saiu);
+    const vence=dataNoMes(ano,mes,g.diaDoMes);
+    const saiu=gastoFixoPagoEm(g,ano,mes)||startOfDay(vence)<=t;
+    add(g.categoria,g.nome,g.valor,isoDate(vence),'🔁 '+L('rp.fixoDia').replace('{dia}',g.diaDoMes),saiu);
   });
   transacoesGasto().forEach(tr=>{
     const d=new Date(tr.data+'T12:00:00');
     if(d.getFullYear()===ano&&d.getMonth()+1===mes){
       const metodoTxt=tr.metodo==='dinheiro'?'💵 '+L('pay.dinheiro'):tr.metodo==='pix'?'⚡ '+L('pay.pix'):'💳 '+L('pay.debito');
-      add(tr.categoria,tr.nome,tr.valor,d.toLocaleDateString(localeAtual(),{day:'2-digit',month:'2-digit'}),metodoTxt,startOfDay(d)<=t);
+      add(tr.categoria,tr.nome,tr.valor,tr.data,metodoTxt,startOfDay(d)<=t);
     }
   });
   Object.values(map).forEach(list=>list.sort((a,b)=>b.val-a.val));

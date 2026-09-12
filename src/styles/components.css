@@ -719,7 +719,8 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 /* Embaixo do card, no mesmo plano dele: mesma superfície e mesma sombra do
    .cat-card acima. Transparente e sem sombra, encostado num card elevado, ele
    lia como buraco no papel em vez de botão. */
-.export-relatorio-btn{display:block;margin-top:14px;background:var(--white);
+.export-relatorio-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.export-relatorio-btn{display:block;background:var(--white);
   border:1px solid var(--line);border-radius:12px;
   box-shadow:0 12px 30px -20px rgba(11,24,48,.48);
   padding:0 16px;height:40px;line-height:38px;
