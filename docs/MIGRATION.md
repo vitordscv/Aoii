@@ -1221,3 +1221,30 @@ maior, sem nenhum aviso. Os outros nove selects do app repunham o
 que só aparece medindo o texto contra a seta, e é isso que
 `testes/interface/t_selects.js` passa a fazer, nos nove selects, em cinco telas
 e nas configurações.
+
+### 12/09 — fechar o teclado pra achar o botão de salvar
+
+Relato: preencher uma renda nova é "um saco" — enche os campos, e aí precisa
+fechar o teclado pra encontrar o botão de salvar.
+
+A barra de ações da folha **já** era fixa no rodapé. O que faltava estava no
+`<meta viewport>`: sem `interactive-widget=resizes-content`, o teclado do
+Android **cobre** a página em vez de encolhê-la. A área fixa fica atrás dele, e
+não há o que rolar para alcançá-la. Com a diretiva, a página encolhe e o botão
+sobe junto.
+
+E um caminho mais curto ainda: **Enter num campo salva**, em qualquer folha. O
+teclado já tem a tecla; obrigar a fechá-lo para procurar um botão era o passo
+chato de todo preenchimento. Ficou em `ativarDialogo()`, junto do Escape —
+mesmo lugar, mesma ideia. Não vale para `textarea` (o chat trata Enter por
+conta própria) nem para caixas de marcar.
+
+**E o "+ Adicionar mês" quase invisível.** Ao tirar o card do meio da lista, na
+reforma da linha do tempo, fui longe demais na discrição: sobrou uma borda
+tracejada sobre papel texturizado, que não se lê como botão. Sendo o único jeito
+de acrescentar um mês, ganhou o mesmo peso do "+ Nova renda", que ninguém teve
+dificuldade de achar — fundo sólido, 46px de altura.
+
+`testes/interface/t_teclado.js` preenche uma renda digitando de verdade e salva
+com Enter, confere a diretiva do viewport e a barra presa no rodapé, e mede se
+o botão do mês tem fundo próprio.

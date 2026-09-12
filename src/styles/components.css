@@ -379,8 +379,11 @@ html.bg-ilustrado[data-theme="matcha"] .section-title{
 /* o "+ adicionar mês" era um card do tamanho de um mês, no meio da lista,
    como se fosse mais um mês */
 .mes-add{margin-top:10px;}
-.mes-add-btn{width:100%;background:none;border:1px dashed var(--line);border-radius:10px;color:var(--accent-ink);font-size:12.5px;font-weight:600;padding:11px 14px;min-height:42px;cursor:pointer;transition:background .15s;}
-.mes-add-btn:hover{background:var(--mist-lilac);}
+/* Tracejado sobre papel texturizado nao se le como botao: some. Este e o
+   unico jeito de acrescentar um mes, entao precisa ter corpo — o mesmo peso do
+   "+ Nova renda", que ninguem teve dificuldade de achar. */
+.mes-add-btn{width:100%;background:var(--mist-lilac);border:none;border-radius:12px;color:var(--ink-navy);font-size:13px;font-weight:700;padding:13px 14px;min-height:46px;cursor:pointer;transition:background .15s;}
+.mes-add-btn:hover{background:var(--line);}
 .mes-add .add-gasto-form{margin-top:8px;}
 
 .mes-item-erro{border-color:var(--neg);}

@@ -35,6 +35,13 @@ function ativarDialogo(dg,bd,inicial,aoCancelar){
     if(!noTopo()) return;
     if(e.key==='Escape'){
       e.preventDefault(); e.stopImmediatePropagation(); aoCancelar();
+    }else if(e.key==='Enter'&&!e.shiftKey&&dg.contains(e.target)
+             &&e.target.tagName==='INPUT'&&e.target.type!=='checkbox'&&e.target.type!=='radio'){
+      /* Enter num campo salva. No celular, o botao de confirmar fica atras do
+         teclado ate a pessoa fecha-lo — e fechar o teclado pra procurar o botao
+         era o passo chato de todo preenchimento. O teclado ja tem a tecla. */
+      const confirmar=dg.querySelector('.sheet-submit-btn:not([disabled]),.add-gasto-confirm:not([disabled])');
+      if(confirmar){ e.preventDefault(); confirmar.click(); }
     }else if(e.key==='Tab'){
       const lista=focaveis(),primeiro=lista[0]||dg,ultimo=lista[lista.length-1]||dg;
       if(e.shiftKey&&(document.activeElement===primeiro||!dg.contains(document.activeElement))){
