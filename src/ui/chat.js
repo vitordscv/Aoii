@@ -121,6 +121,63 @@ function setupGastoSheet(){
     document.getElementById('gasto-credito-fields').style.display = metodoAtual==='credito' ? 'block' : 'none';
     atualizarDividirVisivel();
   }
+  /* ── Entrada não é gasto com o sinal trocado ──────────────────────────────
+
+     A folha nasceu só para gasto e a entrada foi encaixada depois. O que sobrou
+     disso era um punhado de lugares ainda falando de saída: o botão continuava
+     "Lançar gasto", o alerta comparava a entrada com a média dos GASTOS da
+     categoria, e "Forma de pagamento" oferecia quatro opções para dinheiro que
+     está entrando — das quais só duas mudam alguma coisa (`dinheiro` vai pro
+     dinheiro vivo, todo o resto vai pra conta; veja `aplicarEfeitoTransacao()`).
+
+     Tudo isso passa a sair de UMA função, chamada na troca de tipo e ao abrir.
+     E troca o `data-i18n`, não só o texto: `applyIdioma()` reescreve pelo
+     atributo, então mexer só no textContent volta atrás na troca de idioma —
+     é a mesma razão do comentário em `ui/onboarding.js`. */
+  function rotulo(el,chave,atributo){
+    if(!el) return;
+    const attr=atributo||'data-i18n';
+    el.setAttribute(attr,chave);
+    if(attr==='data-i18n') el.textContent=L(chave);
+    else el.setAttribute(attr.replace('data-i18n-',''),L(chave));
+  }
+
+  function atualizarRotulosDoTipo(){
+    const isReceita=tipoAtual==='receita';
+
+    rotulo(document.getElementById('gasto-sheet-title'),
+      editingTransacaoId ? (isReceita?'gasto.editarEntrada':'gasto.editarGasto')
+                         : (isReceita?'gasto.novaEntrada':'sheet.novogasto'));
+
+    rotulo(document.getElementById('gasto-sheet-submit'),
+      editingTransacaoId ? 'gasto.salvarAlteracoes'
+                         : (isReceita?'gasto.lancarEntrada':'gasto.lancar'));
+
+    rotulo(document.getElementById('gasto-forma-label'),
+      isReceita?'gasto.ondeCaiu':'gasto.formaPagamento');
+
+    /* "Débito" é como se PAGA. Dinheiro que entra cai na conta. */
+    const spanDebito=sheet.querySelector('.pay-method-btn[data-metodo="debito"] span:last-child');
+    rotulo(spanDebito,isReceita?'pay.naConta':'pay.debito');
+
+    /* Pix e Débito acabam no mesmo lugar; oferecer os dois numa entrada é
+       pedir uma decisão que não muda nada. */
+    const pix=sheet.querySelector('.pay-method-btn[data-metodo="pix"]');
+    if(pix) pix.style.display=isReceita?'none':'';
+    if(isReceita&&metodoAtual==='pix'){ metodoAtual='debito'; renderPayGrid(); }
+
+    rotulo(document.getElementById('gasto-descricao'),
+      isReceita?'ph.entradaDescricao':'ph.expenseDescription','data-i18n-placeholder');
+    rotulo(document.getElementById('gasto-nota'),
+      isReceita?'ph.observacaoEntrada':'ph.observacaoGasto','data-i18n-placeholder');
+
+    /* Viagem numa entrada não faz nada: `gastoDaViagem()` soma só gasto. Campo
+       que existe e não tem efeito é pior que campo ausente. */
+    const viagem=document.getElementById('gasto-viagem-field');
+    if(viagem&&isReceita) viagem.style.display='none';
+    else if(viagem&&(data.viagens||[]).length) viagem.style.display='block';
+  }
+
   /* "Dividir com alguém" só faz sentido num gasto pago à vista: no crédito o
      valor vai inteiro pra fatura, e numa entrada não há o que rachar — o envio
      de receita ignora a porcentagem. Quem decidia era só o método, então bastava
@@ -140,10 +197,10 @@ function setupGastoSheet(){
       tipoAtual=btn.getAttribute('data-tipo');
       document.querySelectorAll('.gasto-tipo-btn').forEach(b=>{ const ativo=b===btn; b.classList.toggle('active',ativo); b.setAttribute('aria-pressed',ativo?'true':'false'); });
       const isReceita=tipoAtual==='receita';
-      document.getElementById('gasto-sheet-title').textContent=editingTransacaoId?(isReceita?L('gasto.editarEntrada'):L('gasto.editarGasto')):(isReceita?L('gasto.novaEntrada'):L('sheet.novogasto'));
       const creditoBtn=document.querySelector('.pay-method-btn[data-metodo="credito"]');
       if(creditoBtn) creditoBtn.style.display=isReceita?'none':'';
-      if(isReceita&&metodoAtual==='credito'){ metodoAtual='pix'; renderPayGrid(); }
+      if(isReceita&&metodoAtual==='credito'){ metodoAtual='debito'; renderPayGrid(); }
+      atualizarRotulosDoTipo();
       atualizarDividirVisivel();
       updateAlertaMedia();
     });
@@ -163,6 +220,10 @@ function setupGastoSheet(){
   function updateAlertaMedia(){
     const el=document.getElementById('gasto-alerta-media');
     const valor=parseNum(document.getElementById('gasto-valor').value);
+    /* O alerta compara com a média dos GASTOS da categoria. Numa entrada isso
+       não quer dizer nada — e pior: aparecia com "⚠️" dizendo que R$ 3.000
+       recebidos estão "3x acima da média", como se fosse problema. */
+    if(tipoAtual==='receita'){ if(el) el.style.display='none'; return; }
     if(!el||isNaN(valor)||valor<=0||!categoriaAtual){ if(el) el.style.display='none'; return; }
     const historico=transacoesGasto().filter(t=>t.categoria===categoriaAtual&&t.id!==editingTransacaoId);
     if(historico.length<3){ el.style.display='none'; return; }
@@ -207,12 +268,9 @@ function setupGastoSheet(){
     document.getElementById('gasto-tipo-toggle')?.querySelectorAll('.gasto-tipo-btn').forEach(b=>{ const ativo=b.getAttribute('data-tipo')===tipoAtual; b.classList.toggle('active',ativo); b.setAttribute('aria-pressed',ativo?'true':'false'); });
     const creditoBtn=document.querySelector('.pay-method-btn[data-metodo="credito"]');
     if(creditoBtn) creditoBtn.style.display=tipoAtual==='receita'?'none':'';
-    metodoAtual=t?(t.metodo||'debito'):'pix';
+    metodoAtual=t?(t.metodo||'debito'):(tipoAtual==='receita'?'debito':'pix');
     categoriaAtual=t?(t.categoria||CATS()[0]):(CATS()[0]||null);
-    const titleEl=document.getElementById('gasto-sheet-title');
-    document.getElementById('gasto-sheet-title').textContent=editingTransacaoId?(tipoAtual==='receita'?L('gasto.editarEntrada'):L('gasto.editarGasto')):(tipoAtual==='receita'?L('gasto.novaEntrada'):L('sheet.novogasto'));
-    const submitEl=document.getElementById('gasto-sheet-submit');
-    if(submitEl) submitEl.textContent=t?L('gasto.salvarAlteracoes'):L('gasto.lancar');
+    atualizarRotulosDoTipo();
     const credBtn=sheet.querySelector('.pay-method-btn[data-metodo="credito"]');
     if(credBtn) credBtn.style.display=t?'none':'';
     document.getElementById('gasto-valor').value=t?(t.valorTotal||t.valor):'';

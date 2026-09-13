@@ -1595,3 +1595,33 @@ As padrao ficam protegidas porque **o nome delas e identificador**:
 mapeia para ele, e backup antigo guarda esse texto. Renomear "Mercado" quebraria
 a traducao nos cinco idiomas e faria o De-Para do banco cair em "Outros". O
 ICONE delas continua livre: ele nao identifica nada.
+
+### 13/09 - a folha de lancamento ainda achava que tudo era gasto
+
+Ela nasceu so para gasto; "Entrada inesperada" foi encaixada depois. O que
+sobrou disso foram cinco lugares ainda falando de saida -- o mais visivel sendo
+o botao, que continuava "Lancar gasto" depois de escolher Entrada, porque a
+troca de tipo atualizava so o titulo.
+
+| onde | o que acontecia numa entrada |
+|---|---|
+| botao de enviar | continuava "Lancar gasto" |
+| rotulo do metodo | "Forma de pagamento" -- dinheiro que entra nao e pago |
+| botao "Debito" | debito e como se PAGA; entrada cai na conta |
+| Pix x Debito | os dois vao pro mesmo lugar: escolha que nao muda nada |
+| alerta de media | comparava a entrada com a media dos GASTOS da categoria |
+| campo Viagem | aparecia e nao fazia nada: `gastoDaViagem()` soma so gasto |
+| exemplos | "Ex: Almoco com a equipe", "observacao sobre esse gasto" |
+
+O alerta era o pior dos sete: receber R$ 3.000 numa categoria cuja media de
+gasto e R$ 55 acendia um "⚠️ 54x acima da media", como se boa noticia fosse
+problema.
+
+Tudo passou a sair de UMA funcao, `atualizarRotulosDoTipo()`, chamada na troca
+de tipo e ao abrir a folha. Ela troca o **`data-i18n`**, nao so o texto:
+`applyIdioma()` reescreve pelo atributo, entao mexer so no `textContent` voltaria
+atras na troca de idioma. E a mesma razao do comentario que ja existia em
+`ui/onboarding.js`.
+
+`testes/interface/t_entrada.js` cobre os dois modos. Sem a correcao, 8 das 18
+conferencias caem.
