@@ -251,6 +251,46 @@ titulo('CSS e marcação');
   reais.length ? ruim(reais.length+' classe(s) usadas sem nenhuma regra de CSS',reais.join(', '))
                : ok(usadas.size+' classes usadas, todas com estilo');
 
+  /* ── campo gravado em `data` que o esquema não conhece ──────────────────
+
+     O guia é explícito e a consequência é cara: campo que não está em
+     `src/data/schema.js` é **descartado** ao entrar, e o backup da pessoa o
+     perde em silêncio. Nada quebra na hora — quebra no dia em que alguém
+     restaura um backup e descobre que uma preferência, um id externo ou uma
+     escolha inteira sumiu.
+
+     Nenhuma tela mostra isso, nenhum teste de cálculo pega, e o lint olha
+     outra coisa. Por isso vive aqui: é mecânico, e o custo de esquecer é
+     desproporcional ao de conferir.
+
+     Lê o `dist` publicado, que é onde os módulos já estão concatenados: o
+     esquema e quem escreve nele acabam no mesmo arquivo. */
+  {
+    const esquemaIni=resto.indexOf('const ESQUEMA');
+    const esquemaFim=resto.indexOf('function validateAndNormalizeData');
+    const corpoEsquema=esquemaIni>=0&&esquemaFim>esquemaIni
+      ? resto.slice(esquemaIni,esquemaFim) : '';
+    const declarados=new Set([...corpoEsquema.matchAll(/^\s{2}([a-zA-Z][a-zA-Z0-9_]*)\s*:/gm)].map(m=>m[1]));
+
+    /* `data.x = …` em qualquer lugar, menos comparação (`==`, `===`, `=>`) */
+    const gravados=new Map();
+    for(const m of resto.matchAll(/\bdata\.([a-zA-Z][a-zA-Z0-9_]*)\s*=(?![=>])/g)){
+      const antes=resto.slice(Math.max(0,m.index-90),m.index);
+      /* dentro do próprio esquema ou da validação não conta: lá `data` é o
+         objeto que está sendo montado, não o do app */
+      if(/ESQUEMA|validateAndNormalize|limparObjeto/.test(antes)) continue;
+      if(!gravados.has(m[1])) gravados.set(m[1],resto.slice(Math.max(0,m.index-40),m.index+40).replace(/\s+/g,' '));
+    }
+    /* campos internos que nascem e morrem em memória, nunca vão pro disco */
+    const soDeMemoria=new Set(['_cartaoId','_tlMemo']);
+    const orfaos=[...gravados.keys()].filter(c=>!declarados.has(c)&&!soDeMemoria.has(c));
+
+    orfaos.length
+      ? ruim(orfaos.length+' campo(s) gravados em `data` e ausentes do esquema',
+          orfaos.join(', ')+' — campo fora do esquema é descartado ao entrar, e o backup o perde calado')
+      : ok(gravados.size+' campos gravados em `data`, todos declarados no esquema');
+  }
+
   const ids=(resto.match(/\sid="([a-zA-Z0-9_-]+)"/g)||[]).map(s=>s.split('"')[1]);
   const cont={}; ids.forEach(i=>cont[i]=(cont[i]||0)+1);
   const dups=Object.entries(cont).filter(([,n])=>n>1);

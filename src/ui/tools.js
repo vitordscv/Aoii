@@ -18,7 +18,6 @@ function separadorDecimal(){
 
 /* ═══ calculadora ═══ */
 let _abrirCalcSheet=null;
-function abrirCalculadora(){ if(_abrirCalcSheet) _abrirCalcSheet(); }
 
 function setupCalculadoraSheet(){
   const backdrop=document.getElementById('calc-sheet-backdrop');
@@ -144,7 +143,6 @@ function formatarNaMoeda(valor,codigo){
 }
 
 let _abrirFxSheet=null;
-function abrirConversorMoedas(){ if(_abrirFxSheet) _abrirFxSheet(); }
 
 function setupConversorSheet(){
   const backdrop=document.getElementById('fx-sheet-backdrop');

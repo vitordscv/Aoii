@@ -108,7 +108,6 @@ function gerarCodigoSync() {
   return c;
 }
 
-function saltGuardado() { try { return localStorage.getItem(CHAVE_SALT) || null; } catch (e) { return null; } }
 function guardarSalt(s) { try { s ? localStorage.setItem(CHAVE_SALT, s) : localStorage.removeItem(CHAVE_SALT); } catch (e) {} }
 
 function sincronizacaoDestrancada() { return !!(sync.codigo && sync.chave && sync.token); }
