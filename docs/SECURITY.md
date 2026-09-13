@@ -291,8 +291,29 @@ exigisse, ninguém conseguiria ligar a sincronização a primeira vez. Como a ch
 `anon` está no HTML publicado, qualquer um pode criar linhas até estourar a cota
 do plano.
 
-> **Meio aplicada, e o meio que falta é o que protege.** Conferido no banco em
-> 10/09/2026, lendo o corpo das funções:
+> **FECHADA. Conferida no banco em 13/09/2026**, lendo o corpo das funções e o
+> estado real do projeto `vpfinptbmxxamndvmtkn`:
+>
+> | o que | estado |
+> |---|---|
+> | `aoii_put` consulta `aoii_limites` | sim |
+> | `aoii_put` recusa criação em massa (`limite-criacao`) | sim |
+> | view `aoii_crescimento` | existe |
+> | RLS em `financas` e `aoii_limites` | ligada, **sem política** — tabela fechada, só as funções entram |
+> | `aoii_put_homolog` | não existe mais (0008) |
+>
+> Estado em 13/09/2026: 64 linhas, 128 kB, tetos de 30/hora e 5000 no total.
+>
+> **O que estava velho era este documento, não o banco.** O parágrafo abaixo
+> descrevia o diagnóstico de 10/09 e ficou aqui depois de a correção ter sido
+> aplicada — e me levou a anunciar, em 13/09, um buraco aberto que já estava
+> tapado. Fica como aviso: **conferir no banco vale mais do que ler daqui.** O
+> bloco de SQL no fim de `0006_limites_producao.sql` faz essa conferência em
+> dois comandos.
+>
+> <details><summary>o diagnóstico de 10/09/2026, mantido por histórico</summary>
+>
+> Conferido no banco em 10/09/2026, lendo o corpo das funções:
 >
 > | função | consulta `aoii_limites` | recusa criação em massa |
 > |---|---|---|
@@ -307,6 +328,8 @@ do plano.
 > [`0006_limites_producao.sql`](../supabase/migrations/0006_limites_producao.sql).
 > O corpo de `aoii_put` em produção foi lido e é exatamente o do `0001`, sem
 > correção posterior: aplicar não sobrescreve trabalho de ninguém.
+>
+> </details>
 
 **Criptografia não resolve isto.** Ela protege o conteúdo, não o espaço.
 
@@ -403,6 +426,40 @@ derruba as duas funções e a tabela. Rollback = reaplicar `0003` e `0005`, que
 são idempotentes. O que se perde é ensaiar contra produção pelo atalho do
 `localStorage['aoii-homolog']` — e perder isso é o certo: ensaio não se faz no
 projeto onde moram os dados reais.
+
+### ~~12. A suíte de testes escrevia no Supabase de produção~~ — fechada em 13/09/2026
+
+Achada por acaso, conferindo a pendência 9: 6 linhas criadas na última hora num
+app de três pessoas. O padrão entregou.
+
+| período | linhas criadas | revisão |
+|---|---|---|
+| 06/09 e 10/09 | 5 | 6 a 35 — uso real |
+| 12/09 18h → 13/09 04h | **58** | **1, nunca atualizadas** |
+
+Todas com o prefixo `ZT`, que é exatamente o que `t_primeirabusca.js` gerava:
+`'ZT' + Date.now()`, **um código de sincronização novo por execução**. Ligar a
+sincronização cria a linha; logo, cada `npm run ui` deixava lixo cifrado no
+projeto de verdade.
+
+**O lixo não era o pior.** Às 23:00 houve 12 criações numa hora, e o teto de
+proteção é 30. Mais uma ou duas rodadas em sequência e um usuário real teria
+recebido `limite-criacao` ao tentar ligar a sincronização pela primeira vez — o
+teste quase disparou a defesa que a pendência 9 existe para ter.
+
+A trava ficou em `conectar()`, em `testes/interface/cdp.js`, e não em cada
+arquivo: assim um teste novo não reintroduz o problema por esquecimento.
+Bloquear a escrita foi a primeira tentativa e **trava o fluxo** — sem o `put`
+respondido, o app nunca chega à leitura que o teste cronometra. Então em vez de
+barrar, o interceptador **responde** pela escrita com o mesmo JSON que o banco
+devolveria, com cabeçalhos de CORS (sem eles o navegador descarta a resposta
+forjada e o app entende "sem conexão"). Leitura continua indo de verdade: não
+cria nada.
+
+Medido depois: rodada completa da suíte, **64 linhas antes, 64 depois**.
+
+`AOII_NUVEM_REAL=1` libera a escrita para quem quiser medir contra a nuvem de
+propósito.
 
 ## Regras para quem for mexer
 

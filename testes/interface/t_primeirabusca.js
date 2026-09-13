@@ -12,7 +12,12 @@ const { conectar, avaliar, irPara, esperar } = require('./cdp');
 
 const URL = 'http://localhost:4173/';
 const SENHA = 'senha-de-teste-123';
-const CODIGO = process.env.AOII_CODIGO || ('ZT' + Date.now().toString(36).toUpperCase().padEnd(10, 'X').slice(0, 10));
+/* Código FIXO. Era `'ZT' + Date.now()`, um código novo por execução — e como
+   ligar a sincronização cria a linha, cada rodada da suíte deixava uma linha
+   nova no Supabase de verdade. A escrita agora está travada no `conectar()`,
+   mas um código fixo é a segunda tranca: mesmo com a trava liberada, todas as
+   rodadas caem na mesma linha em vez de espalhar lixo. */
+const CODIGO = process.env.AOII_CODIGO || 'ZTTESTE001';
 let falhas = 0;
 const conferir = (c, m, d) => { c ? console.log(`  \x1b[32mok\x1b[0m ${m}`)
   : (falhas++, console.log(`  \x1b[31m!!\x1b[0m ${m}${d ? '\n       ' + d : ''}`)); };
