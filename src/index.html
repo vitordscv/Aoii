@@ -648,9 +648,11 @@
           <label data-i18n="settings.categorias">Categorias de gasto</label>
           <div id="categorias-list" class="cat-manage-list"></div>
           <div class="add-item-row" style="margin-top:10px;">
+            <button type="button" id="categoria-emoji-btn" class="cat-emoji-btn" aria-haspopup="true" aria-expanded="false" title="Escolher emoji" data-i18n-title="cat.escolherEmoji" data-i18n-aria-label="cat.escolherEmoji">&#128230;</button>
             <input type="text" id="categoria-nova-nome" placeholder="Nova categoria (ex: Pets)" data-i18n-placeholder="ph.novaCategoria" data-i18n-aria-label="ph.novaCategoria">
             <button type="button" id="categoria-add-btn" data-i18n="btn.adicionar">+ Adicionar</button>
           </div>
+          <div id="categoria-emoji-grade" class="cat-emoji-grade" hidden role="listbox" data-i18n-aria-label="cat.escolherEmoji" aria-label="Escolher emoji"></div>
           <div class="help-text" data-i18n="settings.categoriasHelp">Aparecem nos seletores de categoria em todo o app. Categorias já usadas em lançamentos antigos continuam aparecendo neles mesmo se removidas daqui.</div>
         </div>
         <div class="field-group">

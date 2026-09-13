@@ -334,6 +334,54 @@ module.exports=function(t){
       'valendo a partir do mês corrente, e não retroativo');
   }
 
+  console.log('\n\x1b[1mAssinatura no cartão entra; parcela, não\x1b[0m');
+  {
+    const d=base();
+    d.cartoes=[{id:'k1',nome:'Nubank gold',limite:700,diaFechamento:21,diaVencimento:28,idExterno:'cc1'}];
+    const c=criarAmbiente(d,HOJE);
+    const noCartao=(id,desc,valor,mes,extra)=>Object.assign({
+      id, description:desc, amount:-valor, type:'DEBIT',
+      date:'2026-0'+mes+'-24', category:'Serviços', status:'POSTED',
+      account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank',
+    },extra||{});
+
+    const vindas=[
+      /* a assinatura: mesmo valor, todo mês, sem fim à vista */
+      noCartao('s1','Claude Pro',114.38,'7'),
+      noCartao('s2','Claude Pro',114.38,'8'),
+      /* a parcela: mesmo valor, todo mês, mas ACABA. O Pierre marca. */
+      noCartao('p1','Fone de ouvido',100,'7',
+        {credit_card_data:{installmentNumber:1,totalInstallments:3,isIndividualInstallment:true}}),
+      noCartao('p2','Fone de ouvido',100,'8',
+        {credit_card_data:{installmentNumber:2,totalInstallments:3,isIndividualInstallment:true}}),
+      /* e a que só o texto denuncia, sem credit_card_data */
+      noCartao('q1','Cadeira (1/4)',80,'7'),
+      noCartao('q2','Cadeira (2/4)',80,'8'),
+    ];
+
+    const sug=c.sugerirGastosFixosPierre(vindas,HOJE,'k1');
+    const nomes=sug.map(g=>g.nome);
+    t.verdadeiro(nomes.some(n=>/Claude Pro/.test(n)),
+      'assinatura cobrada no cartão é sugerida',
+      'olhar só o débito em conta perde quem paga streaming no crédito');
+    t.verdadeiro(!nomes.some(n=>/Fone/.test(n)),
+      'parcela marcada em credit_card_data NÃO vira conta fixa',
+      'ela acaba; virar fixo cobraria o valor para sempre na projeção');
+    t.verdadeiro(!nomes.some(n=>/Cadeira/.test(n)),
+      'e o "(2/4)" na descrição também basta para recusar');
+
+    const claude=sug.find(g=>/Claude Pro/.test(g.nome));
+    t.verdadeiro(claude.cartao===true,'a sugestão sai marcada como cobrada no cartão');
+    t.igual(claude.cartaoId,'k1','apontando para o cartão que veio do Pierre');
+    t.igual(claude.diaDoMes,24,'com o dia em que cai');
+
+    c.aplicarGastosFixosPierre([claude],HOJE);
+    const criado=d.gastosMensais[d.gastosMensais.length-1];
+    t.verdadeiro(criado.cartao===true&&criado.cartaoId==='k1',
+      'e o gasto fixo nasce ligado ao cartão',
+      'sem isso o dinheiro sairia da conta no dia, em vez de entrar na fatura');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();

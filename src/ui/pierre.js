@@ -119,7 +119,9 @@ function pierreDesenharPlano(plano){
       item.appendChild(nome);
       const val=document.createElement('span');
       val.className='pierre-conta-tipo';
-      val.textContent=formatBRL(g.valor)+' · '+L('pierre.planoFixoDia').replace('{d}',g.diaDoMes);
+      val.textContent=formatBRL(g.valor)+' · '
+        +L('pierre.planoFixoDia').replace('{d}',g.diaDoMes)
+        +(g.cartao?' · '+L('pierre.planoFixoCartao'):'');
       item.appendChild(val);
       lista.appendChild(item);
     });
@@ -341,7 +343,12 @@ function setupPierre(){
       if(data.pierreTrazerFixos===true){
         const {lista:historico}=await buscarTransacoesPierre(
           isoDate(new Date(new Date().getTime()-180*86400000)),todayISO());
-        plano.fixos=sugerirGastosFixosPierre(historico,todayISO());
+        /* o cartão do Pierre, se já existe aqui: assinatura cobrada no
+           crédito precisa apontar para ele, senão o dinheiro sairia da conta
+           no dia em vez de entrar na fatura */
+        const doPierre=(data.cartoes||[]).find(k=>k.idExterno);
+        plano.fixos=sugerirGastosFixosPierre(historico,todayISO(),
+          doPierre?doPierre.id:null);
       }
 
       pierreEstado('');

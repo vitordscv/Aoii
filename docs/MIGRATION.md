@@ -1467,3 +1467,42 @@ Não há TTL curto. As mortes anteriores coincidiram com a pessoa estar no site 
 Pierre, o que aponta de volta para "gerar outra invalida a anterior" — e levanta
 a hipótese de que **abrir** `pierre.finance/api-key` já gere uma nova. Não está
 confirmado.
+
+### 13/09 - a categoria Assinaturas e o emoji de quem cria
+
+**Assinaturas virou categoria.** Streaming, nuvem e plano de celular moravam em
+"Lazer" e "Casa", onde somem no meio de cinema e conta de luz. Entra em
+`CATEGORIAS_DEFAULT` antes de "Outros", com icone e traducao nos cinco idiomas,
+e a migracao acrescenta para quem ja usava - e aditiva, nao reclassifica gasto
+nenhum.
+
+Uma cobranca que se repete no CARTAO vai para "Assinaturas" em vez da categoria
+adivinhada; debito em conta mantem a mapeada, porque ali moram aluguel e
+emprestimo, que nao sao assinatura.
+
+**Assinatura no cartao agora e detectada.** A deteccao olhava so debito em
+conta e perdia exatamente o caso mais comum. Medido contra a conta real: TIM
+(conta), Amazon Prime (cartao) e Anthropic (cartao) - os tres que o proprio app
+do Pierre lista, e que antes so o primeiro aparecia.
+
+**E parcela NAO vira assinatura.** Uma compra em 3x cai todo mes, mesmo valor,
+mesma descricao: indistinguivel de uma assinatura pelos criterios anteriores.
+Mas ela acaba, e virar gasto fixo cobraria aquele valor para sempre na projecao.
+Recusada por `credit_card_data` ou pelo "(2/3)" na descricao. Zero vazaram no
+extrato real.
+
+Nao ha rota de assinatura na API do Pierre - testei oito nomes plausiveis, todos
+404. O "Assinaturas" do app deles e interno.
+
+**Emoji escolhido na categoria criada.** Toda categoria nova nascia com a caixa
+de papelao. Agora ha uma grade de 32 simbolos, e a escolha vai para
+`categoriaEmojis` - **mapa a parte, nao dentro do nome**, porque o nome viaja:
+CSV, orcamento, De-Para do banco, comparacao de duplicata. "Pets" tem que
+continuar sendo "Pets". Remover a categoria leva o emoji junto.
+
+O limite conta por ponto de codigo, nao por `length`: bandeira e emoji com tom
+de pele ocupam varios caracteres e sao um simbolo so.
+
+**Um teste que era fragil:** `t_celular.js` tinha `base: 6` escrito na mao para
+a contagem de categorias, e quebrou quando "Assinaturas" entrou - falha por
+motivo que nao era o dele. Agora conta antes do toque.

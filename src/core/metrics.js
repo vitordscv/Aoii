@@ -1,5 +1,5 @@
 /* ── gastos por categoria (faturas em aberto + gastos mensais fixos) ── */
-const CATEGORIAS_DEFAULT=['Mercado','Transporte','Lazer','Saúde','Casa','Outros'];
+const CATEGORIAS_DEFAULT=['Mercado','Transporte','Lazer','Saúde','Casa','Assinaturas','Outros'];
 function CATS(){ return (data&&data.categorias&&data.categorias.length)?data.categorias:CATEGORIAS_DEFAULT; }
 function computeCategoryBreakdown(){
   const map={};

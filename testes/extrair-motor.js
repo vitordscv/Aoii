@@ -76,7 +76,7 @@ const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORM
 const FUNCOES=[
   'parseNum','parseNumOpcional','localeAtual','formatadorDeMoeda','formatBRL','formatValorSemMoeda','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'definirIdioma','definirMoeda','definirTema','definirPreferenciaBooleana','definirTipoRenda','atualizarRendaDiaria','atualizarRendaMensal','atualizarSaldoConta','atualizarDinheiroVivo','configurarPerfilFinanceiro','atualizarDataAlvo','atualizarReserva',
-  'adicionarCategoria','removerCategoria','criarViagem','removerViagem',
+  'adicionarCategoria','removerCategoria','emojiDeCategoriaValido','definirEmojiDeCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','definirDiasTrabalho','diaCalendarioValido','adicionarDiaNaoTrabalhado','removerDiaNaoTrabalhado','daysBetweenInclusive','remainingWorkDaysUntil',
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','camposFatura','salvarFatura','atualizarValorFatura',
   'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','restanteDivida','fatiasAosPoucos',
@@ -100,7 +100,7 @@ const FUNCOES=[
   'numeroDoPierre','contaEhBanco','nomeDaContaPierre','aindaNaoCaiu',
   'diaDoIso','anoMesDoIso','contaEhCartao','cartaoDoPierre','parcelasAbertasDoPierre',
   'planoDoCartaoPierre','aplicarCartaoPierre','sugerirGastosFixosPierre',
-  'aplicarGastosFixosPierre','assinaturaDoGasto',
+  'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'empurrarParaNuvem','conteudoFinanceiroParaConflito','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',

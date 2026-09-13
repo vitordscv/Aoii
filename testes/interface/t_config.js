@@ -90,6 +90,41 @@ const ESPERADO = {
   await esperar(400);
   await tirarFoto(cdp, PASTA_FOTOS + '/config-categorias.png');
 
+  console.log('\n  \x1b[1ma categoria nova escolhe o emoji\x1b[0m');
+  {
+    const r = await avaliar(cdp, `
+      document.getElementById('settings-tab-categorias').click();
+      await new Promise(r=>setTimeout(r,500));
+      const abre=document.getElementById('categoria-emoji-btn');
+      abre.click();
+      await new Promise(r=>setTimeout(r,300));
+      const grade=document.getElementById('categoria-emoji-grade');
+      const opcoes=[...grade.querySelectorAll('.cat-emoji-opcao')];
+      const escolhido=opcoes[0].textContent;
+      opcoes[0].click();
+      await new Promise(r=>setTimeout(r,300));
+      document.getElementById('categoria-nova-nome').value='Pets';
+      document.getElementById('categoria-add-btn').click();
+      await new Promise(r=>setTimeout(r,900));
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      const lista=document.getElementById('categorias-list');
+      return {escolhido,
+        guardado:(d.categoriaEmojis||{})['Pets'],
+        temCategoria:(d.categorias||[]).includes('Pets'),
+        gradeFechou:grade.hidden,
+        botaoVoltou:abre.textContent,
+        naTela:(lista?lista.textContent:'')};`);
+    conferir(r.temCategoria, 'a categoria foi criada');
+    conferir(r.guardado === r.escolhido,
+      `o emoji escolhido ficou guardado (${r.guardado})`,
+      'sem isso toda categoria nova fica com a caixa de papelao');
+    conferir(r.naTela.includes('Pets') && r.naTela.includes(r.escolhido),
+      'e a categoria aparece na lista com o emoji dela');
+    conferir(r.gradeFechou, 'a grade fecha depois de escolher');
+    conferir(r.botaoVoltou === '\u{1F4E6}',
+      'o botao volta ao neutro, pra proxima categoria nao herdar o icone');
+  }
+
   console.log('\n' + '─'.repeat(52));
   console.log(falhas === 0 ? '\x1b[32mConfigurações coerentes.\x1b[0m' : `\x1b[31m${falhas} problema(s).\x1b[0m`);
   cdp.fechar();

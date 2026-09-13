@@ -10,6 +10,44 @@ const base=()=>({saldoAtual:1000,dinheiroVivo:0,tipoRenda:'mensal',rendaMensal:{
 
 module.exports=function(t){
 
+  console.log('\n\x1b[1mCategoria criada escolhe o próprio emoji\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    c.adicionarCategoria('Pets','\u{1F43E}');
+    t.igual(d.categoriaEmojis['Pets'],'\u{1F43E}','o emoji escolhido fica guardado');
+    t.verdadeiro(d.categorias.includes('Pets'),'e a categoria entra na lista');
+
+    c.adicionarCategoria('Sem icone');
+    t.igual(d.categoriaEmojis['Sem icone'],undefined,
+      'quem não escolhe não ganha entrada no mapa');
+
+    /* o nome NÃO carrega o emoji: ele viaja pro CSV, pro orçamento e pro
+       De-Para do banco, e "Pets" tem que continuar sendo "Pets" */
+    t.verdadeiro(d.categorias.includes('Pets')&&!d.categorias.some(x=>/\u{1F43E}/u.test(x)),
+      'o emoji fica fora do nome da categoria');
+
+    t.igual(c.emojiDeCategoriaValido('abc'),'','letra não é ícone');
+    t.igual(c.emojiDeCategoriaValido('123'),'','número também não');
+    t.igual(c.emojiDeCategoriaValido('\u{1F43E}\u{1F415}\u{1F431}\u{1F476}\u{1F393}'),'',
+      'cinco símbolos não é um ícone, é um texto');
+    t.igual(c.emojiDeCategoriaValido('\u{1F1E7}\u{1F1F7}'),'\u{1F1E7}\u{1F1F7}',
+      'bandeira é um símbolo só, mesmo ocupando vários caracteres');
+
+    c.definirEmojiDeCategoria('Pets','\u{1F415}');
+    t.igual(d.categoriaEmojis['Pets'],'\u{1F415}','dá pra trocar depois');
+    c.definirEmojiDeCategoria('Pets','');
+    t.igual(d.categoriaEmojis['Pets'],undefined,'e apagar volta ao padrão');
+    t.igual(c.definirEmojiDeCategoria('Nao existe','\u{1F415}'),null,
+      'categoria que não existe não ganha emoji');
+
+    c.definirEmojiDeCategoria('Pets','\u{1F43E}');
+    c.removerCategoria('Pets');
+    t.igual(d.categoriaEmojis['Pets'],undefined,
+      'remover a categoria leva o emoji junto, sem deixar órfão');
+  }
+
+
   console.log('\n\x1b[1mEntrada não pode contar como gasto\x1b[0m');
   const d=base();
   d.transacoes=[

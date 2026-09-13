@@ -59,10 +59,14 @@ const PIERRE_CATEGORIAS = {
   'moradia': 'Casa',
   'casa': 'Casa',
   'servicos': 'Casa',                                  /* real */
-  'telecomunicacao': 'Casa',                           /* real */
   'energia eletrica': 'Casa',
   'agua': 'Casa',
   'internet': 'Casa',
+  /* assinatura */
+  'streaming': 'Assinaturas',
+  'assinaturas': 'Assinaturas',
+  'assinatura': 'Assinaturas',
+  'telecomunicacao': 'Assinaturas',
   /* sem categoria natural no Aoii */
   'compras': 'Outros',                                 /* real */
   'transferencias': 'Outros',                          /* real */
@@ -459,10 +463,22 @@ function aplicarCartaoPierre(plano){
    O critério é conservador de propósito, porque um falso positivo aqui vira
    despesa fantasma na projeção de todos os meses seguintes:
 
-     - só saída de conta de banco, já confirmada;
+     - só saída já confirmada, da conta OU do cartão;
      - a mesma descrição em 2 meses distintos ou mais;
      - valor estável (o maior não passa 15% do menor);
-     - fora pagamento de fatura, que já é a fatura do cartão. */
+     - fora pagamento de fatura, que já é a fatura do cartão;
+     - fora PARCELA de compra parcelada.
+
+   A última é a que mais importa e foi a mais fácil de não ver: uma compra em
+   3x cai todo mês, no mesmo valor, com a mesma descrição — é indistinguível
+   de uma assinatura por esses critérios. Mas ela **acaba**, e uma assinatura
+   não. Virar gasto fixo significaria cobrar aquele valor para sempre na
+   projeção. O Pierre marca a parcela em `credit_card_data`, e a descrição
+   costuma trazer "(2/3)"; qualquer um dos dois basta para recusar.
+
+   E o gasto fixo pode ser cobrado no cartão: o Aoii já modela isso
+   (`cartao`/`cartaoId` em ITEM_GASTO_FIXO), e é onde moram as assinaturas de
+   quem paga streaming no crédito. Olhar só o débito em conta perdia essas. */
 
 const PIERRE_NAO_EH_FIXO=/pagamento de fatura|pagamento de cartao|fatura do cartao|estorno|transferencia recebida/;
 
@@ -474,13 +490,23 @@ function assinaturaDoGasto(t){
     .trim();
 }
 
-function sugerirGastosFixosPierre(transacoes,hojeISO){
+/* Parcela de compra parcelada: repete, mas acaba. */
+function ehParcelaDoPierre(t){
+  const cc=t&&t.credit_card_data;
+  if(cc&&(cc.isIndividualInstallment===true||cc.isFullInstallmentTransaction===true
+     ||Number(cc.installmentNumber)>0||Number(cc.totalInstallments)>1)) return true;
+  return /\(\s*\d+\s*\/\s*\d+\s*\)/.test(String(t&&t.description||''));
+}
+
+function sugerirGastosFixosPierre(transacoes,hojeISO,cartaoId){
   const hoje=String(hojeISO||todayISO()).slice(0,10);
   const porAssinatura=new Map();
 
   (transacoes||[]).forEach(t=>{
-    if(ehDeCartao(t)||aindaNaoCaiu(t)) return;
+    if(aindaNaoCaiu(t)) return;
     if(String(t&&t.type||'').toUpperCase()!=='DEBIT') return;
+    const noCartao=ehDeCartao(t);
+    if(noCartao&&ehParcelaDoPierre(t)) return;
     const dia=String(t&&t.date||'').slice(0,10);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dia)||dia>hoje) return;
     const assinatura=assinaturaDoGasto(t);
@@ -491,7 +517,7 @@ function sugerirGastosFixosPierre(transacoes,hojeISO){
     if(!(valor>0)) return;
     if(!porAssinatura.has(assinatura)) porAssinatura.set(assinatura,[]);
     porAssinatura.get(assinatura).push({dia,valor,nome:String(t.description||'').trim(),
-      categoria:t.category});
+      categoria:t.category,noCartao});
   });
 
   const jaTenho=new Set((data.gastosMensais||[]).map(g=>semAcento(g.nome)));
@@ -510,14 +536,27 @@ function sugerirGastosFixosPierre(transacoes,hojeISO){
       contagem.set(d,(contagem.get(d)||0)+1);
     });
     const diaDoMes=[...contagem.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+    /* onde é cobrado muda o efeito no caixa: no cartão o dinheiro não sai no
+       dia, entra na fatura. Uma mistura entre os dois na mesma descrição conta
+       como cartão, que é o caso de quem trocou a forma de pagamento. */
+    const noCartao=lista.some(x=>x.noCartao);
+    /* Cobranca que se repete no CARTAO e, quase sempre, assinatura: streaming,
+       nuvem, loja. Mandar para "Assinaturas" em vez da categoria adivinhada
+       tira esse dinheiro de "Lazer", onde ele escondia o quanto some todo mes
+       sem ninguem decidir nada. Debito em conta mantem a categoria mapeada --
+       la moram aluguel e emprestimo, que nao sao assinatura. */
+    const categoria=noCartao&&(CATS()||[]).includes('Assinaturas')
+      ? 'Assinaturas' : categoriaDoPierre(maisNovo.categoria);
     sugestoes.push({
       nome:maisNovo.nome.slice(0,60),
       valor:Math.round(maisNovo.valor*100)/100,
       diaDoMes,
-      categoria:categoriaDoPierre(maisNovo.categoria),
+      categoria,
       vezes:lista.length,
       meses:meses.size,
       sempreIgual:menor===maior,
+      cartao:noCartao,
+      cartaoId:noCartao?(cartaoId||null):null,
       jaExiste:jaTenho.has(semAcento(maisNovo.nome)),
     });
   });
@@ -537,6 +576,7 @@ function aplicarGastosFixosPierre(escolhidos,hojeISO){
       nome:g.nome, valor:g.valor, diaDoMes:g.diaDoMes,
       categoria:g.categoria||'Outros', ativo:true,
       inicioAno:quando.ano, inicioMes:quando.mes,
+      cartao:Boolean(g.cartao), cartaoId:g.cartao?(g.cartaoId||null):null,
     });
     if(feito) criados++;
   });

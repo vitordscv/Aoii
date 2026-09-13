@@ -36,6 +36,53 @@ function setupCartaoSheet(){
   _openCartaoSheet=open;
 
   document.getElementById('cartao-new-btn')?.addEventListener('click',()=>open(null));
+  /* ── o emoji da categoria nova ──────────────────────────────────────────
+     Uma grade curta, não um teclado de emoji inteiro: são ~30 símbolos que
+     cobrem o que as pessoas criam de categoria (pet, academia, filho, carro,
+     presente). Quem quiser outro cola no campo — `definirEmojiDeCategoria()`
+     aceita qualquer um, a grade é só o caminho rápido. */
+  const EMOJIS_DE_CATEGORIA=['\u{1F43E}','\u{1F415}','\u{1F431}','\u{1F476}','\u{1F393}','\u{1F4DA}',
+    '\u{1F3CB}','\u{26BD}','\u{1F6B2}','\u{1F697}','\u{26FD}','\u{2708}','\u{1F3E8}','\u{1F381}',
+    '\u{1F484}','\u{1F455}','\u{1F45F}','\u{1F52A}','\u{1F37A}','\u{2615}','\u{1F355}','\u{1F366}',
+    '\u{1F3B5}','\u{1F3AC}','\u{1F4BB}','\u{1F4F1}','\u{1F527}','\u{1F3E5}','\u{1F48A}','\u{1F4B8}',
+    '\u{1F501}','\u{1F4E6}'];
+  let emojiEscolhido='';
+
+  function pintarGradeDeEmoji(){
+    const grade=document.getElementById('categoria-emoji-grade');
+    if(!grade||grade.childElementCount) return;
+    EMOJIS_DE_CATEGORIA.forEach(e=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='cat-emoji-opcao';
+      b.setAttribute('role','option');
+      b.setAttribute('aria-selected','false');
+      b.textContent=e;
+      b.addEventListener('click',()=>{
+        const igual=emojiEscolhido===e;
+        emojiEscolhido=igual?'':e;
+        [...grade.children].forEach(o=>o.setAttribute('aria-selected',
+          !igual&&o.textContent===e?'true':'false'));
+        const botao=document.getElementById('categoria-emoji-btn');
+        if(botao) botao.textContent=emojiEscolhido||'\u{1F4E6}';
+        grade.hidden=true;
+        const abre=document.getElementById('categoria-emoji-btn');
+        if(abre) abre.setAttribute('aria-expanded','false');
+        const campo=document.getElementById('categoria-nova-nome');
+        if(campo) campo.focus();
+      });
+      grade.appendChild(b);
+    });
+  }
+
+  document.getElementById('categoria-emoji-btn')?.addEventListener('click',e=>{
+    const grade=document.getElementById('categoria-emoji-grade');
+    if(!grade) return;
+    pintarGradeDeEmoji();
+    grade.hidden=!grade.hidden;
+    e.currentTarget.setAttribute('aria-expanded',grade.hidden?'false':'true');
+  });
+
   umEnvioPorVez(document.getElementById('categoria-add-btn'),async()=>{
     const inp=document.getElementById('categoria-nova-nome');
     const nome=inp.value.trim();
@@ -43,8 +90,15 @@ function setupCartaoSheet(){
     /* limpar o campo e não fazer nada era o pior desfecho: parecia que tinha
        dado certo. O único motivo de recusa que a pessoa pode corrigir é o
        nome repetido — os outros (vazio, longo demais) ela vê no campo. */
-    if(!adicionarCategoria(nome)){ await alertDialog(L('erro.categoriaRepetida')); inp.select(); return; }
+    if(!adicionarCategoria(nome,emojiEscolhido)){ await alertDialog(L('erro.categoriaRepetida')); inp.select(); return; }
     inp.value='';
+    /* volta ao estado neutro: o emoji escolhido era daquela categoria, e
+       deixá-lo grudado faria a próxima nascer com o ícone da anterior */
+    emojiEscolhido='';
+    const botao=document.getElementById('categoria-emoji-btn');
+    if(botao) botao.textContent='\u{1F4E6}';
+    const grade=document.getElementById('categoria-emoji-grade');
+    if(grade){ grade.hidden=true; [...grade.children].forEach(o=>o.setAttribute('aria-selected','false')); }
     await persist(); render();
   });
   umEnvioPorVez(document.getElementById('viagem-add-btn'),async()=>{

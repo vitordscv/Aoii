@@ -7,8 +7,13 @@ const REDUCED_MOTION=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-m
 function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
 
 /* ícone consistente por categoria (pills, listas e grids de seleção) */
-const CATEGORIA_ICONES={'Mercado':'🛒','Transporte':'🚌','Lazer':'🎮','Saúde':'💊','Casa':'🏠','Outros':'📦'};
-function catIcon(c){ return CATEGORIA_ICONES[c]||'📦'; }
+const CATEGORIA_ICONES={'Mercado':'🛒','Transporte':'🚌','Lazer':'🎮','Saúde':'💊','Casa':'🏠','Assinaturas':'🔁','Outros':'📦'};
+/* a escolha da pessoa ganha do padrao; a caixa so aparece pra quem nao
+   escolheu nada */
+function catIcon(c){
+  const escolhido=(data&&data.categoriaEmojis)?data.categoriaEmojis[c]:null;
+  return escolhido||CATEGORIA_ICONES[c]||'📦';
+}
 function nomeViagem(id){ const v=(data.viagens||[]).find(x=>x.id===id); return v?v.nome:''; }
 
 /* ── count-up animado: anima do valor anterior até o novo ── */

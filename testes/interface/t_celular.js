@@ -153,14 +153,20 @@ const BASE = require('./cenario').SIMPLES;
       ${caso.abrir}
       await new Promise(r=>setTimeout(r,600));
       ${caso.preencher}
+      /* conta ANTES do toque: numero fixo aqui quebra toda vez que a lista
+         padrao do app muda, e o teste passa a falhar por motivo que nao e o
+         dele -- foi o que aconteceu quando "Assinaturas" entrou */
+      const antes=(JSON.parse(localStorage.getItem('financas-data')).${caso.lista}||[]).length;
       const b=document.getElementById('${caso.botao}');
       b.click(); b.click();                       /* dois toques seguidos */
       await new Promise(r=>setTimeout(r,1000));
-      return (JSON.parse(localStorage.getItem('financas-data')).${caso.lista}||[]).length;
+      const depois=(JSON.parse(localStorage.getItem('financas-data')).${caso.lista}||[]).length;
+      return {antes,depois};
     `);
-    const esperado=(caso.base||0)+1;
-    conferir(r === esperado, `${caso.nome.padEnd(18)} dois toques → ${r} registro(s), esperado ${esperado}`,
-      r > esperado ? 'duplicou — quem toca duas vezes fica com dois registros iguais' : 'não salvou nada');
+    const esperado=r.antes+1;
+    conferir(r.depois === esperado,
+      `${caso.nome.padEnd(18)} dois toques → ${r.antes} virou ${r.depois}, esperado ${esperado}`,
+      r.depois > esperado ? 'duplicou — quem toca duas vezes fica com dois registros iguais' : 'não salvou nada');
   }
 
   console.log('\n' + '─'.repeat(52));

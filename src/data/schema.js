@@ -260,6 +260,11 @@ const ESQUEMA = {
 
   /* categorias e orçamento */
   categorias: { tipo: 'listaTexto', max: LIMITES.categoria },
+  /* o emoji de cada categoria criada pela pessoa. Mapa a parte, e nao dentro
+     do nome, porque o nome viaja: vai pro CSV, pro orcamento, pro De-Para do
+     banco e pra comparacao com o que ja existe. "Pets" tem que continuar
+     sendo "Pets". */
+  categoriaEmojis: { tipo: 'mapaTexto', maxChave: LIMITES.categoria, maxValor: 8 },
   orcamentos: { tipo: 'mapaDinheiro', maxChave: LIMITES.categoria },
 
   /* reserva de emergência */

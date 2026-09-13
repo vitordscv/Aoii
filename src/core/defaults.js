@@ -18,6 +18,7 @@ function defaultData(){
     diasTrabalho:[1,2,3,4,5],
     rendaMensal:{valor:0,diaDoMes:5},
     gastosMensais:[],
+    categoriaEmojis:{},
     diasNaoTrabalhados:[],
     faturas:[],
     transacoes:[],
@@ -116,7 +117,19 @@ function migrateData(d){
   if(!d.faturas)              d.faturas=[];
   if(typeof d.limiteCartao!=='number') d.limiteCartao=0;
   if(!d.cartoes) d.cartoes=[];
+  if(!d.categoriaEmojis||typeof d.categoriaEmojis!=='object'||Array.isArray(d.categoriaEmojis)){
+    d.categoriaEmojis={};
+  }
   if(!d.categorias||!d.categorias.length) d.categorias=CATEGORIAS_DEFAULT.slice();
+  /* "Assinaturas" nasceu depois. Acrescentar e aditivo -- nao mexe em gasto
+     nenhum ja classificado -- e sem isso quem ja usava nunca teria a categoria
+     nova, que e justamente onde streaming e plano de celular deixam de poluir
+     "Lazer". Entra antes de "Outros", que e sempre o ultimo da lista. */
+  if(d.categorias.length&&!d.categorias.includes('Assinaturas')){
+    const fim=d.categorias.indexOf('Outros');
+    if(fim>=0) d.categorias.splice(fim,0,'Assinaturas');
+    else d.categorias.push('Assinaturas');
+  }
   d.cartoes.forEach(c=>{
     if(typeof c.diaFechamento!=='number') c.diaFechamento=null;
     if(typeof c.diaVencimento!=='number')  c.diaVencimento=null;
