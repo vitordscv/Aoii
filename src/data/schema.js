@@ -316,6 +316,10 @@ const ESQUEMA = {
      recebia o extrato inteiro. Agora a lista e sempre explicita, e esta bandeira
      separa quem nunca mexeu (padrao, traz tudo) de quem escolheu. */
   pierreContasDefinidas: { tipo: 'booleano', padrao: false },
+  /* quando a busca-ao-abrir consultou o banco pela ultima vez. Sem isto ela
+     dispara a cada abertura do app -- com o cartao ligado sao quatro chamadas
+     por vez, e extrato bancario nao muda de minuto em minuto. */
+  pierreBuscadoEm: { tipo: 'iso', nulo: true },
   /* O rastro da ultima importacao, pra ela poder ser desfeita. Guarda ID, nunca
      conteudo: o que foi criado se acha pelo id, e o que foi alterado volta ao
      valor anotado aqui. Uma importacao so -- desfazer a penultima nao faz

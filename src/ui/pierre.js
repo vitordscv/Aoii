@@ -25,6 +25,11 @@ function pierreDizOErro(e){
   return conhecidos[codigo]?L(conhecidos[codigo]):(e&&e.message)||L('pierre.erroGenerico');
 }
 
+/* O plano achado pela busca-ao-abrir, esperando alguém olhar. Fica em memória
+   e não em `data`: é uma foto do banco, não um dado do app — e se a pessoa
+   fechar sem confirmar, não sobra nada. */
+let pierrePlanoPendente=null;
+
 function pierreEstado(texto,tom){
   const el=document.getElementById('pierre-estado');
   if(!el) return;
@@ -235,6 +240,9 @@ function pierreDesenharPlano(plano){
     registrarImportacaoPierre({sinc:r,cartao:doCartao,fixos});
     await persist(); render();
     caixa.hidden=true; caixa.innerHTML='';
+    /* o achado virou lançamento: a faixa do Resumo não tem mais o que oferecer */
+    pierrePlanoPendente=null;
+    pierreDesenharAviso();
     let aviso=L('pierre.pronto').replace('{n}',r.lancadas);
     if(r.jaEstavam) aviso+=' '+L('pierre.prontoJaEstavam').replace('{n}',r.jaEstavam);
     if(doCartao&&doCartao.estourando&&doCartao.estourando.length){
@@ -326,6 +334,97 @@ function pierreMostrarDesfazer(){
   resumo.textContent=texto;
 }
 
+/* ── O que o banco tem de novo, no Resumo ────────────────────────────────
+
+   A busca ao abrir existe para poupar o caminho até Configurações. Desenhar o
+   resultado DENTRO de Configurações desfazia o próprio motivo dela: gastava a
+   chamada e não entregava nada, porque o app abre no Resumo.
+
+   Então o achado aparece aqui, com um toque para ver o plano inteiro. Continua
+   sem gravar nada sozinho. */
+function pierreDesenharAviso(){
+  const el=document.getElementById('pierre-aviso');
+  if(!el) return;
+  el.innerHTML='';
+  const p=pierrePlanoPendente;
+  if(!p) return;
+
+  const novas=p.novas.length;
+  const mexeNoSaldo=p.trazerSaldo&&Math.abs(p.diferencaDeSaldo)>=0.01;
+  const temCartao=!!(p.cartao&&p.cartao.cartoes.length);
+  const temFixos=!!(p.fixos&&p.fixos.length);
+  if(!novas&&!mexeNoSaldo&&!temCartao&&!temFixos) return;
+
+  const faixa=document.createElement('div');
+  faixa.className='banco-banner';
+
+  const texto=document.createElement('span');
+  texto.className='banco-banner-texto';
+  const partes=[];
+  if(novas) partes.push(L('pierre.avisoLancamentos').replace('{n}',novas));
+  if(mexeNoSaldo) partes.push(L('pierre.avisoSaldo').replace('{v}',formatBRL(p.saldo)));
+  if(temFixos) partes.push(L('pierre.avisoFixos').replace('{n}',p.fixos.length));
+  texto.textContent='🏦 '+partes.join(' · ');
+  faixa.appendChild(texto);
+
+  const ver=document.createElement('button');
+  ver.type='button';
+  ver.className='banco-banner-btn';
+  ver.textContent=L('pierre.avisoVer');
+  ver.addEventListener('click',()=>{
+    document.getElementById('topbar-settings-btn')?.click();
+    setTimeout(()=>{
+      document.getElementById('settings-tab-banco')?.click();
+      setTimeout(()=>{
+        if(pierrePlanoPendente) pierreDesenharPlano(pierrePlanoPendente);
+        document.getElementById('pierre-plano')?.scrollIntoView({block:'center'});
+      },250);
+    },400);
+  });
+  faixa.appendChild(ver);
+
+  const fechar=document.createElement('button');
+  fechar.type='button';
+  fechar.className='banco-banner-fechar';
+  fechar.textContent='✕';
+  fechar.title=L('btn.fechar');
+  fechar.setAttribute('aria-label',L('btn.fechar'));
+  fechar.addEventListener('click',()=>{ pierrePlanoPendente=null; pierreDesenharAviso(); });
+  faixa.appendChild(fechar);
+
+  el.appendChild(faixa);
+}
+
+/* Busca sem abrir folha nenhuma. Devolve o plano em vez de desenhá-lo: quem
+   chama decide onde mostrar. */
+async function pierreBuscarPlano(){
+  const contas=await buscarContasPierre();
+  const desde=data.pierreSincronizadoEm
+    ? isoDate(new Date(new Date(data.pierreSincronizadoEm).getTime()-7*86400000))
+    : '';
+  const {lista}=await buscarTransacoesPierre(desde,todayISO());
+  const escolhidas=data.pierreContas||[];
+  const definidas=data.pierreContasDefinidas===true;
+  const plano=planoDeSincronizacaoPierre(contas.contas,lista,{
+    contas:escolhidas, definidas,
+    trazerSaldo:data.pierreTrazerSaldo!==false,
+    trazerLancamentos:data.pierreTrazerLancamentos!==false,
+  });
+  plano._contas=contas.contas;
+  return plano;
+}
+
+/* A folga entre uma busca automática e a seguinte. Extrato de banco não muda
+   de minuto em minuto, e cada abertura custa de uma a quatro chamadas. */
+const PIERRE_FOLGA_HORAS=6;
+
+function pierrePodeBuscarAoAbrir(){
+  if(data.pierreBuscarAoAbrir!==true||data.pierreAtivo!==true) return false;
+  if(!chavePierreParece(getPierreChave())) return false;
+  const ultima=data.pierreBuscadoEm?new Date(data.pierreBuscadoEm).getTime():0;
+  return !ultima||(Date.now()-ultima)>=PIERRE_FOLGA_HORAS*3600000;
+}
+
 function setupPierre(){
   const check=document.getElementById('pierre-ativo-check');
   const campos=document.getElementById('pierre-campos');
@@ -379,6 +478,17 @@ function setupPierre(){
       if(definirPreferenciaBooleana(chave,e.target.checked)===null) return;
       vibrate(6);
       await persist(); render();
+      /* "Buscar ao abrir" depende da chave sobreviver ao fechar o app, e por
+         padrão ela mora só na sessão. Sem avisar, a opção fica verde na tela
+         sem nunca rodar — ligada e inútil é pior que desligada. */
+      if(chave==='pierreBuscarAoAbrir'&&e.target.checked&&!lembrarPierreChave()){
+        if(await confirmDialog({text:L('pierre.abrirPrecisaLembrar')})){
+          definirLembrarPierreChave(true);
+          const lembrarEl=document.getElementById('pierre-lembrar-check');
+          if(lembrarEl) lembrarEl.checked=true;
+          render();
+        }
+      }
     });
   });
 
@@ -403,13 +513,32 @@ function setupPierre(){
     }catch(e){ pierreEstado(pierreDizOErro(e),'erro'); }
   });
 
-  /* Buscar ao abrir. Só com a opção ligada, a integração ativa e a chave já no
-     aparelho — sem a chave não há o que buscar, e pedir para colar no meio da
-     abertura seria pior que não fazer nada. NÃO grava: só deixa o plano pronto
-     na tela, e quem confirma continua sendo quem está lendo. */
-  if(data.pierreBuscarAoAbrir===true&&data.pierreAtivo===true
-     &&chavePierreParece(getPierreChave())&&sync){
-    setTimeout(()=>{ if(!sync.disabled) sync.click(); },1500);
+  /* Buscar ao abrir. Só com a opção ligada, a integração ativa, a chave já no
+     aparelho e a folga cumprida. NÃO grava: deixa o achado no Resumo, e quem
+     confirma continua sendo quem está lendo. */
+  if(pierrePodeBuscarAoAbrir()){
+    setTimeout(async()=>{
+      try{
+        const plano=await pierreBuscarPlano();
+        if(data.pierreTrazerCartao===true){
+          const doCartao=plano._contas;
+          const faturas=await buscarFaturasPierre();
+          const desdeLonge=isoDate(new Date(new Date().getTime()-540*86400000));
+          const parcelas=await buscarParcelasPierre(desdeLonge,todayISO());
+          const {lista:extratoLongo}=await buscarTransacoesPierre(desdeLonge,todayISO());
+          plano.cartao=planoDoCartaoPierre(doCartao,faturas,parcelas,todayISO(),extratoLongo);
+        }
+        pierrePlanoPendente=plano;
+        data.pierreBuscadoEm=new Date().toISOString();
+        await persist();
+        pierreDesenharAviso();
+      }catch(e){
+        /* falhar aqui é silencioso de propósito: ninguém pediu esta busca
+           agora, e um erro na cara de quem só abriu o app é ruído */
+        data.pierreBuscadoEm=new Date().toISOString();
+        await persist();
+      }
+    },1500);
   }
 
   const desfazer=document.getElementById('pierre-desfazer-btn');
@@ -419,7 +548,7 @@ function setupPierre(){
     const pergunta=L('pierre.desfazConfirma')
       .replace('{n}',r.lancamentos)
       .replace('{f}',r.faturas);
-    if(!(await confirmDialog(pergunta))) return;
+    if(!(await confirmDialog({text:pergunta}))) return;
     const feito=desfazerImportacaoPierre();
     await persist(); render();
     pierreMostrarDesfazer();

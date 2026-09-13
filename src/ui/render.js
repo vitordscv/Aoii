@@ -120,6 +120,7 @@ const VIEW_RENDERERS={
     renderChips();
     renderNegativeWarning();
     renderFaturaWarning();
+    if(typeof pierreDesenharAviso==='function') pierreDesenharAviso();
     renderRendaAtrasadaWarning();
     renderInsights();
     renderWeekSummary();

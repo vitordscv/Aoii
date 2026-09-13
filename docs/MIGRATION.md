@@ -1625,3 +1625,36 @@ atras na troca de idioma. E a mesma razao do comentario que ja existia em
 
 `testes/interface/t_entrada.js` cobre os dois modos. Sem a correcao, 8 das 18
 conferencias caem.
+
+### 13/09 - "buscar ao abrir" passou a entregar
+
+A primeira versao buscava e desenhava o resultado em `#pierre-plano`, que vive
+DENTRO da folha de Configuracoes. O app abre no Resumo. Entao ela gastava a
+chamada e nao entregava nada -- e se a pessoa fosse abrir Configuracoes de
+qualquer jeito, era so tocar em "Buscar", que e justamente o que a opcao existe
+para poupar. Eu tinha desenhado a busca e esquecido a entrega.
+
+Tres consertos:
+
+**1. O achado aparece no Resumo**, numa faixa junto dos outros avisos que
+merecem estar em cima, com um toque que abre o plano inteiro. O plano fica em
+memoria, nao em `data`: e uma foto do banco, e se a pessoa fechar sem confirmar
+nao sobra nada. Continua sem gravar coisa alguma sozinho.
+
+**2. Folga de 6 horas entre buscas automaticas.** Disparava a cada abertura --
+com o cartao ligado sao quatro chamadas por vez, e extrato bancario nao muda de
+minuto em minuto. `pierreBuscadoEm` guarda a ultima.
+
+**3. Ligar sem a chave guardada passou a avisar.** A chave mora na SESSAO por
+padrao: fechar a aba ou relancar o PWA a apaga, e a busca desistia em silencio
+com a chavinha verde na tela. Agora pergunta, e oferece guardar.
+
+**Um defeito meu, achado no caminho:** `confirmDialog(opts)` le `opts.text`, e eu
+vinha passando texto solto em dois lugares -- inclusive na confirmacao de
+desfazer a importacao, que aparecia com o corpo vazio.
+
+E uma licao de teste: `Runtime.evaluate` SEMPRE chega tarde para um comportamento
+que dispara 1,5 s depois de a pagina montar. Duas versoes deste teste mediram
+"0 chamadas" onde havia chamada. A ferramenta certa e
+`Page.addScriptToEvaluateOnNewDocument`, que instala o duble antes de qualquer
+script da pagina.

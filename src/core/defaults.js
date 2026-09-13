@@ -52,6 +52,7 @@ function defaultData(){
     pierreTrazerLancamentos:true,
     pierreContas:[],
     pierreContasDefinidas:false,
+    pierreBuscadoEm:null,
     pierreUltimaImportacao:null,
     pierreTrazerCartao:false,
     pierreTrazerFixos:false,
@@ -236,6 +237,7 @@ function migrateData(d){
   if(!Array.isArray(d.pierreContas)) d.pierreContas=[];
   /* quem ja usava tinha [] querendo dizer "todas": continua assim ate escolher */
   if(typeof d.pierreContasDefinidas!=='boolean') d.pierreContasDefinidas=false;
+  if(typeof d.pierreBuscadoEm!=='string') d.pierreBuscadoEm=null;
   if(!d.pierreUltimaImportacao||typeof d.pierreUltimaImportacao!=='object'
      ||Array.isArray(d.pierreUltimaImportacao)){
     d.pierreUltimaImportacao=null;
