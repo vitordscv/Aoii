@@ -19,21 +19,138 @@ function renderViagensList(){
   }));
 }
 
-/* ── lista de categorias personalizadas nas configurações ── */
+/* ── lista de categorias nas configurações ──────────────────────────────────
+
+   Duas espécies de linha, e a diferença é de propósito:
+
+   - **as que vêm com o app** não se apagam nem se renomeiam. O nome delas é
+     identificador: traduz a apresentação nos cinco idiomas, recebe o De-Para do
+     banco, e está gravado em backup antigo. O ÍCONE, esse é livre — ele não
+     identifica nada.
+   - **as que a pessoa criou** se renomeiam, trocam de ícone e se apagam.
+
+   Renomear leva junto lançamento, gasto fixo, gasto de fatura e orçamento; é
+   `renomearCategoria()` quem faz, e não esta tela. */
+function pintarGradeDeEmojiEm(caixa,atual,aoEscolher){
+  caixa.innerHTML='';
+  EMOJIS_DE_CATEGORIA.forEach(e=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='cat-emoji-opcao';
+    b.setAttribute('role','option');
+    b.setAttribute('aria-selected',e===atual?'true':'false');
+    b.textContent=e;
+    b.addEventListener('click',()=>aoEscolher(e===atual?'':e));
+    caixa.appendChild(b);
+  });
+}
+
 function renderCategoriasList(){
   const el=document.getElementById('categorias-list'); if(!el) return;
-  el.innerHTML=CATS().map(c=>`
-    <div class="cat-manage-row">
-      <span>${catIcon(c)} ${esc(categoriaLabel(c))}</span>
-      <button type="button" class="cat-manage-del" data-cat="${esc(c)}" title="${esc(L('btn.remover'))}" aria-label="${esc(L('a11y.deleteItem').replace('{name}',categoriaLabel(c)))}">✕</button>
-    </div>`).join('');
-  el.querySelectorAll('.cat-manage-del').forEach(btn=>btn.addEventListener('click',async()=>{
-    const cat=btn.getAttribute('data-cat');
-    if(CATS().length<=1) return;
-    if(!(await confirmDialog({text:L('confirm.removerCategoria').replace('{cat}',categoriaLabel(cat))}))) return;
-    if(!removerCategoria(cat)) return;
-    await persist(); render();
-  }));
+  el.innerHTML='';
+
+  CATS().forEach(cat=>{
+    const padrao=categoriaEhPadrao(cat);
+    const linha=document.createElement('div');
+    linha.className='cat-manage-row';
+
+    /* o ícone é botão em toda linha, inclusive nas padrão */
+    const icone=document.createElement('button');
+    icone.type='button';
+    icone.className='cat-linha-emoji';
+    icone.textContent=catIcon(cat);
+    icone.title=L('cat.escolherEmoji');
+    icone.setAttribute('aria-label',L('cat.escolherEmoji')+': '+categoriaLabel(cat));
+    icone.setAttribute('aria-expanded','false');
+    linha.appendChild(icone);
+
+    const nome=document.createElement('span');
+    nome.className='cat-linha-nome';
+    nome.textContent=categoriaLabel(cat);
+    linha.appendChild(nome);
+
+    if(padrao){
+      const selo=document.createElement('span');
+      selo.className='cat-linha-selo';
+      selo.textContent=L('cat.padrao');
+      selo.title=L('cat.padraoPorque');
+      linha.appendChild(selo);
+    }else{
+      const editar=document.createElement('button');
+      editar.type='button';
+      editar.className='cat-linha-editar';
+      editar.textContent='✎';
+      editar.title=L('cat.renomear');
+      editar.setAttribute('aria-label',L('cat.renomear')+': '+cat);
+      linha.appendChild(editar);
+
+      const apagar=document.createElement('button');
+      apagar.type='button';
+      apagar.className='cat-manage-del';
+      apagar.textContent='✕';
+      apagar.title=L('btn.remover');
+      apagar.setAttribute('aria-label',L('a11y.deleteItem').replace('{name}',cat));
+      linha.appendChild(apagar);
+
+      editar.addEventListener('click',()=>{
+        const campo=document.createElement('input');
+        campo.type='text';
+        campo.className='cat-linha-campo';
+        campo.value=cat;
+        campo.setAttribute('aria-label',L('cat.renomear'));
+        linha.replaceChild(campo,nome);
+        editar.style.display='none';
+        campo.focus();
+        campo.select();
+
+        const salvar=async()=>{
+          const novo=campo.value.trim();
+          if(!novo||novo===cat){ render(); return; }
+          if(!renomearCategoria(cat,novo)){
+            await alertDialog(L('erro.categoriaRepetida'));
+            render();
+            return;
+          }
+          await persist(); render();
+        };
+        campo.addEventListener('keydown',e=>{
+          if(e.key==='Enter'){ e.preventDefault(); salvar(); }
+          else if(e.key==='Escape'){ e.preventDefault(); render(); }
+        });
+        campo.addEventListener('blur',salvar);
+      });
+
+      apagar.addEventListener('click',async()=>{
+        if(CATS().length<=1) return;
+        if(!(await confirmDialog({text:L('confirm.removerCategoria').replace('{cat}',categoriaLabel(cat))}))) return;
+        if(!removerCategoria(cat)) return;
+        await persist(); render();
+      });
+    }
+
+    el.appendChild(linha);
+
+    const grade=document.createElement('div');
+    grade.className='cat-emoji-grade';
+    grade.hidden=true;
+    grade.setAttribute('role','listbox');
+    grade.setAttribute('aria-label',L('cat.escolherEmoji'));
+    el.appendChild(grade);
+
+    icone.addEventListener('click',()=>{
+      const abrindo=grade.hidden;
+      /* uma grade por vez: duas abertas viram um paredão de emoji */
+      el.querySelectorAll('.cat-emoji-grade').forEach(g=>{ g.hidden=true; });
+      el.querySelectorAll('.cat-linha-emoji').forEach(b=>b.setAttribute('aria-expanded','false'));
+      if(!abrindo) return;
+      pintarGradeDeEmojiEm(grade,(data.categoriaEmojis||{})[cat]||'',async escolhido=>{
+        definirEmojiDeCategoria(cat,escolhido);
+        await persist(); render();
+      });
+      grade.hidden=false;
+      icone.setAttribute('aria-expanded','true');
+    });
+  });
 }
 
 /* ── lista de cartões nas configurações (nomear + múltiplos) ── */

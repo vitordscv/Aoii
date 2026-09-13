@@ -34,8 +34,50 @@ function adicionarCategoria(nome,emoji){
   return nome;
 }
 
+/* As que vêm com o app não se apagam nem se renomeiam.
+
+   Não é capricho: o nome delas é identificador. `CATEGORIA_I18N_KEYS` traduz a
+   apresentação a partir dele, a tabela do Pierre mapeia para ele, e backups
+   antigos guardam esse texto. Renomear "Mercado" quebraria a tradução nos cinco
+   idiomas e faria o De-Para do banco cair em "Outros"; apagar deixaria
+   lançamento antigo apontando pro vazio.
+
+   O ÍCONE delas, esse sim, é livre — ele não identifica nada. */
+function categoriaEhPadrao(nome){
+  return CATEGORIAS_DEFAULT.includes(String(nome||''));
+}
+
+/* Renomear leva junto tudo que apontava pro nome antigo. Os mesmos quatro
+   lugares que `removerCategoria()` já conhecia, mais o emoji: esquecer um deles
+   deixaria gasto órfão numa categoria que não existe mais. */
+function renomearCategoria(antigo,novo){
+  const nome=String(novo||'').trim();
+  const categorias=CATS();
+  if(!categorias.includes(antigo)) return null;
+  if(categoriaEhPadrao(antigo)) return null;
+  if(!nome||nome.length>60) return null;
+  if(nome===antigo) return antigo;
+  if(categorias.some(c=>c.toLowerCase()===nome.toLowerCase())) return null;
+
+  data.categorias=categorias.map(c=>c===antigo?nome:c);
+
+  if(data.categoriaEmojis&&data.categoriaEmojis[antigo]){
+    data.categoriaEmojis[nome]=data.categoriaEmojis[antigo];
+    delete data.categoriaEmojis[antigo];
+  }
+  (data.transacoes||[]).forEach(t=>{ if(t.categoria===antigo) t.categoria=nome; });
+  (data.gastosMensais||[]).forEach(g=>{ if(g.categoria===antigo) g.categoria=nome; });
+  (data.faturas||[]).forEach(f=>(f.gastos||[]).forEach(g=>{ if(g.categoria===antigo) g.categoria=nome; }));
+  if(data.orcamentos&&Object.prototype.hasOwnProperty.call(data.orcamentos,antigo)){
+    data.orcamentos[nome]=data.orcamentos[antigo];
+    delete data.orcamentos[antigo];
+  }
+  return nome;
+}
+
 function removerCategoria(nome){
   const categorias=CATS();
+  if(categoriaEhPadrao(nome)) return null;
   if(categorias.length<=1||!categorias.includes(nome)) return null;
   const destino=categorias.find(c=>c!==nome)||'Outros';
   data.categorias=categorias.filter(c=>c!==nome);

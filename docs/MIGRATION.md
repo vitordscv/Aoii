@@ -1572,3 +1572,26 @@ o mes e de onde o numero veio.
 Ficam propostas, nao feitas: conciliacao entre lancamento importado e um ja
 cadastrado a mao; transferencia entre contas proprias sem inflar receita e
 despesa; e historico de importacoes.
+
+### 13/09 - desfazer a importacao, e editar as categorias
+
+**Desfazer a ultima importacao.** Uma importacao traz dezenas de linhas de uma
+vez; sem volta, qualquer engano vira conserto manual item a item. O rastro
+guarda ID, nunca conteudo. Uma importacao so.
+
+O que ele NAO faz e apagar o que a pessoa escreveu: fatura criada pela
+importacao que ganhou gasto digitado depois volta a zero e FICA, com o gasto
+dentro; cartao que ainda tem fatura ou conta fixa apontando pra ele tambem fica.
+Nos dois casos o resultado diz o que foi preservado. O relogio
+(`pierreSincronizadoEm`) volta junto, senao a proxima busca pularia o periodo
+que acabou de sair.
+
+**Categoria criada se edita; a que vem com o app, nao.** Renomear leva junto
+lancamento, gasto fixo, gasto de fatura, orcamento e o emoji -- esquecer um
+deixaria gasto orfao numa categoria que nao existe mais.
+
+As padrao ficam protegidas porque **o nome delas e identificador**:
+`CATEGORIA_I18N_KEYS` traduz a apresentacao a partir dele, a tabela do Pierre
+mapeia para ele, e backup antigo guarda esse texto. Renomear "Mercado" quebraria
+a traducao nos cinco idiomas e faria o De-Para do banco cair em "Outros". O
+ICONE delas continua livre: ele nao identifica nada.

@@ -76,7 +76,8 @@ const EXPORTAR=['SCHEMA_VERSAO','LIMITES','ESQUEMA','CRIPTO_VOLTAS','CRIPTO_FORM
 const FUNCOES=[
   'parseNum','parseNumOpcional','localeAtual','formatadorDeMoeda','formatBRL','formatValorSemMoeda','startOfDay','today','isoDate','dataNoMes','metaDaysRemaining','metaMonthsRemaining',
   'definirIdioma','definirMoeda','definirTema','definirPreferenciaBooleana','definirTipoRenda','atualizarRendaDiaria','atualizarRendaMensal','atualizarSaldoConta','atualizarDinheiroVivo','configurarPerfilFinanceiro','atualizarDataAlvo','atualizarReserva',
-  'adicionarCategoria','removerCategoria','emojiDeCategoriaValido','definirEmojiDeCategoria','criarViagem','removerViagem',
+  'adicionarCategoria','removerCategoria','emojiDeCategoriaValido','definirEmojiDeCategoria',
+  'categoriaEhPadrao','renomearCategoria','criarViagem','removerViagem',
   'defaultTargetValue','getTargetDate','definirDiasTrabalho','diaCalendarioValido','adicionarDiaNaoTrabalhado','removerDiaNaoTrabalhado','daysBetweenInclusive','remainingWorkDaysUntil',
   'remainingInternetCountUntil','monthMetrics','faturasPorMes','mesMetrics','camposFatura','salvarFatura','atualizarValorFatura',
   'definirFaturaPaga','removerFaturas','atualizarGastoFatura','removerGastoFatura','removerParcelamento','chaveMes','restanteEntrada','restanteDivida','fatiasAosPoucos',

@@ -41,6 +41,35 @@ module.exports=function(t){
     t.igual(c.definirEmojiDeCategoria('Nao existe','\u{1F415}'),null,
       'categoria que não existe não ganha emoji');
 
+    /* renomear leva junto tudo que apontava pro nome antigo */
+    const d2=base();
+    d2.categorias=['Mercado','Pets','Outros'];
+    d2.transacoes=[{id:'x',nome:'Ração',valor:50,categoria:'Pets',metodo:'debito',data:'2026-09-02'}];
+    d2.gastosMensais=[{id:'gf',nome:'Banho',valor:80,diaDoMes:5,categoria:'Pets',ativo:true}];
+    d2.faturas=[{id:'f',ano:2026,mes:9,valor:0,pago:false,cartaoId:'a',
+      gastos:[{id:'gg',nome:'Petshop',valor:30,pago:false,categoria:'Pets'}]}];
+    d2.orcamentos={Pets:300};
+    d2.categoriaEmojis={Pets:'\u{1F43E}'};
+    const c2=criarAmbiente(d2,HOJE);
+
+    t.igual(c2.renomearCategoria('Mercado','Feira'),null,
+      'categoria que vem com o app não se renomeia',
+      'o nome dela é identificador: traduz nos cinco idiomas e recebe o De-Para do banco');
+    t.igual(c2.renomearCategoria('Pets','Outros'),null,'nome já usado é recusado');
+    t.igual(c2.renomearCategoria('Pets','Bichos'),'Bichos','a criada pela pessoa renomeia');
+    t.verdadeiro(d2.categorias.includes('Bichos')&&!d2.categorias.includes('Pets'),
+      'e a lista acompanha');
+    t.igual(d2.transacoes[0].categoria,'Bichos','o lançamento vai junto');
+    t.igual(d2.gastosMensais[0].categoria,'Bichos','o gasto fixo também');
+    t.igual(d2.faturas[0].gastos[0].categoria,'Bichos','e o gasto dentro da fatura');
+    t.igual(d2.orcamentos.Bichos,300,'o orçamento muda de chave');
+    t.igual(d2.orcamentos.Pets,undefined,'sem deixar a chave antiga para trás');
+    t.igual(d2.categoriaEmojis.Bichos,'\u{1F43E}','e o emoji segue a categoria');
+
+    t.verdadeiro(c.categoriaEhPadrao('Mercado')&&c.categoriaEhPadrao('Assinaturas'),
+      'as que vêm com o app são reconhecidas como padrão');
+    t.verdadeiro(!c.categoriaEhPadrao('Bichos'),'e as criadas, não');
+
     c.definirEmojiDeCategoria('Pets','\u{1F43E}');
     c.removerCategoria('Pets');
     t.igual(d.categoriaEmojis['Pets'],undefined,
@@ -371,10 +400,23 @@ module.exports=function(t){
   const ctxListas=criarAmbiente(dadosListas,HOJE);
   t.igual(ctxListas.adicionarCategoria('mercado'),null,'categoria duplicada ignora maiúsculas e minúsculas');
   t.igual(ctxListas.adicionarCategoria('Casa'),'Casa','categoria nova é adicionada');
-  const categoriaRemovida=ctxListas.removerCategoria('Mercado');
-  t.igual(categoriaRemovida.destino,'Outros','categoria removida escolhe destino existente');
-  t.verdadeiro([dadosListas.transacoes[0].categoria,dadosListas.gastosMensais[0].categoria,dadosListas.faturas[0].gastos[0].categoria].every(c=>c==='Outros'),'lançamentos antigos são preservados numa categoria restante');
-  t.igual(dadosListas.orcamentos.Mercado,undefined,'orçamento da categoria removida sai junto');
+  /* "Mercado" vem com o app: deixou de ser removível de propósito, porque o
+     nome dela é identificador da tradução e do De-Para do banco */
+  t.igual(ctxListas.removerCategoria('Mercado'),null,
+    'categoria que vem com o app não se apaga');
+  t.verdadeiro(dadosListas.categorias.includes('Mercado'),'e continua na lista');
+  t.igual(dadosListas.orcamentos.Mercado,400,'com o orçamento dela intacto');
+
+  /* uma criada pela pessoa, essa sim */
+  ctxListas.adicionarCategoria('Pets');
+  dadosListas.transacoes[0].categoria='Pets';
+  dadosListas.gastosMensais[0].categoria='Pets';
+  dadosListas.faturas[0].gastos[0].categoria='Pets';
+  dadosListas.orcamentos.Pets=200;
+  const categoriaRemovida=ctxListas.removerCategoria('Pets');
+  t.igual(categoriaRemovida.destino,'Mercado','categoria removida escolhe destino existente');
+  t.verdadeiro([dadosListas.transacoes[0].categoria,dadosListas.gastosMensais[0].categoria,dadosListas.faturas[0].gastos[0].categoria].every(c=>c==='Mercado'),'lançamentos antigos são preservados numa categoria restante');
+  t.igual(dadosListas.orcamentos.Pets,undefined,'orçamento da categoria removida sai junto');
   t.igual(ctxListas.criarViagem({nome:'',orcamento:100}),null,'viagem sem nome é recusada');
   const viagem=ctxListas.criarViagem({nome:'Trabalho',orcamento:500});
   t.igual(viagem.nome,'Trabalho','viagem válida é criada');

@@ -41,11 +41,7 @@ function setupCartaoSheet(){
      cobrem o que as pessoas criam de categoria (pet, academia, filho, carro,
      presente). Quem quiser outro cola no campo — `definirEmojiDeCategoria()`
      aceita qualquer um, a grade é só o caminho rápido. */
-  const EMOJIS_DE_CATEGORIA=['\u{1F43E}','\u{1F415}','\u{1F431}','\u{1F476}','\u{1F393}','\u{1F4DA}',
-    '\u{1F3CB}','\u{26BD}','\u{1F6B2}','\u{1F697}','\u{26FD}','\u{2708}','\u{1F3E8}','\u{1F381}',
-    '\u{1F484}','\u{1F455}','\u{1F45F}','\u{1F52A}','\u{1F37A}','\u{2615}','\u{1F355}','\u{1F366}',
-    '\u{1F3B5}','\u{1F3AC}','\u{1F4BB}','\u{1F4F1}','\u{1F527}','\u{1F3E5}','\u{1F48A}','\u{1F4B8}',
-    '\u{1F501}','\u{1F4E6}'];
+  /* a grade mora em ui/effects.js: a lista de categorias usa a mesma */
   let emojiEscolhido='';
 
   function pintarGradeDeEmoji(){
