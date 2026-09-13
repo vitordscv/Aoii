@@ -171,6 +171,49 @@ function saldoDoPierre(contas){
     .reduce((s,c)=>s+numeroDoPierre(c.balance),0);
 }
 
+/* ── Conciliação: o que veio do banco e o que você já tinha digitado ───────
+
+   O `idExterno` evita repetir o que veio do Pierre. Ele não sabe nada do que a
+   pessoa escreveu à mão — e quem lança a padaria no caminho de casa vê a mesma
+   padaria chegar no extrato dois dias depois. Ficavam as duas.
+
+   O que casa: mesmo sentido (gasto com gasto), valor igual ao centavo, e data
+   a até 3 dias de distância. Data exata seria estreito demais — o banco
+   processa no dia seguinte, o fim de semana empurra.
+
+   Valor igual é exigência dura de propósito: aproximar valores diferentes é
+   como se apaga um gasto de verdade sem ninguém notar.
+
+   E conciliar **não apaga nada**: carimba o lançamento que já existe com o id
+   do Pierre. Some da lista de novos, e nas próximas sincronizações o `idExterno`
+   cuida dele como cuida dos outros. */
+const PIERRE_DIAS_DE_FOLGA=3;
+
+function diasEntreISO(a,b){
+  const x=new Date(String(a).slice(0,10)+'T12:00:00').getTime();
+  const y=new Date(String(b).slice(0,10)+'T12:00:00').getTime();
+  if(!Number.isFinite(x)||!Number.isFinite(y)) return Infinity;
+  return Math.abs(Math.round((x-y)/86400000));
+}
+
+/* O lançamento que a pessoa digitou e que parece ser este mesmo. Só considera
+   quem ainda NÃO tem id externo: o que já veio do banco não se concilia com o
+   banco de novo. */
+function jaLancadoAMao(pronta,candidatos,usados){
+  let melhor=null;
+  (candidatos||[]).forEach(t=>{
+    if(t.idExterno) return;
+    if(usados&&usados.has(t.id)) return;
+    if((t.tipo==='receita'?'receita':'gasto')!==pronta.tipo) return;
+    if(Math.abs((Number(t.valor)||0)-pronta.valor)>=0.005) return;
+    const dias=diasEntreISO(t.data,pronta.data);
+    if(dias>PIERRE_DIAS_DE_FOLGA) return;
+    /* entre dois parecidos, o mais próximo no tempo */
+    if(!melhor||dias<melhor.dias) melhor={t,dias};
+  });
+  return melhor;
+}
+
 /* O que uma sincronização traria, sem ainda mexer em nada. Devolver o plano
    antes de aplicá-lo é o que permite mostrar à pessoa o que vai acontecer —
    e o que permite testar a conta sem gravar nada. */
@@ -198,6 +241,9 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
 
   const jaTem=new Set((data.transacoes||[]).map(t=>t.idExterno).filter(Boolean));
   const novas=[], repetidas=[], doCartao=[], recusadas=[], deOutrasContas=[];
+  /* conciliadas: o banco confirma algo que a pessoa já tinha escrito */
+  const conciliadas=[];
+  const jaUsados=new Set();
 
   (transacoes||[]).forEach(bruta=>{
     if(ehDeCartao(bruta)){ doCartao.push(bruta); return; }
@@ -214,13 +260,21 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
     if(!pronta){ recusadas.push(bruta); return; }
     if(pronta.idExterno&&jaTem.has(pronta.idExterno)){ repetidas.push(pronta); return; }
     if(pronta.idExterno) jaTem.add(pronta.idExterno);
+
+    const seu=jaLancadoAMao(pronta,data.transacoes,jaUsados);
+    if(seu){
+      jaUsados.add(seu.t.id);
+      conciliadas.push({doBanco:pronta,meuId:seu.t.id,
+        meuNome:seu.t.nome,meuData:seu.t.data,dias:seu.dias});
+      return;
+    }
     novas.push(pronta);
   });
 
   const deBanco=aceitas.filter(contaEhBanco);
   const saldo=saldoDoPierre(aceitas);
   return {
-    novas, repetidas, doCartao, recusadas, deOutrasContas,
+    novas, repetidas, doCartao, recusadas, deOutrasContas, conciliadas,
     trazerSaldo, trazerLancamentos,
     contasDeBanco:deBanco.length,
     instituicoes:[...new Set(aceitas.map(c=>c.connectorName).filter(Boolean))],
@@ -258,13 +312,25 @@ function aplicarSincronizacaoPierre(plano,opcoes){
   const sincronizadoEmAntes=data.pierreSincronizadoEm||null;
   const {passam,repetidas}=novasAindaInexistentes(plano.novas);
   passam.forEach(t=>{ data.transacoes.push(t); });
+
+  /* Conciliar é carimbar, não criar: o lançamento continua sendo o que a pessoa
+     escreveu — nome, categoria, nota — e passa a carregar o id do Pierre, para
+     as próximas sincronizações o reconhecerem. */
+  let conciliadas=0;
+  ((plano.conciliadas)||[]).forEach(par=>{
+    if(par.dispensada) return;
+    const meu=(data.transacoes||[]).find(t=>t.id===par.meuId);
+    if(!meu||meu.idExterno) return;
+    meu.idExterno=par.doBanco.idExterno;
+    conciliadas++;
+  });
   const mexeuNoSaldo=trazerSaldo&&plano.contasDeBanco>0;
   if(mexeuNoSaldo){
     data.saldoAtual=plano.saldo;
     data.saldoAtualizadoEm=new Date().toISOString();
   }
   data.pierreSincronizadoEm=new Date().toISOString();
-  return {lancadas:passam.length,jaEstavam:repetidas.length,
+  return {lancadas:passam.length,jaEstavam:repetidas.length,conciliadas,
     saldoAtualizado:mexeuNoSaldo,
     /* o rastro: ids do que entrou e o saldo de antes */
     idsLancados:passam.map(t=>t.id),
@@ -618,11 +684,20 @@ function aplicarCartaoPierre(plano){
 
 const PIERRE_NAO_EH_FIXO=/pagamento de fatura|pagamento de cartao|fatura do cartao|estorno|transferencia recebida/;
 
+/* Prefixos de maquininha e adquirente. "Ec *Melimais" e "Mp *Melimais" são a
+   MESMA assinatura cobrada por dois caminhos — e apareciam como duas sugestões
+   de R$ 9,90, que marcadas juntas viravam R$ 19,80 por mês de uma assinatura de
+   R$ 9,90. O prefixo não é nome; é roteamento. */
+const PIERRE_PREFIXOS_DE_MAQUINA=/^(ec|mp|pag|pg|mercadopago|mercpago|cielo|rede|stone|getnet|pagseguro|sumup|iugu|ebanx|dl|pp|paypal)[\s*.-]+/;
+
 function assinaturaDoGasto(t){
   return semAcento(t&&t.description)
     .replace(/\d+/g,'')
     .replace(/[|\-–—]+/g,' ')
+    .replace(/[*]+/g,' ')
     .replace(/\s+/g,' ')
+    .trim()
+    .replace(PIERRE_PREFIXOS_DE_MAQUINA,'')
     .trim();
 }
 
@@ -664,6 +739,15 @@ function sugerirGastosFixosPierre(transacoes,hojeISO,cartaoId){
     const valores=lista.map(x=>x.valor);
     const menor=Math.min(...valores), maior=Math.max(...valores);
     if(menor<=0||maior>menor*1.15) return;
+
+    /* O DIA precisa ser estável. Foi o que deixou "Golden Beer" passar: um bar
+       visitado em dois meses tem valor parecido por acaso, mas cai em dia
+       qualquer. Assinatura cobra sempre por volta da mesma data — e quando o
+       dia 30 cai em fevereiro, escorrega poucos dias, não duas semanas. */
+    const dias=lista.map(x=>parseInt(x.dia.slice(8,10),10));
+    const distancia=(a,b)=>{ const d=Math.abs(a-b); return Math.min(d,31-d); };
+    const espalhamento=Math.max(...dias.map(a=>Math.max(...dias.map(b=>distancia(a,b)))));
+    if(espalhamento>3) return;
     const maisNovo=lista.slice().sort((a,b)=>b.dia.localeCompare(a.dia))[0];
     /* o dia que mais se repete: conta fixa cai sempre por volta da mesma data */
     const contagem=new Map();
@@ -750,6 +834,21 @@ function registrarImportacaoPierre(partes){
     saldoEmAntes:(sinc&&sinc.saldoEmAntes)||null,
     sincronizadoEmAntes:(sinc&&sinc.sincronizadoEmAntes)||null,
   };
+  /* o histórico guarda o que aconteceu, não o que veio: contagens e o saldo.
+     Dez linhas bastam para lembrar; mais que isso é peso sem uso. */
+  if(!Array.isArray(data.pierreHistorico)) data.pierreHistorico=[];
+  data.pierreHistorico.unshift({
+    em:data.pierreUltimaImportacao.em,
+    lancamentos:(sinc&&sinc.lancadas)||0,
+    conciliados:(sinc&&sinc.conciliadas)||0,
+    faturas:(cartao&&cartao.faturasNovas)||0,
+    cartoes:(cartao&&cartao.criados)||0,
+    fixos:(fixos&&fixos.criados)||0,
+    saldo:data.saldoAtual||0,
+    contas:String((partes&&partes.instituicoes)||'').slice(0,120),
+  });
+  data.pierreHistorico=data.pierreHistorico.slice(0,10);
+
   return data.pierreUltimaImportacao;
 }
 

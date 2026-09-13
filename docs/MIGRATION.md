@@ -1658,3 +1658,38 @@ que dispara 1,5 s depois de a pagina montar. Duas versoes deste teste mediram
 "0 chamadas" onde havia chamada. A ferramenta certa e
 `Page.addScriptToEvaluateOnNewDocument`, que instala o duble antes de qualquer
 script da pagina.
+
+### 13/09 - fechando a lista do que eu sabia que estava torto
+
+**A busca automatica parou de falhar calada.** Era silenciosa de proposito --
+ninguem pediu aquela busca, e erro na cara de quem so abriu o app e ruido. Mas o
+custo era o app enganar por omissao: se a chave morre, a faixa simplesmente para
+de aparecer e a pessoa conclui que nao houve movimentacao. Silencio e "nao tem
+nada" ficavam identicos na tela. Agora ha uma faixa dizendo o que houve, com
+atalho pra resolver. Falta de rede continua calada: se resolve sozinha.
+
+**Prefixo de maquininha nao e nome.** "Ec *Melimais" e "Mp *Melimais" sao a MESMA
+assinatura por dois caminhos, e apareciam como duas sugestoes de R$ 9,90 --
+marcadas juntas, R$ 19,80 por mes de uma assinatura de R$ 9,90.
+`PIERRE_PREFIXOS_DE_MAQUINA` tira o roteamento antes de comparar.
+
+**O dia tem que ser estavel.** Era o que deixava "Golden Beer" passar: um bar
+visitado em dois meses tem valor parecido por acaso, mas cai em dia qualquer.
+Assinatura cobra sempre por volta da mesma data. Tolerancia de 3 dias, medida em
+distancia circular -- dia 30 e dia 2 estao a 3 dias, nao a 28.
+
+**Conciliacao.** O `idExterno` evitava repetir o que veio do Pierre e nao sabia
+nada do que a pessoa escreveu a mao: quem lanca a padaria no caminho de casa via
+a mesma padaria chegar no extrato dois dias depois, e ficavam as duas.
+
+O que casa: mesmo sentido, valor igual ao centavo, e ate 3 dias de distancia.
+Valor igual e exigencia dura de proposito -- aproximar valores diferentes e como
+se apaga um gasto de verdade sem ninguem notar.
+
+E conciliar NAO apaga nada: carimba o lancamento que ja existe com o id do
+Pierre. O texto que fica e o da PESSOA, com a nota e a categoria dela; o que
+muda e so o carimbo. Na sincronizacao seguinte ele vira "ja estava".
+
+**Historico de importacoes.** Dez linhas, so contagem e data. Desfazer continua
+valendo so para a ultima -- saber que aconteceu e diferente de manter o efeito,
+e por isso desfazer NAO apaga o historico.

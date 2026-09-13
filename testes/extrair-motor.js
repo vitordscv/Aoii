@@ -104,6 +104,7 @@ const FUNCOES=[
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
   'cartaoDaCompraParcelada','pagamentosDeFaturaPierre','pagamentoConfere',
   'novasAindaInexistentes','registrarImportacaoPierre',
+  'diasEntreISO','jaLancadoAMao',
   'resumoDaUltimaImportacaoPierre','desfazerImportacaoPierre',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
@@ -124,9 +125,13 @@ function montarMotor(arquivo){
   const catsPierre=/const PIERRE_CATEGORIAS\s*=\s*\{[\s\S]*?\n\};/.exec(src);
   /* o que NAO e gasto fixo: sugerirGastosFixosPierre() consulta */
   const naoEhFixo=/const PIERRE_NAO_EH_FIXO\s*=\s*\/[^\n]*\/;/.exec(src);
+  /* os prefixos de maquininha: assinaturaDoGasto() consulta */
+  const prefixos=/const PIERRE_PREFIXOS_DE_MAQUINA\s*=\s*\/[^\n]*\/;/.exec(src);
+  /* a folga de dias da conciliacao: jaLancadoAMao() consulta */
+  const folgaDias=/const PIERRE_DIAS_DE_FOLGA\s*=\s*\d+;/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
     (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
-    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'');
+    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

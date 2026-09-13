@@ -29,6 +29,9 @@ function pierreDizOErro(e){
    e não em `data`: é uma foto do banco, não um dado do app — e se a pessoa
    fechar sem confirmar, não sobra nada. */
 let pierrePlanoPendente=null;
+/* Por que a última busca automática não deu certo. Fica aqui e não em `data`
+   porque é estado de agora, não dado do app. */
+let pierreFalhaAoAbrir=null;
 
 function pierreEstado(texto,tom){
   const el=document.getElementById('pierre-estado');
@@ -65,6 +68,40 @@ function pierreDesenharPlano(plano){
   if(plano.doCartao.length) linha(L('pierre.planoCartao').replace('{n}',plano.doCartao.length));
   if(plano.recusadas.length) linha(L('pierre.planoRecusadas').replace('{n}',plano.recusadas.length));
   if(plano.deOutrasContas.length) linha(L('pierre.planoOutrasContas').replace('{n}',plano.deOutrasContas.length));
+
+  /* ── o que o banco confirma do que você já tinha escrito ── */
+  if(plano.conciliadas&&plano.conciliadas.length){
+    const sub=document.createElement('div');
+    sub.className='ia-envio-titulo pierre-plano-sub';
+    sub.textContent=L('pierre.conciliaTitulo');
+    caixa.appendChild(sub);
+    linha(L('pierre.conciliaAjuda'));
+    const lista=document.createElement('div');
+    lista.className='pierre-contas';
+    lista.id='pierre-concilia-lista';
+    caixa.appendChild(lista);
+    plano.conciliadas.forEach((par,i)=>{
+      const item=document.createElement('label');
+      item.className='pierre-conta';
+      const marca=document.createElement('input');
+      marca.type='checkbox';
+      marca.value=String(i);
+      /* marcado = é o mesmo. É o caso comum, e desmarcar deixa os dois. */
+      marca.checked=true;
+      item.appendChild(marca);
+      const nome=document.createElement('span');
+      nome.className='pierre-conta-nome';
+      nome.textContent=par.meuNome||par.doBanco.nome;
+      item.appendChild(nome);
+      const info=document.createElement('span');
+      info.className='pierre-conta-tipo';
+      info.textContent=formatBRL(par.doBanco.valor)+' · '
+        +(par.dias===0?L('pierre.conciliaMesmoDia')
+                      :L('pierre.conciliaDias').replace('{n}',par.dias));
+      item.appendChild(info);
+      lista.appendChild(item);
+    });
+  }
   if(!plano.trazerLancamentos) linha(L('pierre.planoSemLancamentos'));
   if(!plano.trazerSaldo) linha(L('pierre.planoSemSaldo'));
 
@@ -222,11 +259,23 @@ function pierreDesenharPlano(plano){
 
   const temCartao=!!(plano.cartao&&plano.cartao.cartoes.length);
   const temFixos=!!(plano.fixos&&plano.fixos.length);
-  const nadaAFazer=plano.novas.length===0&&plano.diferencaDeSaldo===0&&!temCartao&&!temFixos;
+  const temConciliar=!!(plano.conciliadas&&plano.conciliadas.length);
+  const nadaAFazer=plano.novas.length===0&&plano.diferencaDeSaldo===0
+    &&!temCartao&&!temFixos&&!temConciliar;
   if(nadaAFazer){ confirmar.disabled=true; confirmar.textContent=L('pierre.nadaNovo'); }
 
   cancelar.addEventListener('click',()=>{ caixa.hidden=true; caixa.innerHTML=''; });
   umEnvioPorVez(confirmar,async()=>{
+    /* desmarcada = não é o mesmo: volta a ser lançamento novo */
+    if(plano.conciliadas&&plano.conciliadas.length){
+      const marcas=[...caixa.querySelectorAll('#pierre-concilia-lista input')];
+      marcas.forEach((m,i)=>{
+        const par=plano.conciliadas[i];
+        if(!par) return;
+        par.dispensada=!m.checked;
+        if(par.dispensada&&!plano.novas.includes(par.doBanco)) plano.novas.push(par.doBanco);
+      });
+    }
     const r=aplicarSincronizacaoPierre(plano);
     let doCartao=null, fixos={criados:0,ids:[]};
     if(plano.cartao) doCartao=aplicarCartaoPierre(plano.cartao);
@@ -243,8 +292,10 @@ function pierreDesenharPlano(plano){
     /* o achado virou lançamento: a faixa do Resumo não tem mais o que oferecer */
     pierrePlanoPendente=null;
     pierreDesenharAviso();
+    pierreDesenharHistorico();
     let aviso=L('pierre.pronto').replace('{n}',r.lancadas);
     if(r.jaEstavam) aviso+=' '+L('pierre.prontoJaEstavam').replace('{n}',r.jaEstavam);
+    if(r.conciliadas) aviso+=' '+L('pierre.prontoConciliadas').replace('{n}',r.conciliadas);
     if(doCartao&&doCartao.estourando&&doCartao.estourando.length){
       aviso+=' '+L('pierre.prontoEstouro').replace('{n}',doCartao.estourando.length);
     }
@@ -346,6 +397,38 @@ function pierreDesenharAviso(){
   const el=document.getElementById('pierre-aviso');
   if(!el) return;
   el.innerHTML='';
+
+  /* Falhar calado era o jeito de o app enganar por omissão: se a chave morre, a
+     faixa simplesmente para de aparecer e a pessoa conclui que não houve
+     movimentação. Silêncio e "não tem nada" ficam idênticos na tela. */
+  if(pierreFalhaAoAbrir){
+    const erro=document.createElement('div');
+    erro.className='banco-banner banco-banner-erro';
+    const t=document.createElement('span');
+    t.className='banco-banner-texto';
+    t.textContent='\u{1F3E6} '+L('pierre.avisoFalhou').replace('{motivo}',pierreFalhaAoAbrir);
+    erro.appendChild(t);
+    const abrir=document.createElement('button');
+    abrir.type='button';
+    abrir.className='banco-banner-btn';
+    abrir.textContent=L('pierre.avisoResolver');
+    abrir.addEventListener('click',()=>{
+      document.getElementById('topbar-settings-btn')?.click();
+      setTimeout(()=>document.getElementById('settings-tab-banco')?.click(),400);
+    });
+    erro.appendChild(abrir);
+    const x=document.createElement('button');
+    x.type='button';
+    x.className='banco-banner-fechar';
+    x.textContent='\u2715';
+    x.title=L('btn.fechar');
+    x.setAttribute('aria-label',L('btn.fechar'));
+    x.addEventListener('click',()=>{ pierreFalhaAoAbrir=null; pierreDesenharAviso(); });
+    erro.appendChild(x);
+    el.appendChild(erro);
+    return;
+  }
+
   const p=pierrePlanoPendente;
   if(!p) return;
 
@@ -425,6 +508,38 @@ function pierrePodeBuscarAoAbrir(){
   return !ultima||(Date.now()-ultima)>=PIERRE_FOLGA_HORAS*3600000;
 }
 
+/* O histórico: o que cada importação fez, e quando. Não desfaz nada — desfazer
+   continua valendo só para a última. Serve para responder "de onde veio isto?"
+   sem ter que reconstruir de cabeça. */
+function pierreDesenharHistorico(){
+  const el=document.getElementById('pierre-historico');
+  if(!el) return;
+  const lista=(data.pierreHistorico||[]);
+  el.innerHTML='';
+  if(!lista.length) return;
+
+  const titulo=document.createElement('div');
+  titulo.className='sheet-section-label';
+  titulo.textContent=L('pierre.historicoTitulo');
+  el.appendChild(titulo);
+
+  lista.forEach(h=>{
+    const d=document.createElement('div');
+    d.className='pierre-amostra';
+    const quando=h.em?new Date(h.em).toLocaleString(localeAtual(),
+      {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    const partes=[];
+    if(h.lancamentos) partes.push(L('pierre.desfazLancamentos').replace('{n}',h.lancamentos));
+    if(h.conciliados) partes.push(L('pierre.histConciliados').replace('{n}',h.conciliados));
+    if(h.faturas) partes.push(L('pierre.desfazFaturas').replace('{n}',h.faturas));
+    if(h.cartoes) partes.push(L('pierre.desfazCartoes').replace('{n}',h.cartoes));
+    if(h.fixos) partes.push(L('pierre.desfazFixos').replace('{n}',h.fixos));
+    if(!partes.length) partes.push(L('pierre.histNada'));
+    d.textContent=quando+' · '+partes.join(' · ');
+    el.appendChild(d);
+  });
+}
+
 function setupPierre(){
   const check=document.getElementById('pierre-ativo-check');
   const campos=document.getElementById('pierre-campos');
@@ -453,6 +568,8 @@ function setupPierre(){
   if(entrada) entrada.addEventListener('input',e=>{
     setPierreChave(e.target.value.trim());
     pierreEstado('');
+    /* mexeu na chave: o motivo da falha anterior deixou de valer */
+    pierreFalhaAoAbrir=null;
     render();
   });
 
@@ -533,10 +650,17 @@ function setupPierre(){
         await persist();
         pierreDesenharAviso();
       }catch(e){
-        /* falhar aqui é silencioso de propósito: ninguém pediu esta busca
-           agora, e um erro na cara de quem só abriu o app é ruído */
+        /* Não é diálogo na cara de quem só abriu o app — é uma faixa, do mesmo
+           tamanho das outras, dizendo o que houve. Chave recusada e assinatura
+           vencida a pessoa PRECISA saber; falta de rede, não: isso se resolve
+           sozinho e avisar seria ruído. */
+        const codigo=e&&e.codigo;
+        if(codigo!=='sem-ponte'&&codigo!=='demorou'&&codigo!=='sem-resposta'){
+          pierreFalhaAoAbrir=pierreDizOErro(e);
+        }
         data.pierreBuscadoEm=new Date().toISOString();
         await persist();
+        pierreDesenharAviso();
       }
     },1500);
   }
@@ -552,6 +676,7 @@ function setupPierre(){
     const feito=desfazerImportacaoPierre();
     await persist(); render();
     pierreMostrarDesfazer();
+    pierreDesenharHistorico();
     if(feito){
       let aviso=L('pierre.desfeito').replace('{n}',feito.lancamentos);
       if(feito.faturasGuardadas||feito.cartoesGuardados){
@@ -565,6 +690,7 @@ function setupPierre(){
 
   /* ao abrir a tela, se houve importação, o caminho de volta já está à vista */
   pierreMostrarDesfazer();
+  pierreDesenharHistorico();
 
   if(sync) umEnvioPorVez(sync,async()=>{
     pierreEstado(L('pierre.buscando'));

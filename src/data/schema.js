@@ -166,6 +166,18 @@ const ITEM_META = {
 
 /* O que uma fatura era ANTES de a importacao mexer nela. So o suficiente pra
    voltar: valor e pago. O resto (gastos digitados) nunca e tocado. */
+/* Uma linha do histórico de importações: o que aconteceu, sem o conteúdo. */
+const ITEM_IMPORTACAO = {
+  em: { tipo: 'iso', nulo: true },
+  lancamentos: { tipo: 'inteiro', min: 0, padrao: 0 },
+  conciliados: { tipo: 'inteiro', min: 0, padrao: 0 },
+  faturas: { tipo: 'inteiro', min: 0, padrao: 0 },
+  cartoes: { tipo: 'inteiro', min: 0, padrao: 0 },
+  fixos: { tipo: 'inteiro', min: 0, padrao: 0 },
+  saldo: { tipo: 'dinheiro', padrao: 0 },
+  contas: { tipo: 'texto', max: 120, padrao: '' },
+};
+
 const ITEM_FATURA_ANTES = {
   id: { tipo: 'texto', max: 40, padrao: '' },
   valor: { tipo: 'dinheiro', padrao: 0 },
@@ -320,6 +332,9 @@ const ESQUEMA = {
      dispara a cada abertura do app -- com o cartao ligado sao quatro chamadas
      por vez, e extrato bancario nao muda de minuto em minuto. */
   pierreBuscadoEm: { tipo: 'iso', nulo: true },
+  /* as ultimas importacoes, so a contagem do que cada uma fez. Desfazer
+     continua valendo so para a ultima; isto e memoria, nao volta. */
+  pierreHistorico: { tipo: 'lista', item: ITEM_IMPORTACAO },
   /* O rastro da ultima importacao, pra ela poder ser desfeita. Guarda ID, nunca
      conteudo: o que foi criado se acha pelo id, e o que foi alterado volta ao
      valor anotado aqui. Uma importacao so -- desfazer a penultima nao faz

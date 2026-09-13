@@ -553,6 +553,152 @@ module.exports=function(t){
     t.igual(feito.cartoesGuardados,1,'e isso é dito, em vez de escolhido em silêncio');
   }
 
+  console.log('\n\x1b[1mO banco confirma o que você já tinha escrito\x1b[0m');
+  {
+    const d=base();
+    /* a pessoa lançou a padaria no caminho de casa; o banco processa depois */
+    d.transacoes=[{id:'meu',nome:'Padaria da esquina',valor:42.9,categoria:'Mercado',
+      metodo:'debito',data:'2026-09-08',nota:'pão de queijo'}];
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const vindas=[doBanco('tx1','PADARIA DO ZE LTDA',-42.9,'DEBIT',
+      {account_id:'a',date:'2026-09-10'})];
+
+    const plano=c.planoDeSincronizacaoPierre(contas,vindas);
+    t.igual(plano.novas.length,0,'o que já foi digitado não entra como novo');
+    t.igual(plano.conciliadas.length,1,'ele é reconhecido como o mesmo gasto');
+    t.igual(plano.conciliadas[0].meuId,'meu','apontando pro lançamento da pessoa');
+    t.igual(plano.conciliadas[0].dias,2,'com a distância em dias');
+
+    c.aplicarSincronizacaoPierre(plano);
+    t.igual(d.transacoes.length,1,
+      'depois de conciliar continua UM lançamento, não dois',
+      'o idExterno só evitava repetir o que veio do Pierre; o que a pessoa escreveu ficava de fora');
+    t.igual(d.transacoes[0].nome,'Padaria da esquina',
+      'e é o texto da PESSOA que fica, não o do banco');
+    t.igual(d.transacoes[0].nota,'pão de queijo','com a nota dela');
+    t.igual(d.transacoes[0].idExterno,'tx1',
+      'carimbado com o id do Pierre, pra próxima vez reconhecer sozinho');
+
+    /* e a proxima sincronizacao nao mexe mais nele */
+    const p2=c.planoDeSincronizacaoPierre(contas,vindas);
+    t.igual(p2.novas.length,0,'na próxima vez não entra de novo');
+    t.igual(p2.conciliadas.length,0,'nem volta a ser proposta de conciliação');
+    t.igual(p2.repetidas.length,1,'ele passa a ser simplesmente "já estava"');
+  }
+
+  console.log('\n\x1b[1mConciliar só quando é mesmo o mesmo\x1b[0m');
+  {
+    const d=base();
+    d.transacoes=[
+      {id:'longe',nome:'Mercado',valor:100,categoria:'Mercado',metodo:'debito',data:'2026-09-01'},
+      {id:'outro',nome:'Mercado',valor:99,categoria:'Mercado',metodo:'debito',data:'2026-09-10'},
+      {id:'entrada',nome:'Devolução',valor:50,categoria:'Outros',metodo:'pix',
+       data:'2026-09-10',tipo:'receita'}];
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+
+    const longe=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('t1','Mercado',-100,'DEBIT',{account_id:'a',date:'2026-09-10'})]);
+    t.igual(longe.conciliadas.length,0,
+      'nove dias de distância não é o mesmo gasto');
+    t.igual(longe.novas.length,1,'então entra como novo');
+
+    const centavo=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('t2','Mercado',-100.5,'DEBIT',{account_id:'a',date:'2026-09-10'})]);
+    t.igual(centavo.conciliadas.length,0,
+      'valor diferente não concilia, nem por cinquenta centavos',
+      'aproximar valores é como se apaga um gasto de verdade sem ninguém ver');
+
+    const sentido=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('t3','Devolução',-50,'DEBIT',{account_id:'a',date:'2026-09-10'})]);
+    t.igual(sentido.conciliadas.length,0,'gasto não concilia com entrada');
+
+    /* dois do banco, um seu: só um casa */
+    const dois=c.planoDeSincronizacaoPierre(contas,[
+      doBanco('t4','Mercado',-99,'DEBIT',{account_id:'a',date:'2026-09-10'}),
+      doBanco('t5','Mercado',-99,'DEBIT',{account_id:'a',date:'2026-09-11'})]);
+    t.igual(dois.conciliadas.length,1,'um lançamento seu concilia com um só');
+    t.igual(dois.novas.length,1,'o outro entra como novo');
+  }
+
+  console.log('\n\x1b[1mAssinatura com prefixo de maquininha é uma só\x1b[0m');
+  {
+    const d=base();
+    d.cartoes=[{id:'k1',nome:'Nubank gold',limite:700,idExterno:'cc1'}];
+    const c=criarAmbiente(d,HOJE);
+    const noCartao=(id,desc,valor,mes,dia)=>({
+      id, description:desc, amount:-valor, type:'DEBIT',
+      date:'2026-0'+mes+'-'+dia, category:'Serviços', status:'POSTED',
+      account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank'});
+
+    /* a MESMA assinatura, cobrada por dois caminhos da maquininha */
+    const sug=c.sugerirGastosFixosPierre([
+      noCartao('a1','Ec *Melimais',9.9,'7','18'),
+      noCartao('a2','Mp *Melimais',9.9,'8','19'),
+    ],HOJE,'k1');
+    t.igual(sug.length,1,
+      '"Ec *Melimais" e "Mp *Melimais" viram uma sugestão só',
+      'marcadas as duas, davam R$ 19,80 por mês de uma assinatura de R$ 9,90');
+    t.valor(sug[0].valor,9.9,'com o valor certo');
+  }
+
+  console.log('\n\x1b[1mBar não é conta fixa: o dia tem que ser estável\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    const naConta=(id,desc,valor,mes,dia)=>doBanco(id,desc,-valor,'DEBIT',
+      {date:'2026-0'+mes+'-'+dia,account_id:'a'});
+
+    /* mesmo valor por acaso, em dias quaisquer */
+    const bar=c.sugerirGastosFixosPierre([
+      naConta('b1','Golden Beer',16.49,'7','05'),
+      naConta('b2','Golden Beer',16.49,'8','22'),
+    ],HOJE);
+    t.igual(bar.length,0,
+      'dois valores iguais em dias distantes não é assinatura',
+      'era o que deixava um bar visitado em dois meses virar despesa fantasma');
+
+    /* assinatura de verdade: mesmo dia */
+    const real=c.sugerirGastosFixosPierre([
+      naConta('s1','TIM Celular',129.99,'7','05'),
+      naConta('s2','TIM Celular',129.99,'8','05'),
+    ],HOJE);
+    t.igual(real.length,1,'mas a que cai sempre no mesmo dia continua sendo sugerida');
+
+    /* dia 30 em fevereiro escorrega poucos dias, e isso ainda é assinatura */
+    const escorrega=c.sugerirGastosFixosPierre([
+      naConta('e1','Servico X',30,'7','28'),
+      naConta('e2','Servico X',30,'8','30'),
+    ],HOJE);
+    t.igual(escorrega.length,1,'e alguns dias de escorregão continuam valendo');
+  }
+
+  console.log('\n\x1b[1mO histórico lembra o que cada importação fez\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const vindas=[doBanco('h1','Padaria',-42.9,'DEBIT',{account_id:'a'})];
+    const plano=c.planoDeSincronizacaoPierre(contas,vindas);
+    const sinc=c.aplicarSincronizacaoPierre(plano);
+    c.registrarImportacaoPierre({sinc,cartao:null,fixos:{criados:0,ids:[]}});
+
+    t.igual((d.pierreHistorico||[]).length,1,'a importação entra no histórico');
+    t.igual(d.pierreHistorico[0].lancamentos,1,'com o que ela trouxe');
+    t.verdadeiro(!!d.pierreHistorico[0].em,'e quando foi');
+
+    /* a segunda entra na frente, e desfazer NAO apaga a memoria */
+    const p2=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('h2','Mercado',-80,'DEBIT',{account_id:'a'})]);
+    const s2=c.aplicarSincronizacaoPierre(p2);
+    c.registrarImportacaoPierre({sinc:s2,cartao:null,fixos:{criados:0,ids:[]}});
+    t.igual(d.pierreHistorico.length,2,'a segunda também');
+    c.desfazerImportacaoPierre();
+    t.igual(d.pierreHistorico.length,2,
+      'desfazer não apaga o histórico',
+      'saber que aconteceu é diferente de manter o efeito');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();
