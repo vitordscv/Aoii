@@ -223,13 +223,16 @@ function pierreDesenharPlano(plano){
   cancelar.addEventListener('click',()=>{ caixa.hidden=true; caixa.innerHTML=''; });
   umEnvioPorVez(confirmar,async()=>{
     const r=aplicarSincronizacaoPierre(plano);
-    let doCartao=null, fixos={criados:0};
+    let doCartao=null, fixos={criados:0,ids:[]};
     if(plano.cartao) doCartao=aplicarCartaoPierre(plano.cartao);
     if(plano.fixos&&plano.fixos.length){
       const marcados=[...caixa.querySelectorAll('#pierre-fixos-lista input:checked')]
         .map(i=>plano.fixos[Number(i.value)]).filter(Boolean);
       fixos=aplicarGastosFixosPierre(marcados,todayISO());
     }
+    /* o rastro é gravado ANTES do persist: se a gravação falhar, o rastro cai
+       junto com o resto, e não sobra um "desfazer" apontando pro nada */
+    registrarImportacaoPierre({sinc:r,cartao:doCartao,fixos});
     await persist(); render();
     caixa.hidden=true; caixa.innerHTML='';
     let aviso=L('pierre.pronto').replace('{n}',r.lancadas);
@@ -243,6 +246,7 @@ function pierreDesenharPlano(plano){
     }
     if(fixos.criados) aviso+=' '+L('pierre.prontoFixos').replace('{n}',fixos.criados);
     pierreEstado(aviso,'ok');
+    pierreMostrarDesfazer();
   });
 }
 
@@ -294,6 +298,32 @@ function pierreDesenharContas(contas){
 
     caixa.appendChild(linha);
   });
+}
+
+/* O botão de desfazer só existe quando há o que desfazer, e diz o que vai tirar
+   antes de tirar. */
+function pierreMostrarDesfazer(){
+  const botao=document.getElementById('pierre-desfazer-btn');
+  const resumo=document.getElementById('pierre-desfazer-resumo');
+  if(!botao||!resumo) return;
+  const r=resumoDaUltimaImportacaoPierre();
+  if(!r||(!r.lancamentos&&!r.faturas&&!r.gastosFixos&&!r.cartoes&&r.saldoVolta===null)){
+    botao.style.display='none';
+    resumo.textContent='';
+    return;
+  }
+  botao.style.display='block';
+  const partes=[];
+  if(r.lancamentos) partes.push(L('pierre.desfazLancamentos').replace('{n}',r.lancamentos));
+  if(r.faturas) partes.push(L('pierre.desfazFaturas').replace('{n}',r.faturas));
+  if(r.cartoes) partes.push(L('pierre.desfazCartoes').replace('{n}',r.cartoes));
+  if(r.gastosFixos) partes.push(L('pierre.desfazFixos').replace('{n}',r.gastosFixos));
+  if(r.saldoVolta!==null) partes.push(L('pierre.desfazSaldo').replace('{v}',formatBRL(r.saldoVolta)));
+  let texto=partes.join(' · ');
+  if(r.faturasComGastoSeu){
+    texto+=' — '+L('pierre.desfazGuardadas').replace('{n}',r.faturasComGastoSeu);
+  }
+  resumo.textContent=texto;
 }
 
 function setupPierre(){
@@ -381,6 +411,31 @@ function setupPierre(){
      &&chavePierreParece(getPierreChave())&&sync){
     setTimeout(()=>{ if(!sync.disabled) sync.click(); },1500);
   }
+
+  const desfazer=document.getElementById('pierre-desfazer-btn');
+  if(desfazer) umEnvioPorVez(desfazer,async()=>{
+    const r=resumoDaUltimaImportacaoPierre();
+    if(!r) { pierreMostrarDesfazer(); return; }
+    const pergunta=L('pierre.desfazConfirma')
+      .replace('{n}',r.lancamentos)
+      .replace('{f}',r.faturas);
+    if(!(await confirmDialog(pergunta))) return;
+    const feito=desfazerImportacaoPierre();
+    await persist(); render();
+    pierreMostrarDesfazer();
+    if(feito){
+      let aviso=L('pierre.desfeito').replace('{n}',feito.lancamentos);
+      if(feito.faturasGuardadas||feito.cartoesGuardados){
+        aviso+=' '+L('pierre.desfeitoGuardou')
+          .replace('{f}',feito.faturasGuardadas)
+          .replace('{c}',feito.cartoesGuardados);
+      }
+      pierreEstado(aviso,'ok');
+    }
+  });
+
+  /* ao abrir a tela, se houve importação, o caminho de volta já está à vista */
+  pierreMostrarDesfazer();
 
   if(sync) umEnvioPorVez(sync,async()=>{
     pierreEstado(L('pierre.buscando'));

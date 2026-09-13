@@ -484,6 +484,75 @@ module.exports=function(t){
       'o `jaTem` do plano envelhece; a conferência tem que ser na hora de gravar');
   }
 
+  console.log('\n\x1b[1mDesfazer a última importação\x1b[0m');
+  {
+    const d=base();
+    d.saldoAtual=10;
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'300.00',connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-09-28'}};
+    const vindas=[
+      doBanco('t1','Padaria',-42.9,'DEBIT',{account_id:'a'}),
+      doBanco('t2','Mercado',-80,'DEBIT',{account_id:'a'}),
+    ];
+
+    const plano=c.planoDeSincronizacaoPierre(contas,vindas);
+    const sinc=c.aplicarSincronizacaoPierre(plano);
+    const doCartao=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],[],{},HOJE,[]));
+    const fixos=c.aplicarGastosFixosPierre([{nome:'TIM',valor:129.99,diaDoMes:5,categoria:'Assinaturas'}],HOJE);
+    c.registrarImportacaoPierre({sinc,cartao:doCartao,fixos});
+
+    t.igual(d.transacoes.length,2,'a importação trouxe dois lançamentos');
+    t.valor(d.saldoAtual,1000,'e mexeu no saldo');
+    t.igual(d.cartoes.length,1,'criou o cartão');
+    t.igual(d.gastosMensais.length,1,'e o gasto fixo marcado');
+
+    const resumo=c.resumoDaUltimaImportacaoPierre();
+    t.igual(resumo.lancamentos,2,'o resumo diz quantos lançamentos sairiam');
+    t.valor(resumo.saldoVolta,10,'e para quanto o saldo voltaria');
+
+    const feito=c.desfazerImportacaoPierre();
+    t.igual(feito.lancamentos,2,'desfazer tira os dois lançamentos');
+    t.igual(d.transacoes.length,0,'o Diário volta ao que era');
+    t.valor(d.saldoAtual,10,'o saldo volta ao anterior');
+    t.igual(d.cartoes.length,0,'o cartão criado sai');
+    t.igual(d.gastosMensais.length,0,'e o gasto fixo também');
+    t.igual(d.pierreUltimaImportacao,null,'e não dá pra desfazer duas vezes');
+    t.igual(c.resumoDaUltimaImportacaoPierre(),null,'o resumo some junto');
+
+    /* a próxima sincronização tem que buscar o mesmo período de novo */
+    t.igual(d.pierreSincronizadoEm,null,
+      'o relógio volta, senão a próxima busca pularia o que acabou de sair');
+  }
+
+  console.log('\n\x1b[1mDesfazer não apaga o que você digitou\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'300.00',connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-09-28'}};
+
+    const doCartao=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],[],{},HOJE,[]));
+    c.registrarImportacaoPierre({sinc:{idsLancados:[],saldoAntes:0},cartao:doCartao,fixos:{ids:[]}});
+
+    /* depois da importação, a pessoa lança um gasto na fatura que veio do banco */
+    const fatura=d.faturas.find(f=>f.mes===9);
+    fatura.gastos.push({id:'meu',nome:'Livraria',valor:60,pago:false,categoria:'Lazer'});
+
+    const feito=c.desfazerImportacaoPierre();
+    const aindaLa=d.faturas.find(f=>f.id===fatura.id);
+    t.verdadeiro(!!aindaLa,
+      'fatura com gasto digitado NÃO é removida',
+      'apagar o que a pessoa escreveu nunca é a resposta');
+    t.valor(aindaLa.valor,0,'mas o valor que veio do banco volta a zero');
+    t.igual((aindaLa.gastos||[]).length,1,'e o gasto digitado continua lá');
+    t.igual(feito.faturasGuardadas,1,'o resultado conta o que foi preservado');
+    t.igual(d.cartoes.length,1,
+      'o cartão também fica, porque ainda há fatura apontando pra ele');
+    t.igual(feito.cartoesGuardados,1,'e isso é dito, em vez de escolhido em silêncio');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();

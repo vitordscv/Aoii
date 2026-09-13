@@ -387,6 +387,59 @@ const abrirPainel = cdp => avaliar(cdp, `
       'três linhas bastam pra reconhecer o extrato, e não bastam pra conferir');
   }
 
+  titulo('dá pra desfazer a importação');
+  {
+    const antes = await avaliar(cdp, `
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      const b=document.getElementById('pierre-desfazer-btn');
+      return {visivel:b.style.display!=='none',
+        resumo:document.getElementById('pierre-desfazer-resumo').textContent,
+        lancamentos:(d.transacoes||[]).filter(t=>t.idExterno).length,
+        cartoes:(d.cartoes||[]).filter(c=>c.idExterno).length,
+        saldo:d.saldoAtual};`);
+    conferir(antes.visivel,
+      'o botão de desfazer aparece depois de importar',
+      'importar dezenas de linhas sem volta deixa o conserto manual, item a item');
+    conferir(/[0-9]/.test(antes.resumo),
+      `e diz o que vai tirar antes de tirar ("${antes.resumo.slice(0, 60)}")`);
+
+    const depois = await avaliar(cdp, `
+      /* o RASTRO diz exatamente o que aquela importação criou. Medir contra ele
+         e não contra um número chutado: a última sincronização pode não ter
+         trazido lançamento nenhum (todos já estavam), e isso é o certo. */
+      const reg=JSON.parse(localStorage.getItem('financas-data')).pierreUltimaImportacao||{};
+      const prometido={
+        transacoes:(reg.transacoes||[]).length,
+        cartoes:(reg.cartoes||[]).length,
+        faturas:(reg.faturasCriadas||[]).length};
+      const ids={t:reg.transacoes||[],c:reg.cartoes||[],f:reg.faturasCriadas||[]};
+
+      document.getElementById('pierre-desfazer-btn').click();
+      await new Promise(r=>setTimeout(r,500));
+      const cd=document.getElementById('confirm-dialog');
+      const perguntou=!!(cd&&cd.style.display==='block');
+      if(perguntou) document.getElementById('confirm-ok').click();
+      await new Promise(r=>setTimeout(r,1200));
+
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      const sobrou=id=>(d.transacoes||[]).some(t=>t.id===id);
+      const sobrouCartao=id=>(d.cartoes||[]).some(c=>c.id===id);
+      return {perguntou, prometido,
+        transacoesQueSobraram:ids.t.filter(sobrou).length,
+        cartoesQueSobraram:ids.c.filter(sobrouCartao).length,
+        saldo:d.saldoAtual,
+        registro:d.pierreUltimaImportacao,
+        botao:document.getElementById('pierre-desfazer-btn').style.display};`);
+    conferir(depois.perguntou, 'pergunta antes de desfazer');
+    conferir(depois.transacoesQueSobraram === 0,
+      `saiu tudo o que aquela importação tinha trazido (${depois.prometido.transacoes} lançamentos)`,
+      'o rastro guarda id por id; o que ele lista tem que sair');
+    conferir(depois.cartoesQueSobraram === 0 || depois.prometido.cartoes === 0,
+      `e o cartão criado por ela também (${depois.prometido.cartoes})`);
+    conferir(!depois.registro && depois.botao === 'none',
+      'o botão some: não dá pra desfazer duas vezes');
+  }
+
   titulo('desligar a integração apaga a chave');
   await avaliar(cdp, `
     const c=document.getElementById('pierre-ativo-check');

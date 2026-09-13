@@ -164,6 +164,14 @@ const ITEM_META = {
   ultimoAporte: { tipo: 'texto', max: 20, nulo: true },   // 'AAAA-M'
 };
 
+/* O que uma fatura era ANTES de a importacao mexer nela. So o suficiente pra
+   voltar: valor e pago. O resto (gastos digitados) nunca e tocado. */
+const ITEM_FATURA_ANTES = {
+  id: { tipo: 'texto', max: 40, padrao: '' },
+  valor: { tipo: 'dinheiro', padrao: 0 },
+  pago: { tipo: 'booleano', padrao: false },
+};
+
 const ITEM_CARTAO = {
   id: { tipo: 'id' },
   nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
@@ -308,6 +316,25 @@ const ESQUEMA = {
      recebia o extrato inteiro. Agora a lista e sempre explicita, e esta bandeira
      separa quem nunca mexeu (padrao, traz tudo) de quem escolheu. */
   pierreContasDefinidas: { tipo: 'booleano', padrao: false },
+  /* O rastro da ultima importacao, pra ela poder ser desfeita. Guarda ID, nunca
+     conteudo: o que foi criado se acha pelo id, e o que foi alterado volta ao
+     valor anotado aqui. Uma importacao so -- desfazer a penultima nao faz
+     sentido depois que a ultima ja mexeu nos mesmos numeros. */
+  pierreUltimaImportacao: {
+    tipo: 'objeto',
+    campos: {
+      em: { tipo: 'iso', nulo: true },
+      transacoes: { tipo: 'listaTexto', max: 40 },
+      cartoes: { tipo: 'listaTexto', max: 40 },
+      faturasCriadas: { tipo: 'listaTexto', max: 40 },
+      faturasAntes: { tipo: 'lista', item: ITEM_FATURA_ANTES },
+      gastosFixos: { tipo: 'listaTexto', max: 40 },
+      saldoAntes: { tipo: 'dinheiro', padrao: 0 },
+      saldoMexido: { tipo: 'booleano', padrao: false },
+      saldoEmAntes: { tipo: 'iso', nulo: true },
+      sincronizadoEmAntes: { tipo: 'iso', nulo: true },
+    },
+  },
   pierreTrazerCartao: { tipo: 'booleano', padrao: false },
   pierreTrazerFixos: { tipo: 'booleano', padrao: false },
   /* buscar sozinho ao abrir o app. Desligado por padrao: exige a chave no

@@ -253,15 +253,22 @@ function aplicarSincronizacaoPierre(plano,opcoes){
   const trazerSaldo=(opcoes&&'trazerSaldo' in opcoes)?opcoes.trazerSaldo
     :(plano.trazerSaldo!==false);
   if(!data.transacoes) data.transacoes=[];
+  const saldoAntes=data.saldoAtual||0;
+  const saldoEmAntes=data.saldoAtualizadoEm||null;
+  const sincronizadoEmAntes=data.pierreSincronizadoEm||null;
   const {passam,repetidas}=novasAindaInexistentes(plano.novas);
   passam.forEach(t=>{ data.transacoes.push(t); });
-  if(trazerSaldo&&plano.contasDeBanco>0){
+  const mexeuNoSaldo=trazerSaldo&&plano.contasDeBanco>0;
+  if(mexeuNoSaldo){
     data.saldoAtual=plano.saldo;
     data.saldoAtualizadoEm=new Date().toISOString();
   }
   data.pierreSincronizadoEm=new Date().toISOString();
   return {lancadas:passam.length,jaEstavam:repetidas.length,
-    saldoAtualizado:trazerSaldo&&plano.contasDeBanco>0};
+    saldoAtualizado:mexeuNoSaldo,
+    /* o rastro: ids do que entrou e o saldo de antes */
+    idsLancados:passam.map(t=>t.id),
+    saldoAntes,saldoEmAntes,sincronizadoEmAntes};
 }
 
 /* ══ O CARTÃO ═══════════════════════════════════════════════════════════════
@@ -524,6 +531,7 @@ function aplicarCartaoPierre(plano){
   if(!data.faturas) data.faturas=[];
 
   const idPorExterno=new Map();
+  const idsDeCartoesNovos=[], idsDeFaturasNovas=[], faturasAntes=[];
   let criados=0, atualizados=0;
   (plano.cartoes||[]).forEach(novo=>{
     const existente=(data.cartoes||[]).find(c=>c.idExterno===novo.idExterno);
@@ -541,6 +549,7 @@ function aplicarCartaoPierre(plano){
       idExterno:novo.idExterno};
     data.cartoes.push(cartao);
     idPorExterno.set(novo.idExterno,cartao.id);
+    idsDeCartoesNovos.push(cartao.id);
     criados++;
   });
 
@@ -558,18 +567,27 @@ function aplicarCartaoPierre(plano){
       const resto=Math.round((f.valor-itemizado)*100)/100;
       if(resto<0) estourando.push({ano:f.ano,mes:f.mes,banco:f.valor,itemizado});
       const novo=Math.max(0,resto);
+      /* anota o estado anterior UMA vez, antes da primeira mudanca */
+      if((existente.valor!==novo)||(f.pago&&!existente.pago)){
+        if(!faturasAntes.some(x=>x.id===existente.id)){
+          faturasAntes.push({id:existente.id,valor:existente.valor,pago:!!existente.pago});
+        }
+      }
       if(existente.valor!==novo){ existente.valor=novo; faturasAtualizadas++; }
       /* o "pago" é de quem usa: marcar aqui não desmarca lá, e o contrário
          também não — a sincronização só acrescenta a confirmação do banco */
       if(f.pago&&!existente.pago) existente.pago=true;
       return;
     }
-    data.faturas.push({id:uid(),ano:f.ano,mes:f.mes,valor:f.valor,
-      pago:Boolean(f.pago),gastos:[],cartaoId});
+    const nova={id:uid(),ano:f.ano,mes:f.mes,valor:f.valor,
+      pago:Boolean(f.pago),gastos:[],cartaoId};
+    data.faturas.push(nova);
+    idsDeFaturasNovas.push(nova.id);
     faturasNovas++;
   });
 
-  return {criados,atualizados,faturasNovas,faturasAtualizadas,estourando};
+  return {criados,atualizados,faturasNovas,faturasAtualizadas,estourando,
+    idsDeCartoesNovos,idsDeFaturasNovas,faturasAntes};
 }
 
 /* ══ GASTOS FIXOS ═══════════════════════════════════════════════════════════
@@ -689,6 +707,7 @@ function sugerirGastosFixosPierre(transacoes,hojeISO,cartaoId){
 function aplicarGastosFixosPierre(escolhidos,hojeISO){
   const quando=anoMesDoIso(String(hojeISO||todayISO()).slice(0,7))||{ano:2000,mes:1};
   let criados=0;
+  const ids=[];
   (escolhidos||[]).forEach(g=>{
     const feito=criarGastoFixo({
       nome:g.nome, valor:g.valor, diaDoMes:g.diaDoMes,
@@ -696,7 +715,120 @@ function aplicarGastosFixosPierre(escolhidos,hojeISO){
       inicioAno:quando.ano, inicioMes:quando.mes,
       cartao:Boolean(g.cartao), cartaoId:g.cartao?(g.cartaoId||null):null,
     });
-    if(feito) criados++;
+    if(feito){ criados++; ids.push(feito.id); }
   });
-  return {criados};
+  return {criados,ids};
+}
+
+
+/* ══ DESFAZER A ÚLTIMA IMPORTAÇÃO ═══════════════════════════════════════════
+
+   Uma importação traz dezenas de linhas de uma vez. Sem volta, qualquer engano
+   — a conta errada marcada, o mês errado, a categoria toda em Outros — vira
+   trabalho manual de desfazer item a item. Isto existe para isso.
+
+   **O que o desfazer NÃO faz: apagar o que você escreveu.** Ele guarda só ids e
+   o valor anterior dos campos que mexeu. Fatura criada pela importação que
+   ganhou gasto digitado depois não é removida — volta a zero e fica. Cartão que
+   ainda tem fatura ou conta fixa apontando para ele também fica. Nesses casos o
+   resultado diz o que foi preservado, em vez de escolher por você.
+
+   Uma importação só. Desfazer a penúltima não faz sentido depois que a última
+   já mexeu nos mesmos números. */
+
+function registrarImportacaoPierre(partes){
+  const {sinc,cartao,fixos}=partes||{};
+  data.pierreUltimaImportacao={
+    em:new Date().toISOString(),
+    transacoes:(sinc&&sinc.idsLancados)||[],
+    cartoes:(cartao&&cartao.idsDeCartoesNovos)||[],
+    faturasCriadas:(cartao&&cartao.idsDeFaturasNovas)||[],
+    faturasAntes:(cartao&&cartao.faturasAntes)||[],
+    gastosFixos:(fixos&&fixos.ids)||[],
+    saldoAntes:(sinc&&sinc.saldoAntes)||0,
+    saldoMexido:!!(sinc&&sinc.saldoAtualizado),
+    saldoEmAntes:(sinc&&sinc.saldoEmAntes)||null,
+    sincronizadoEmAntes:(sinc&&sinc.sincronizadoEmAntes)||null,
+  };
+  return data.pierreUltimaImportacao;
+}
+
+/* O que o desfazer removeria, sem remover nada. É o que a tela mostra antes de
+   perguntar — a mesma regra de sempre: nada acontece sem a pessoa ver. */
+function resumoDaUltimaImportacaoPierre(){
+  const reg=data.pierreUltimaImportacao;
+  if(!reg||!reg.em) return null;
+  const porId=new Set(reg.transacoes||[]);
+  const lancamentos=(data.transacoes||[]).filter(t=>porId.has(t.id));
+  const faturasNovas=(reg.faturasCriadas||[]).map(id=>
+    (data.faturas||[]).find(f=>f.id===id)).filter(Boolean);
+  return {
+    em:reg.em,
+    lancamentos:lancamentos.length,
+    valorLancado:lancamentos.reduce((soma,t)=>soma+(t.tipo==='receita'?0:(Number(t.valor)||0)),0),
+    cartoes:(reg.cartoes||[]).filter(id=>(data.cartoes||[]).some(c=>c.id===id)).length,
+    faturas:faturasNovas.length,
+    faturasComGastoSeu:faturasNovas.filter(f=>(f.gastos||[]).length).length,
+    faturasRestauradas:(reg.faturasAntes||[]).length,
+    gastosFixos:(reg.gastosFixos||[]).filter(id=>(data.gastosMensais||[]).some(g=>g.id===id)).length,
+    saldoVolta:reg.saldoMexido?reg.saldoAntes:null,
+  };
+}
+
+function desfazerImportacaoPierre(){
+  const reg=data.pierreUltimaImportacao;
+  if(!reg||!reg.em) return null;
+
+  const tirar=new Set(reg.transacoes||[]);
+  const antes=(data.transacoes||[]).length;
+  data.transacoes=(data.transacoes||[]).filter(t=>!tirar.has(t.id));
+  const lancamentos=antes-data.transacoes.length;
+
+  /* fatura que a importação criou e que ganhou gasto digitado depois NÃO é
+     removida: apagar o que a pessoa escreveu nunca é a resposta */
+  const guardadas=[];
+  const criadas=new Set(reg.faturasCriadas||[]);
+  data.faturas=(data.faturas||[]).filter(f=>{
+    if(!criadas.has(f.id)) return true;
+    if((f.gastos||[]).length){ f.valor=0; guardadas.push(f.id); return true; }
+    return false;
+  });
+
+  let faturasRestauradas=0;
+  (reg.faturasAntes||[]).forEach(antiga=>{
+    const f=(data.faturas||[]).find(x=>x.id===antiga.id);
+    if(!f) return;
+    f.valor=antiga.valor;
+    f.pago=!!antiga.pago;
+    faturasRestauradas++;
+  });
+
+  /* cartão só sai se não sobrou nada apontando pra ele */
+  const cartoesGuardados=[];
+  const deCartao=new Set(reg.cartoes||[]);
+  data.cartoes=(data.cartoes||[]).filter(c=>{
+    if(!deCartao.has(c.id)) return true;
+    const temFatura=(data.faturas||[]).some(f=>f.cartaoId===c.id);
+    const temFixo=(data.gastosMensais||[]).some(g=>g.cartaoId===c.id);
+    if(temFatura||temFixo){ cartoesGuardados.push(c.id); return true; }
+    return false;
+  });
+
+  const fixos=new Set(reg.gastosFixos||[]);
+  const antesFixos=(data.gastosMensais||[]).length;
+  data.gastosMensais=(data.gastosMensais||[]).filter(g=>!fixos.has(g.id));
+  const gastosFixos=antesFixos-data.gastosMensais.length;
+
+  if(reg.saldoMexido){
+    data.saldoAtual=reg.saldoAntes||0;
+    data.saldoAtualizadoEm=reg.saldoEmAntes||null;
+  }
+  /* volta o relógio: a próxima sincronização busca de novo o mesmo período, em
+     vez de pular o que acabou de ser removido */
+  data.pierreSincronizadoEm=reg.sincronizadoEmAntes||null;
+  data.pierreUltimaImportacao=null;
+
+  return {lancamentos,faturasRestauradas,gastosFixos,
+    faturasGuardadas:guardadas.length,cartoesGuardados:cartoesGuardados.length,
+    saldoVoltou:!!reg.saldoMexido};
 }
