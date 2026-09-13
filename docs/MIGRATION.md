@@ -1402,3 +1402,68 @@ planos: `Basic / Pro / Premium`, com cota para alertas de gasto (0 / 2 / 5). Nad
 sobre número de bancos. `get-api-key-info` devolve o que a própria chave libera
 — nesta conta, 8 ferramentas de leitura mais `manual-update`; alertas, lembretes,
 memórias e `get-book` não vieram.
+
+### 13/09 — o cartão, os gastos fixos e a busca ao abrir
+
+**A fatura não se monta somando compras.** Foi a medição que definiu o desenho:
+
+    fatura 2026-08: o banco diz            R$ 1.049,43
+                    a soma das compras dá  R$   317,63
+
+Não fecha, e não é erro de ninguém — juros, IOF, saldo anterior, e a janela de
+busca. No Aoii `fatura.valor` e `fatura.gastos[]` **se somam** (`computeCartao()`),
+então misturar as duas fontes daria um número que não existe.
+
+A regra ficou: **cada mês tira o valor de UMA fonte só**, nesta ordem.
+
+| mês | fonte | por quê |
+|---|---|---|
+| já fechado | `get-bills.totalAmount` | é o número do banco, exato |
+| corrente | `account.balance` do cartão | é o que se deve hoje |
+| futuro | parcelas não pagas que vencem nele | é o compromisso já assumido |
+
+`gastos[]` fica vazio de propósito: itemizar sem conseguir reconciliar é pior
+que não itemizar.
+
+**Fatura de mês que já passou entra PAGA.** Sem isso, `computeCartao()` — que
+soma toda fatura em aberto — leu as seis faturas fechadas do ano como dívida
+viva: **R$ 5.314 comprometidos num limite de R$ 700, e limite disponível
+negativo em R$ 4.614**. Com a correção: R$ 684,36 de R$ 700. Há teste para isso,
+e ele falha sem a mudança. O `pago` que a pessoa marcou nunca é desmarcado por
+uma sincronização — o valor é do banco, o `pago` é de quem usa.
+
+**`idExterno` no cartão** (as três casas de sempre). Sem ele, cada sincronização
+criaria outro cartão. Cartão digitado à mão não tem `idExterno` e fica fora da
+sincronização de propósito.
+
+**`numeroDoPierre()` também aqui:** `creditLimit` vem número, `balance` vem
+texto (`"520.38"`).
+
+**Gasto fixo é inferência, e inferência não decide.** O Pierre não tem rota de
+recorrência — conferido na especificação inteira. Então
+`sugerirGastosFixosPierre()` lê o extrato e devolve **sugestão**, que nasce
+**desmarcada** na tela. O critério é conservador porque um falso positivo vira
+despesa fantasma em todos os meses seguintes: só saída de conta já confirmada,
+mesma descrição em 2 meses distintos ou mais, valor estável (o maior não passa
+15% do menor), e `pagamento de fatura` fora — essa já é a fatura do cartão.
+No extrato real: 5 sugestões em 123 lançamentos, todas de valor idêntico entre
+os meses.
+
+A guarda de tamanho de nome desceu de 4 para 3 caracteres: "TIM" é operadora, e
+uma conta fixa de verdade.
+
+**Buscar ao abrir o app** é opção, desligada por padrão, e adianta **só a
+busca**: o plano continua esperando confirmação. Exige a chave já no aparelho —
+sem ela não há o que buscar, e pedir para colar no meio da abertura seria pior
+que não fazer nada. Webhook não é opção: a API deles não tem nenhum, nem
+callback, nem notificação.
+
+**As três opções novas nascem desligadas até para quem já usava** — são as que
+mexem em projeção, e ligar sozinho mudaria o número de alguém sem aviso.
+
+**Sobre a chave que morre:** cheguei a escrever aqui que ela expirava sozinha.
+Medi de novo, com a mesma chave parada por 22 minutos: continua respondendo 200.
+Não há TTL curto. As mortes anteriores coincidiram com a pessoa estar no site do
+Pierre, o que aponta de volta para "gerar outra invalida a anterior" — e levanta
+a hipótese de que **abrir** `pierre.finance/api-key` já gere uma nova. Não está
+confirmado.

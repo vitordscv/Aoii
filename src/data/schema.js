@@ -167,6 +167,10 @@ const ITEM_META = {
 const ITEM_CARTAO = {
   id: { tipo: 'id' },
   nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
+  /* o id da conta no Pierre, para a sincronizacao reencontrar ESTE cartao em
+     vez de criar outro a cada vez. Cartao digitado a mao nao tem, e fica fora
+     da sincronizacao de proposito. */
+  idExterno: { tipo: 'texto', max: 60, nulo: true },
   limite: { tipo: 'dinheiro', min: 0, padrao: 0 },
   diaFechamento: { tipo: 'inteiro', min: 1, max: 31, nulo: true },
   diaVencimento: { tipo: 'inteiro', min: 1, max: 31, nulo: true },
@@ -294,6 +298,12 @@ const ESQUEMA = {
   pierreTrazerSaldo: { tipo: 'booleano', padrao: true },
   pierreTrazerLancamentos: { tipo: 'booleano', padrao: true },
   pierreContas: { tipo: 'listaTexto', max: 120 },
+  pierreTrazerCartao: { tipo: 'booleano', padrao: false },
+  pierreTrazerFixos: { tipo: 'booleano', padrao: false },
+  /* buscar sozinho ao abrir o app. Desligado por padrao: exige a chave no
+     disco, e gravar no Diario sem alguem ver o plano nao acontece nunca --
+     isto so adianta a BUSCA, o plano continua esperando um toque. */
+  pierreBuscarAoAbrir: { tipo: 'booleano', padrao: false },
 
   /* marcadores de "já aconteceu" — sem eles o app repete a ação toda vez que
      abre: um snapshot novo na nuvem, o card de revisão do mês de volta */

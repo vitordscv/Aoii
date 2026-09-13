@@ -24,6 +24,20 @@ const DUBLE = `
     if(!url.includes('/api/pierre')) return fetchReal.apply(this,arguments);
     window.__pierreChamadas.push({url, auth:(init&&init.headers&&init.headers.Authorization)||''});
     const rota=new URL(url,location.origin).searchParams.get('rota');
+    if(rota==='get-bills'){
+      return new Response(JSON.stringify({success:true,count:2,data:[
+        {accountId:'a2',dueDate:'2026-08-28',billClosingDate:'2026-08-21',totalAmount:1200.00},
+        {accountId:'a2',dueDate:'2026-07-28',billClosingDate:'2026-07-21',totalAmount:900.00},
+      ]}),{status:200,headers:{'Content-Type':'application/json'}});
+    }
+    if(rota==='get-installments'){
+      return new Response(JSON.stringify({success:true,data:{purchases:[
+        {purchaseDate:'2026-06-20',totalAmount:300,installments:[
+          {installmentNumber:1,totalInstallments:3,amount:100,dueDate:'2026-08-20',isPaid:true,status:'POSTED',description:'Fone'},
+          {installmentNumber:2,totalInstallments:3,amount:100,dueDate:'2026-10-20',isPaid:false,status:'PENDING',description:'Fone'},
+          {installmentNumber:3,totalInstallments:3,amount:100,dueDate:'2026-11-20',isPaid:false,status:'PENDING',description:'Fone'},
+        ]}]}}),{status:200,headers:{'Content-Type':'application/json'}});
+    }
     const corpo = rota==='get-accounts' ? {
       success:true, count:3, data:[
         {id:'a1',connectorName:'Nubank',name:'Conta',customName:null,type:'BANK',
@@ -42,6 +56,10 @@ const DUBLE = `
          category:'Outros',status:'POSTED',account_type:'CREDIT',account_subtype:'CREDIT_CARD'},
         {id:'px4',description:'Uber',amount:-18.5,type:'DEBIT',date:'2026-09-11',
          category:'Transporte',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
+        {id:'px5',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-08-05',
+         category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
+        {id:'px6',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-09-05',
+         category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
       ]};
     return new Response(JSON.stringify(corpo),{status:200,headers:{'Content-Type':'application/json'}});
   };
@@ -172,7 +190,7 @@ const abrirPainel = cdp => avaliar(cdp, `
       valorGasto:(vindas.find(t=>t.idExterno==='px1')||{}).valor,
       categoria:(vindas.find(t=>t.idExterno==='px1')||{}).categoria,
       sincronizadoEm:!!d.pierreSincronizadoEm};`);
-  conferir(depois.quantas === 3, `três lançamentos entraram (${depois.quantas})`);
+  conferir(depois.quantas === 5, `os cinco de banco entraram (${depois.quantas})`);
   conferir(!depois.temCartao, 'a compra no cartão NÃO entrou',
     'ela já conta dentro da fatura: entrar aqui dobraria o mesmo real');
   conferir(depois.receita === 'receita' && depois.gasto === 'gasto',
@@ -197,7 +215,7 @@ const abrirPainel = cdp => avaliar(cdp, `
     const d=JSON.parse(localStorage.getItem('financas-data'));
     return {texto:p.textContent||'', rotulo,
       quantas:(d.transacoes||[]).filter(t=>t.idExterno).length};`);
-  conferir(segunda.quantas === 3, `continua com três (${segunda.quantas})`,
+  conferir(segunda.quantas === 5, `continua com cinco (${segunda.quantas})`,
     'sem o id externo, cada sincronização dobraria o extrato');
 
   titulo('escolher o que sincroniza');
@@ -257,6 +275,80 @@ const abrirPainel = cdp => avaliar(cdp, `
       await new Promise(r=>setTimeout(r,400)); return 1;`);
   }
 
+  titulo('cartão e gastos fixos, quando ligados');
+  {
+    /* os três nascem desligados: são os que mexem em projeção */
+    const inicio = await avaliar(cdp, `
+      return {cartao:document.getElementById('pierre-cartao-check').checked,
+        fixos:document.getElementById('pierre-fixos-check').checked,
+        abrir:document.getElementById('pierre-abrir-check').checked};`);
+    conferir(!inicio.cartao && !inicio.fixos && !inicio.abrir,
+      'as três opções novas nascem desligadas',
+      'ligar sozinho mudaria a projeção de alguém sem aviso');
+
+    const guardou = await avaliar(cdp, `
+      for(const id of ['pierre-cartao-check','pierre-fixos-check']){
+        const e=document.getElementById(id);
+        e.checked=true; e.dispatchEvent(new Event('change',{bubbles:true}));
+        await new Promise(r=>setTimeout(r,300));
+      }
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      return {cartao:d.pierreTrazerCartao,fixos:d.pierreTrazerFixos};`);
+    conferir(guardou.cartao === true && guardou.fixos === true,
+      'e ficam guardadas quando ligadas');
+
+    const antesDosFixos = await avaliar(cdp, `
+      return (JSON.parse(localStorage.getItem('financas-data')).gastosMensais||[]).length;`);
+
+    const plano = await avaliar(cdp, `
+      document.getElementById('pierre-sync-btn').click();
+      await new Promise(r=>setTimeout(r,2200));
+      const p=document.getElementById('pierre-plano');
+      const marcas=[...p.querySelectorAll('#pierre-fixos-lista input')];
+      return {texto:p.textContent,
+        fixosOferecidos:marcas.length,
+        algumMarcado:marcas.some(m=>m.checked),
+        rotas:window.__pierreChamadas.map(c=>new URL(c.url,location.origin).searchParams.get('rota'))};`);
+    conferir(plano.rotas.includes('get-bills') && plano.rotas.includes('get-installments'),
+      'ligado o cartão, a busca pede faturas e parcelas');
+    conferir(/[Ll]imite/.test(plano.texto),
+      'o plano mostra o cartão com limite');
+    conferir(plano.fixosOferecidos >= 1,
+      `a conta que se repetiu virou sugestão (${plano.fixosOferecidos})`);
+    conferir(!plano.algumMarcado,
+      'nenhuma sugestão vem marcada',
+      'conta fixa errada vira despesa fantasma em todo mês seguinte');
+
+    /* confirmar sem marcar nada: cartão entra, gasto fixo não.
+       O cenário já vem com cartões e faturas próprios — "Nubank Ultravioleta"
+       e "Itaú" —, então o que importa aqui é a DIFERENÇA, não o total. */
+    const depois = await avaliar(cdp, `
+      const b=[...document.querySelectorAll('#pierre-plano button')];
+      if(!b[0].disabled) b[0].click();
+      await new Promise(r=>setTimeout(r,1200));
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      const doPierre=(d.cartoes||[]).filter(c=>c.idExterno);
+      const ids=new Set(doPierre.map(c=>c.id));
+      const delas=(d.faturas||[]).filter(f=>ids.has(f.cartaoId));
+      const passadas=delas.filter(f=>f.ano*12+f.mes<2026*12+9);
+      return {cartoes:(d.cartoes||[]).length,
+        doPierre:doPierre.length,
+        faturasDoCartao:delas.length,
+        passadas:passadas.length,
+        passadasPagas:passadas.filter(f=>f.pago).length,
+        fixos:(d.gastosMensais||[]).length};`);
+    conferir(depois.doPierre === 1,
+      `um cartão veio do Pierre (${depois.doPierre} de ${depois.cartoes})`,
+      'o id externo é o que impede criar outro a cada sincronização');
+    conferir(depois.faturasDoCartao >= 4,
+      `as faturas dele entraram (${depois.faturasDoCartao})`);
+    conferir(depois.passadasPagas === depois.passadas && depois.passadas > 0,
+      `fatura de mês que já passou entra paga (${depois.passadasPagas} de ${depois.passadas})`,
+      'sem isso computeCartao() soma o histórico como dívida e o limite fica negativo');
+    conferir(depois.fixos === antesDosFixos,
+      `e nenhum gasto fixo foi criado, porque nada foi marcado (${depois.fixos})`);
+  }
+
   titulo('desligar a integração apaga a chave');
   await avaliar(cdp, `
     const c=document.getElementById('pierre-ativo-check');
@@ -270,7 +362,7 @@ const abrirPainel = cdp => avaliar(cdp, `
   conferir(!desligado.naSessao && !desligado.noDisco && !desligado.campo,
     'a chave some dos dois lugares e da tela',
     `sessao=${desligado.naSessao} disco=${desligado.noDisco} campo=${JSON.stringify(desligado.campo)}`);
-  conferir(desligado.lancamentos === 3,
+  conferir(desligado.lancamentos === 5,
     'mas o que já veio para o Diário fica',
     'apagar lançamentos ao desligar seria apagar o registro da pessoa');
 

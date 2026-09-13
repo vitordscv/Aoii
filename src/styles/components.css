@@ -1256,6 +1256,7 @@ body{padding-bottom:78px;}
 .pierre-plano-acoes button{flex:1;min-width:130px;min-height:40px;}
 #pierre-verificar-btn{width:100%;margin-top:10px;}
 #pierre-sync-btn{margin-top:10px;}
+.pierre-plano-sub{margin-top:14px;}
 .pierre-passos{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px;}
 .pierre-passos li{font-family:'Nunito Sans',sans-serif;font-size:12px;line-height:1.5;color:var(--muted2);}
 .pierre-passos .help-link{font-size:12px;}

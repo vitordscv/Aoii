@@ -82,6 +82,21 @@ async function validarChavePierre() {
 
 function buscarContasPierre() { return validarChavePierre(); }
 
+/* As faturas do cartao. Sem parametro vem tudo o que eles guardam -- foram 10
+   na conta real, cobrindo quase um ano. */
+async function buscarFaturasPierre() {
+  const r = await chamarPierre('get-bills');
+  const corpo = r.data;
+  return Array.isArray(corpo) ? corpo : [];
+}
+
+/* As compras parceladas, com o cronograma inteiro. `startDate` em branco faz o
+   Pierre olhar so tres meses para tras, e parcela de compra antiga ficaria de
+   fora -- por isso a janela larga. */
+async function buscarParcelasPierre(de, ate) {
+  return chamarPierre('get-installments', { startDate: de || '', endDate: ate || '' });
+}
+
 /* `startDate` em branco faz o Pierre devolver três meses. Quem chama diz o
    período; a rotina de sincronização usa a data do último lançamento trazido. */
 async function buscarTransacoesPierre(de, ate) {

@@ -44,6 +44,12 @@ function renderSettings(){
   const pierreLanc=document.getElementById('pierre-lanc-check');
   if(pierreSaldo) pierreSaldo.checked=data.pierreTrazerSaldo!==false;
   if(pierreLanc) pierreLanc.checked=data.pierreTrazerLancamentos!==false;
+  const pierreCartao=document.getElementById('pierre-cartao-check');
+  const pierreFixos=document.getElementById('pierre-fixos-check');
+  const pierreAbrir=document.getElementById('pierre-abrir-check');
+  if(pierreCartao) pierreCartao.checked=data.pierreTrazerCartao===true;
+  if(pierreFixos) pierreFixos.checked=data.pierreTrazerFixos===true;
+  if(pierreAbrir) pierreAbrir.checked=data.pierreBuscarAoAbrir===true;
 
   const iaLembrar=document.getElementById('ia-lembrar-check');
   const iaLembrarAviso=document.getElementById('ia-lembrar-aviso');

@@ -239,3 +239,306 @@ function aplicarSincronizacaoPierre(plano,opcoes){
   data.pierreSincronizadoEm=new Date().toISOString();
   return {lancadas:plano.novas.length,saldoAtualizado:trazerSaldo&&plano.contasDeBanco>0};
 }
+
+/* ══ O CARTÃO ═══════════════════════════════════════════════════════════════
+
+   Aqui vale uma regra que custou uma medição para descobrir: **cada mês tira o
+   valor da fatura de UMA fonte só.** Medido na conta real:
+
+       fatura 2026-08: o banco diz R$ 1.049,43
+                       a soma das compras que a API devolve: R$ 317,63
+
+   Não fecha, e não é erro de ninguém: juros, IOF, saldo anterior e a janela de
+   busca fazem a fatura ser mais do que a lista de compras. Somar `valor` com
+   `gastos[]` — que no Aoii se somam, veja `computeCartao()` — daria um número
+   que não existe em lugar nenhum.
+
+   Então, por mês, nesta ordem:
+
+     1. tem fatura fechada no banco  → o valor é o do banco, ponto;
+     2. é o mês corrente             → o valor é o saldo que o cartão informa,
+                                       que é o que você deve hoje;
+     3. é mês futuro                 → o valor é a soma das parcelas ainda não
+                                       pagas que vencem nele.
+
+   Nenhum mês soma duas fontes, e o plano diz de onde cada número veio. */
+
+function diaDoIso(iso){
+  const t=String(iso||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(t)) return null;
+  const d=parseInt(t.slice(8,10),10);
+  return d>=1&&d<=31?d:null;
+}
+
+function anoMesDoIso(iso){
+  const t=String(iso||'').slice(0,7);
+  if(!/^\d{4}-\d{2}$/.test(t)) return null;
+  return {ano:parseInt(t.slice(0,4),10),mes:parseInt(t.slice(5,7),10)};
+}
+
+function contaEhCartao(c){
+  const tipo=String(c&&c.type||'').toUpperCase();
+  const sub=String(c&&c.subtype||'').toUpperCase();
+  return tipo==='CREDIT'||sub==='CREDIT_CARD';
+}
+
+/* Uma conta de crédito do Pierre no formato do cartão do Aoii. O dia de
+   fechamento não vem na conta (`balanceCloseDate` veio nulo na conta real);
+   quem tem é a fatura, em `billClosingDate`. */
+function cartaoDoPierre(conta,faturas){
+  if(!contaEhCartao(conta)) return null;
+  const credito=conta.creditData||{};
+  const nome=[conta.connectorName,nomeDaContaPierre(conta)].filter(Boolean).join(' ')
+    ||L('pierre.contaSemNome');
+  const minhas=(faturas||[]).filter(f=>String(f.accountId||'')===String(conta.id||''));
+  const maisNova=minhas.slice().sort((a,b)=>
+    String(b.dueDate||'').localeCompare(String(a.dueDate||'')))[0];
+  return {
+    idExterno:String(conta.id||''),
+    nome:nome.slice(0,60),
+    limite:numeroDoPierre(credito.creditLimit),
+    diaVencimento:diaDoIso(credito.balanceDueDate)||diaDoIso(maisNova&&maisNova.dueDate),
+    diaFechamento:diaDoIso(credito.balanceCloseDate)||diaDoIso(maisNova&&maisNova.billClosingDate),
+  };
+}
+
+/* Parcela que ainda não foi paga, com o mês em que cai. O Pierre repete a
+   mesma parcela em registros irmãos — um com `status`, outro sem — então junta
+   por número de parcela e fica com a versão que tem status. */
+function parcelasAbertasDoPierre(resposta){
+  const raiz=(resposta&&resposta.data)||resposta||{};
+  const compras=raiz.purchases||[];
+  const abertas=[];
+  compras.forEach(compra=>{
+    const porNumero=new Map();
+    (compra.installments||[]).forEach(pa=>{
+      const atual=porNumero.get(pa.installmentNumber);
+      if(!atual||(!atual.status&&pa.status)) porNumero.set(pa.installmentNumber,pa);
+    });
+    porNumero.forEach(pa=>{
+      if(pa.isPaid) return;
+      const quando=anoMesDoIso(pa.dueDate);
+      if(!quando) return;
+      const valor=numeroDoPierre(pa.amount);
+      if(!(valor>0)) return;
+      abertas.push({
+        ano:quando.ano, mes:quando.mes, valor,
+        numero:pa.installmentNumber, de:pa.totalInstallments,
+        nome:String(pa.description||'').trim()||L('pierre.semDescricao'),
+        categoria:categoriaDoPierre(pa.category),
+      });
+    });
+  });
+  return abertas;
+}
+
+/* O que a sincronização faria com o cartão, sem gravar nada. */
+function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO){
+  const hoje=String(hojeISO||todayISO()).slice(0,10);
+  const agora=anoMesDoIso(hoje)||{ano:2000,mes:1};
+  const chaveDeAgora=agora.ano*12+agora.mes;
+
+  const cartoes=(contas||[]).filter(contaEhCartao)
+    .map(c=>cartaoDoPierre(c,faturas))
+    .filter(Boolean);
+
+  const abertas=parcelasAbertasDoPierre(parcelas);
+  const meses=new Map();   /* 'ano-mes' → {ano,mes,valor,origem,cartaoExterno} */
+
+  const porMes=(ano,mes,valor,origem,cartaoExterno)=>{
+    const k=ano+'-'+mes+'-'+cartaoExterno;
+    /* a primeira fonte a chegar manda: a ordem de chamada é a prioridade */
+    if(meses.has(k)) return;
+    /* Fatura de mês que já passou entra como PAGA. Sem isto, `computeCartao()`
+       — que soma TODA fatura em aberto — leu as seis faturas fechadas do ano
+       como dívida viva: R$ 5.314 comprometidos num limite de R$ 700, e limite
+       disponível negativo em R$ 4.614. Elas são histórico; o que se deve está
+       no mês corrente e nos que vêm. */
+    const jaPassou=ano*12+mes<chaveDeAgora;
+    meses.set(k,{ano,mes,valor,origem,cartaoExterno,pago:jaPassou});
+  };
+
+  /* 1. fatura fechada: o número do banco */
+  (faturas||[]).forEach(f=>{
+    const quando=anoMesDoIso(f.dueDate);
+    if(!quando) return;
+    const valor=numeroDoPierre(f.totalAmount);
+    if(!(valor>0)) return;
+    porMes(quando.ano,quando.mes,valor,'banco',String(f.accountId||''));
+  });
+
+  /* 2. mês corrente: o saldo que o cartão informa */
+  (contas||[]).filter(contaEhCartao).forEach(c=>{
+    const valor=numeroDoPierre(c.balance);
+    if(!(valor>0)) return;
+    porMes(agora.ano,agora.mes,valor,'saldo',String(c.id||''));
+  });
+
+  /* 3. meses futuros: as parcelas que ainda vão cair */
+  const soma=new Map();
+  abertas.forEach(pa=>{
+    if(pa.ano*12+pa.mes<=chaveDeAgora) return;   /* passado e mês corrente já têm fonte */
+    const k=pa.ano+'-'+pa.mes;
+    soma.set(k,(soma.get(k)||0)+pa.valor);
+  });
+  const doCartao=cartoes[0]?cartoes[0].idExterno:'';
+  soma.forEach((valor,k)=>{
+    const [ano,mes]=k.split('-').map(Number);
+    porMes(ano,mes,Math.round(valor*100)/100,'parcelas',doCartao);
+  });
+
+  const jaTenho=new Set((data.cartoes||[]).map(c=>c.idExterno).filter(Boolean));
+  return {
+    cartoes,
+    cartoesNovos:cartoes.filter(c=>!jaTenho.has(c.idExterno)).length,
+    faturas:[...meses.values()].sort((a,b)=>(a.ano*12+a.mes)-(b.ano*12+b.mes)),
+    faturasFechadas:[...meses.values()].filter(f=>f.pago).length,
+    parcelasAbertas:abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora),
+    totalParcelas:abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora)
+      .reduce((s,pa)=>s+pa.valor,0),
+  };
+}
+
+/* Grava o cartão e as faturas. Fatura que já existe tem o valor SUBSTITUÍDO,
+   não somado: a fonte é o banco, e o banco é quem está certo sobre a fatura
+   dele. Os `gastos[]` de quem já tinha ficam como estão — foi você que
+   digitou, e apagar o que a pessoa escreveu nunca é a resposta. */
+function aplicarCartaoPierre(plano){
+  if(!plano) return null;
+  if(!data.cartoes) data.cartoes=[];
+  if(!data.faturas) data.faturas=[];
+
+  const idPorExterno=new Map();
+  let criados=0, atualizados=0;
+  (plano.cartoes||[]).forEach(novo=>{
+    const existente=(data.cartoes||[]).find(c=>c.idExterno===novo.idExterno);
+    if(existente){
+      existente.nome=novo.nome;
+      existente.limite=novo.limite;
+      if(novo.diaVencimento) existente.diaVencimento=novo.diaVencimento;
+      if(novo.diaFechamento) existente.diaFechamento=novo.diaFechamento;
+      idPorExterno.set(novo.idExterno,existente.id);
+      atualizados++;
+      return;
+    }
+    const cartao={id:uid(),nome:novo.nome,limite:novo.limite,
+      diaFechamento:novo.diaFechamento||null,diaVencimento:novo.diaVencimento||null,
+      idExterno:novo.idExterno};
+    data.cartoes.push(cartao);
+    idPorExterno.set(novo.idExterno,cartao.id);
+    criados++;
+  });
+
+  let faturasNovas=0, faturasAtualizadas=0;
+  (plano.faturas||[]).forEach(f=>{
+    const cartaoId=idPorExterno.get(f.cartaoExterno)
+      ||((data.cartoes||[])[0]||{}).id||null;
+    const existente=(data.faturas||[]).find(x=>
+      x.ano===f.ano&&x.mes===f.mes&&x.cartaoId===cartaoId);
+    if(existente){
+      /* o valor é do banco, mas o "pago" é de quem usa: se a pessoa marcou
+         como paga aqui, uma sincronização não desmarca */
+      if(existente.valor!==f.valor){ existente.valor=f.valor; faturasAtualizadas++; }
+      if(f.pago&&!existente.pago) existente.pago=true;
+      return;
+    }
+    data.faturas.push({id:uid(),ano:f.ano,mes:f.mes,valor:f.valor,
+      pago:Boolean(f.pago),gastos:[],cartaoId});
+    faturasNovas++;
+  });
+
+  return {criados,atualizados,faturasNovas,faturasAtualizadas};
+}
+
+/* ══ GASTOS FIXOS ═══════════════════════════════════════════════════════════
+
+   O Pierre não tem rota de "gasto recorrente" — conferi a especificação
+   inteira. Então isto é **inferência a partir do extrato**, e inferência não
+   cria conta fixa sozinha: devolve sugestão, e quem decide é quem está lendo.
+
+   O critério é conservador de propósito, porque um falso positivo aqui vira
+   despesa fantasma na projeção de todos os meses seguintes:
+
+     - só saída de conta de banco, já confirmada;
+     - a mesma descrição em 2 meses distintos ou mais;
+     - valor estável (o maior não passa 15% do menor);
+     - fora pagamento de fatura, que já é a fatura do cartão. */
+
+const PIERRE_NAO_EH_FIXO=/pagamento de fatura|pagamento de cartao|fatura do cartao|estorno|transferencia recebida/;
+
+function assinaturaDoGasto(t){
+  return semAcento(t&&t.description)
+    .replace(/\d+/g,'')
+    .replace(/[|\-–—]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function sugerirGastosFixosPierre(transacoes,hojeISO){
+  const hoje=String(hojeISO||todayISO()).slice(0,10);
+  const porAssinatura=new Map();
+
+  (transacoes||[]).forEach(t=>{
+    if(ehDeCartao(t)||aindaNaoCaiu(t)) return;
+    if(String(t&&t.type||'').toUpperCase()!=='DEBIT') return;
+    const dia=String(t&&t.date||'').slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dia)||dia>hoje) return;
+    const assinatura=assinaturaDoGasto(t);
+    /* 3 e nao 4: "TIM" e nome de operadora, e uma conta fixa de verdade */
+    if(!assinatura||assinatura.length<3) return;
+    if(PIERRE_NAO_EH_FIXO.test(assinatura)) return;
+    const valor=Math.abs(numeroDoPierre(t.amount));
+    if(!(valor>0)) return;
+    if(!porAssinatura.has(assinatura)) porAssinatura.set(assinatura,[]);
+    porAssinatura.get(assinatura).push({dia,valor,nome:String(t.description||'').trim(),
+      categoria:t.category});
+  });
+
+  const jaTenho=new Set((data.gastosMensais||[]).map(g=>semAcento(g.nome)));
+  const sugestoes=[];
+  porAssinatura.forEach(lista=>{
+    const meses=new Set(lista.map(x=>x.dia.slice(0,7)));
+    if(meses.size<2) return;
+    const valores=lista.map(x=>x.valor);
+    const menor=Math.min(...valores), maior=Math.max(...valores);
+    if(menor<=0||maior>menor*1.15) return;
+    const maisNovo=lista.slice().sort((a,b)=>b.dia.localeCompare(a.dia))[0];
+    /* o dia que mais se repete: conta fixa cai sempre por volta da mesma data */
+    const contagem=new Map();
+    lista.forEach(x=>{
+      const d=parseInt(x.dia.slice(8,10),10);
+      contagem.set(d,(contagem.get(d)||0)+1);
+    });
+    const diaDoMes=[...contagem.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+    sugestoes.push({
+      nome:maisNovo.nome.slice(0,60),
+      valor:Math.round(maisNovo.valor*100)/100,
+      diaDoMes,
+      categoria:categoriaDoPierre(maisNovo.categoria),
+      vezes:lista.length,
+      meses:meses.size,
+      sempreIgual:menor===maior,
+      jaExiste:jaTenho.has(semAcento(maisNovo.nome)),
+    });
+  });
+
+  return sugestoes
+    .filter(x=>!x.jaExiste)
+    .sort((a,b)=>b.meses-a.meses||b.valor-a.valor);
+}
+
+/* Cria os fixos que a pessoa marcou. Passa pelo comando de sempre, que valida
+   — não escreve em `data.gastosMensais` por fora. */
+function aplicarGastosFixosPierre(escolhidos,hojeISO){
+  const quando=anoMesDoIso(String(hojeISO||todayISO()).slice(0,7))||{ano:2000,mes:1};
+  let criados=0;
+  (escolhidos||[]).forEach(g=>{
+    const feito=criarGastoFixo({
+      nome:g.nome, valor:g.valor, diaDoMes:g.diaDoMes,
+      categoria:g.categoria||'Outros', ativo:true,
+      inicioAno:quando.ano, inicioMes:quando.mes,
+    });
+    if(feito) criados++;
+  });
+  return {criados};
+}

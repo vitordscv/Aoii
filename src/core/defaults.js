@@ -50,6 +50,9 @@ function defaultData(){
     pierreTrazerSaldo:true,
     pierreTrazerLancamentos:true,
     pierreContas:[],
+    pierreTrazerCartao:false,
+    pierreTrazerFixos:false,
+    pierreBuscarAoAbrir:false,
     onboardingCompleto:false,
     tourCompleto:false,
     idioma:idiomaDoNavegador(etiquetasDoNavegador()),
@@ -216,6 +219,11 @@ function migrateData(d){
   if(typeof d.pierreTrazerSaldo!=='boolean') d.pierreTrazerSaldo=true;
   if(typeof d.pierreTrazerLancamentos!=='boolean') d.pierreTrazerLancamentos=true;
   if(!Array.isArray(d.pierreContas)) d.pierreContas=[];
+  /* cartao e fixos nascem DESLIGADOS mesmo para quem ja usava: sao os dois que
+     mexem em projecao, e ligar sozinho mudaria o numero de alguem sem aviso */
+  if(typeof d.pierreTrazerCartao!=='boolean') d.pierreTrazerCartao=false;
+  if(typeof d.pierreTrazerFixos!=='boolean') d.pierreTrazerFixos=false;
+  if(typeof d.pierreBuscarAoAbrir!=='boolean') d.pierreBuscarAoAbrir=false;
   d.viagens.forEach(v=>{ if(typeof v.orcamento!=='number') v.orcamento=0; });
   d.metas.forEach(m=>{ if(typeof m.aporteMensal!=='number') m.aporteMensal=0; if(!m.ultimoAporte) m.ultimoAporte=null; });
   d.transacoes.forEach(t=>{ if(!t.viagemId) t.viagemId=null; });

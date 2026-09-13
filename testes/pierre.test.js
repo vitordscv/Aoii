@@ -199,6 +199,141 @@ module.exports=function(t){
     t.igual(plano.recusadas.length,1,'e o outro é contado, não some calado');
   }
 
+  console.log('\n\x1b[1mO cartão sai da conta de crédito\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    /* a forma real de uma conta CREDIT, conferida com chave de verdade */
+    const cartao={id:'cc1',name:'gold',customName:null,type:'CREDIT',
+      subtype:'CREDIT_CARD',balance:'520.38',connectorName:'Nubank',
+      creditData:{creditLimit:700,balanceDueDate:'2026-08-28',balanceCloseDate:null}};
+    const faturas=[
+      {accountId:'cc1',dueDate:'2026-08-28',billClosingDate:'2026-08-21',totalAmount:1049.43},
+      {accountId:'cc1',dueDate:'2026-07-28',billClosingDate:'2026-07-21',totalAmount:903.03},
+    ];
+    const k=c.cartaoDoPierre(cartao,faturas);
+    t.igual(k.nome,'Nubank gold','o nome junta banco e cartão');
+    t.valor(k.limite,700,'o limite vem de creditData');
+    t.igual(k.diaVencimento,28,'o vencimento sai de balanceDueDate');
+    t.igual(k.diaFechamento,21,'e o fechamento da fatura, porque a conta manda nulo');
+    t.igual(k.idExterno,'cc1','com o id do Pierre junto, pra reencontrar depois');
+    t.igual(c.cartaoDoPierre({id:'b1',type:'BANK'},[]),null,'conta de banco não vira cartão');
+  }
+
+  console.log('\n\x1b[1mCada mês tira o valor de UMA fonte\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'520.38',connectorName:'Nubank',
+      creditData:{creditLimit:700,balanceDueDate:'2026-08-28'}};
+    const faturas=[
+      {accountId:'cc1',dueDate:'2026-08-28',totalAmount:1049.43},
+      {accountId:'cc1',dueDate:'2026-07-28',totalAmount:903.03},
+    ];
+    const parcelas={data:{purchases:[{purchaseDate:'2026-06-20',totalAmount:47.82,
+      installments:[
+        {installmentNumber:1,totalInstallments:3,amount:15.94,dueDate:'2026-08-20',isPaid:true,status:'POSTED',description:'Compra'},
+        {installmentNumber:2,totalInstallments:3,amount:15.94,dueDate:'2026-10-20',isPaid:false,status:'PENDING',description:'Compra'},
+        {installmentNumber:3,totalInstallments:3,amount:15.94,dueDate:'2026-11-20',isPaid:false,status:'PENDING',description:'Compra'}]}]}};
+
+    const p=c.planoDoCartaoPierre([cartao],faturas,parcelas,HOJE);
+    const acha=(ano,mes)=>p.faturas.find(f=>f.ano===ano&&f.mes===mes);
+
+    t.igual(acha(2026,8).origem,'banco','mês fechado usa o número do banco');
+    t.valor(acha(2026,8).valor,1049.43,'com o valor que o banco diz');
+    t.igual(acha(2026,9).origem,'saldo','o mês corrente usa o saldo do cartão');
+    t.valor(acha(2026,9).valor,520.38,'que é o que se deve hoje');
+    t.igual(acha(2026,10).origem,'parcelas','mês futuro usa as parcelas');
+    t.valor(acha(2026,10).valor,15.94,'somando só as que vencem nele');
+
+    /* a parcela de agosto NÃO entra: aquele mês já tem a fatura do banco, e
+       somar as duas contaria o mesmo dinheiro duas vezes */
+    t.valor(acha(2026,8).valor,1049.43,'a parcela de agosto não é somada à fatura de agosto');
+
+    const chaves=p.faturas.map(f=>f.ano+'-'+f.mes);
+    t.igual(chaves.length,new Set(chaves).size,'nenhum mês aparece duas vezes');
+  }
+
+  console.log('\n\x1b[1mFatura de mês que já passou entra paga\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'520.38',connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-08-28'}};
+    /* seis meses fechados, como veio da conta real */
+    const faturas=[3,4,5,6,7,8].map(m=>({accountId:'cc1',
+      dueDate:'2026-0'+m+'-28',totalAmount:600+m*50}));
+    const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE);
+    c.aplicarCartaoPierre(p);
+
+    const emAberto=d.faturas.filter(f=>!f.pago);
+    t.igual(emAberto.length,1,'só o mês corrente fica em aberto');
+
+    /* Este é o teste que faltava. Sem o "pago", computeCartao() somava as seis
+       faturas fechadas como dívida viva: R$ 5.314 comprometidos num limite de
+       R$ 700, e disponível negativo em R$ 4.614. */
+    const uso=c.computeCartao(d.cartoes[0].id);
+    t.valor(uso.comprometido,520.38,'o comprometido é só a fatura aberta');
+    t.valor(uso.disponivel,179.62,'e sobra limite de verdade, não número negativo absurdo');
+    t.verdadeiro(uso.disponivel>0,'o limite disponível não fica negativo por causa do histórico');
+  }
+
+  console.log('\n\x1b[1mSincronizar o cartão duas vezes não duplica\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'100.00',connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-08-28'}};
+    const faturas=[{accountId:'cc1',dueDate:'2026-08-28',totalAmount:900}];
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE));
+    const depoisDaPrimeira={c:d.cartoes.length,f:d.faturas.length};
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE));
+    t.igual(d.cartoes.length,depoisDaPrimeira.c,'continua um cartão só');
+    t.igual(d.faturas.length,depoisDaPrimeira.f,'e o mesmo número de faturas');
+
+    /* o valor é do banco; o "pago" é de quem usa */
+    d.faturas.find(f=>f.mes===9).pago=true;
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE));
+    t.verdadeiro(d.faturas.find(f=>f.mes===9).pago,
+      'fatura que a pessoa marcou como paga não volta a dever');
+  }
+
+  console.log('\n\x1b[1mGasto fixo é sugestão, nunca decisão\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const fixo=(desc,valor,dia,mes)=>doBanco('t'+desc+mes,desc,-valor,'DEBIT',
+      {date:'2026-0'+mes+'-'+dia,account_id:'a',account_name:'Nubank'});
+    const vindas=[
+      fixo('TIM',129.99,'05','7'), fixo('TIM',129.99,'05','8'),
+      fixo('Pagamento de fatura',903.03,'10','7'),
+      fixo('Pagamento de fatura',1049.43,'10','8'),
+      fixo('Padaria',12.50,'03','7'),   /* valor muda muito: não é fixo */
+      fixo('Padaria',48.00,'19','8'),
+      fixo('Uma vez so',300,'02','8'),  /* um mês só */
+    ];
+    const sug=c.sugerirGastosFixosPierre(vindas,HOJE);
+    const nomes=sug.map(g=>g.nome);
+    t.verdadeiro(nomes.some(n=>/TIM/.test(n)),'o que repete no mesmo valor é sugerido');
+    t.verdadeiro(!nomes.some(n=>/fatura/i.test(n)),
+      'pagamento de fatura fica de fora: já é a fatura do cartão');
+    t.verdadeiro(!nomes.some(n=>/Padaria/.test(n)),
+      'valor que varia muito não é conta fixa');
+    t.verdadeiro(!nomes.some(n=>/Uma vez/.test(n)),
+      'um mês só não é repetição');
+    const tim=sug.find(g=>/TIM/.test(g.nome));
+    t.valor(tim.valor,129.99,'com o valor mais recente');
+    t.igual(tim.diaDoMes,5,'e o dia em que costuma cair');
+
+    const antes=d.gastosMensais.length;
+    c.aplicarGastosFixosPierre([],HOJE);
+    t.igual(d.gastosMensais.length,antes,'lista vazia não cria nada');
+    c.aplicarGastosFixosPierre([tim],HOJE);
+    t.igual(d.gastosMensais.length,antes+1,'marcando, o fixo é criado');
+    t.verdadeiro(d.gastosMensais[0].ativo===true&&d.gastosMensais[0].inicioMes===9,
+      'valendo a partir do mês corrente, e não retroativo');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();

@@ -98,6 +98,9 @@ const FUNCOES=[
   'semAcento','categoriaDoPierre','ehEntradaNoPierre','ehDeCartao','transacaoDoPierre',
   'saldoDoPierre','planoDeSincronizacaoPierre','aplicarSincronizacaoPierre',
   'numeroDoPierre','contaEhBanco','nomeDaContaPierre','aindaNaoCaiu',
+  'diaDoIso','anoMesDoIso','contaEhCartao','cartaoDoPierre','parcelasAbertasDoPierre',
+  'planoDoCartaoPierre','aplicarCartaoPierre','sugerirGastosFixosPierre',
+  'aplicarGastosFixosPierre','assinaturaDoGasto',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'empurrarParaNuvem','conteudoFinanceiroParaConflito','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',
@@ -115,9 +118,11 @@ function montarMotor(arquivo){
   const moedas=/const CURRENCY_INFO\s*=\s*\{[\s\S]*?\n\};/.exec(src);
   /* o De-Para das categorias do Pierre: categoriaDoPierre() consulta */
   const catsPierre=/const PIERRE_CATEGORIAS\s*=\s*\{[\s\S]*?\n\};/.exec(src);
+  /* o que NAO e gasto fixo: sugerirGastosFixosPierre() consulta */
+  const naoEhFixo=/const PIERRE_NAO_EH_FIXO\s*=\s*\/[^\n]*\/;/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
     (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
-    (catsPierre?catsPierre[0]+'\n':'');
+    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

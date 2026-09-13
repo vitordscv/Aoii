@@ -69,6 +69,62 @@ function pierreDesenharPlano(plano){
       .replace('{app}',formatBRL(plano.saldoAtual)));
   }
 
+  /* ── o cartão ── */
+  if(plano.cartao&&plano.cartao.cartoes.length){
+    const c=plano.cartao;
+    const sub=document.createElement('div');
+    sub.className='ia-envio-titulo pierre-plano-sub';
+    sub.textContent=L('pierre.planoCartaoTitulo');
+    caixa.appendChild(sub);
+    c.cartoes.forEach(k=>{
+      linha(k.nome+' · '+L('pierre.planoLimite').replace('{v}',formatBRL(k.limite))
+        +(k.diaVencimento?' · '+L('pierre.planoVence').replace('{d}',k.diaVencimento):''),
+        'pierre-amostra');
+    });
+    linha(L('pierre.planoFaturas')
+      .replace('{n}',c.faturas.length)
+      .replace('{fechadas}',c.faturasFechadas));
+    if(c.parcelasAbertas.length){
+      linha(L('pierre.planoParcelas')
+        .replace('{n}',c.parcelasAbertas.length)
+        .replace('{v}',formatBRL(c.totalParcelas)));
+    }
+    linha(L('pierre.planoFaturaFonte'),'pierre-amostra');
+  }
+
+  /* ── os gastos fixos, para marcar ── */
+  if(plano.fixos&&plano.fixos.length){
+    const sub=document.createElement('div');
+    sub.className='ia-envio-titulo pierre-plano-sub';
+    sub.textContent=L('pierre.planoFixosTitulo');
+    caixa.appendChild(sub);
+    linha(L('pierre.planoFixosAjuda'));
+    const lista=document.createElement('div');
+    lista.className='pierre-contas';
+    lista.id='pierre-fixos-lista';
+    caixa.appendChild(lista);
+    plano.fixos.forEach((g,i)=>{
+      const item=document.createElement('label');
+      item.className='pierre-conta';
+      const marca=document.createElement('input');
+      marca.type='checkbox';
+      marca.value=String(i);
+      /* nasce DESMARCADO: conta fixa entra na projeção de todo mês seguinte,
+         e isto aqui é palpite lido do extrato, não fato declarado pelo banco */
+      marca.checked=false;
+      item.appendChild(marca);
+      const nome=document.createElement('span');
+      nome.className='pierre-conta-nome';
+      nome.textContent=g.nome;
+      item.appendChild(nome);
+      const val=document.createElement('span');
+      val.className='pierre-conta-tipo';
+      val.textContent=formatBRL(g.valor)+' · '+L('pierre.planoFixoDia').replace('{d}',g.diaDoMes);
+      item.appendChild(val);
+      lista.appendChild(item);
+    });
+  }
+
   /* as três primeiras, pra conferir que é mesmo o extrato certo */
   plano.novas.slice(0,3).forEach(t=>{
     linha((t.tipo==='receita'?'+ ':'− ')+formatBRL(t.valor)+' · '+t.nome+' · '+t.data,'pierre-amostra');
@@ -91,15 +147,30 @@ function pierreDesenharPlano(plano){
   cancelar.textContent=L('btn.cancelar');
   acoes.appendChild(cancelar);
 
-  const nadaAFazer=plano.novas.length===0&&plano.diferencaDeSaldo===0;
+  const temCartao=!!(plano.cartao&&plano.cartao.cartoes.length);
+  const temFixos=!!(plano.fixos&&plano.fixos.length);
+  const nadaAFazer=plano.novas.length===0&&plano.diferencaDeSaldo===0&&!temCartao&&!temFixos;
   if(nadaAFazer){ confirmar.disabled=true; confirmar.textContent=L('pierre.nadaNovo'); }
 
   cancelar.addEventListener('click',()=>{ caixa.hidden=true; caixa.innerHTML=''; });
   umEnvioPorVez(confirmar,async()=>{
     const r=aplicarSincronizacaoPierre(plano);
+    let doCartao=null, fixos={criados:0};
+    if(plano.cartao) doCartao=aplicarCartaoPierre(plano.cartao);
+    if(plano.fixos&&plano.fixos.length){
+      const marcados=[...caixa.querySelectorAll('#pierre-fixos-lista input:checked')]
+        .map(i=>plano.fixos[Number(i.value)]).filter(Boolean);
+      fixos=aplicarGastosFixosPierre(marcados,todayISO());
+    }
     await persist(); render();
     caixa.hidden=true; caixa.innerHTML='';
-    pierreEstado(L('pierre.pronto').replace('{n}',r.lancadas),'ok');
+    let aviso=L('pierre.pronto').replace('{n}',r.lancadas);
+    if(doCartao&&(doCartao.criados||doCartao.faturasNovas)){
+      aviso+=' '+L('pierre.prontoCartao')
+        .replace('{c}',doCartao.criados).replace('{f}',doCartao.faturasNovas);
+    }
+    if(fixos.criados) aviso+=' '+L('pierre.prontoFixos').replace('{n}',fixos.criados);
+    pierreEstado(aviso,'ok');
   });
 }
 
@@ -192,7 +263,12 @@ function setupPierre(){
 
   const saldoCheck=document.getElementById('pierre-saldo-check');
   const lancCheck=document.getElementById('pierre-lanc-check');
-  [[saldoCheck,'pierreTrazerSaldo'],[lancCheck,'pierreTrazerLancamentos']].forEach(([el,chave])=>{
+  const cartaoCheck=document.getElementById('pierre-cartao-check');
+  const fixosCheck=document.getElementById('pierre-fixos-check');
+  const abrirCheck=document.getElementById('pierre-abrir-check');
+  [[saldoCheck,'pierreTrazerSaldo'],[lancCheck,'pierreTrazerLancamentos'],
+   [cartaoCheck,'pierreTrazerCartao'],[fixosCheck,'pierreTrazerFixos'],
+   [abrirCheck,'pierreBuscarAoAbrir']].forEach(([el,chave])=>{
     if(!el) return;
     el.addEventListener('change',async e=>{
       if(definirPreferenciaBooleana(chave,e.target.checked)===null) return;
@@ -222,6 +298,15 @@ function setupPierre(){
     }catch(e){ pierreEstado(pierreDizOErro(e),'erro'); }
   });
 
+  /* Buscar ao abrir. Só com a opção ligada, a integração ativa e a chave já no
+     aparelho — sem a chave não há o que buscar, e pedir para colar no meio da
+     abertura seria pior que não fazer nada. NÃO grava: só deixa o plano pronto
+     na tela, e quem confirma continua sendo quem está lendo. */
+  if(data.pierreBuscarAoAbrir===true&&data.pierreAtivo===true
+     &&chavePierreParece(getPierreChave())&&sync){
+    setTimeout(()=>{ if(!sync.disabled) sync.click(); },1500);
+  }
+
   if(sync) umEnvioPorVez(sync,async()=>{
     pierreEstado(L('pierre.buscando'));
     try{
@@ -238,6 +323,27 @@ function setupPierre(){
         trazerSaldo:data.pierreTrazerSaldo!==false,
         trazerLancamentos:data.pierreTrazerLancamentos!==false,
       });
+
+      /* O cartao pede duas chamadas a mais, e so as faz se estiver ligado:
+         quem nao usa cartao nao espera por elas. */
+      if(data.pierreTrazerCartao===true){
+        const faturas=await buscarFaturasPierre();
+        /* janela larga de proposito: parcela de compra antiga ainda esta
+           caindo hoje, e `startDate` em branco faz o Pierre olhar so 3 meses */
+        const parcelas=await buscarParcelasPierre(
+          isoDate(new Date(new Date().getTime()-540*86400000)),todayISO());
+        plano.cartao=planoDoCartaoPierre(contas.contas,faturas,parcelas,todayISO());
+      }
+
+      /* Sugestao de gasto fixo sai do MESMO extrato que ja veio: nao custa
+         chamada nenhuma, so leitura. Uma janela curta acha pouco, entao pede
+         o historico mais longo quando a opcao esta ligada. */
+      if(data.pierreTrazerFixos===true){
+        const {lista:historico}=await buscarTransacoesPierre(
+          isoDate(new Date(new Date().getTime()-180*86400000)),todayISO());
+        plano.fixos=sugerirGastosFixosPierre(historico,todayISO());
+      }
+
       pierreEstado('');
       pierreDesenharPlano(plano);
     }catch(e){ pierreEstado(pierreDizOErro(e),'erro'); }
