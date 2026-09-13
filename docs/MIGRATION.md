@@ -1342,3 +1342,63 @@ O teste de navegador confere que o painel está **pintado** na aba Banco, e não
 só presente no DOM: o teste antigo clicava em "Dados e sincronização" e passava
 mesmo com o painel escondido em outra aba, porque `getElementById` acha o que
 está oculto.
+
+**A prova com chave real — e o que ela achou.** Tudo acima tinha sido escrito
+contra a documentação e contra dubles que eu mesmo inventei. Com uma chave de
+verdade na mão, a integração **não funcionava**: nenhum campo de conta tinha o
+nome certo.
+
+| o código procurava | a API devolve |
+|---|---|
+| `accountId` | `id` |
+| `accountName` | `name` (e `customName`, `marketingName`) |
+| `accountType` | `type` |
+| `accountBalance` | `balance` — **texto**, "1268.01" |
+| `providerCode` | `connectorName` |
+
+Consequência real: nenhuma conta era reconhecida como banco, o **saldo sincronizado
+seria sempre zero**, a lista de contas aparecia sem nome e sem valor, e a
+mensagem de chave aceita dizia "em —". Os testes passavam porque testavam a
+invenção. As fixtures agora são cópia do que voltou da API.
+
+Uma conta não usa os mesmos nomes de campo que uma transação: lá é
+`account_id`, `account_type`, `account_subtype`, com sublinhado. Essa metade
+estava certa.
+
+**O vínculo conta↔lançamento passou a ser o `account_id`.** Estava escrito aqui
+que a transação não trazia o id da conta e que só dava para ligar pelo nome.
+Errado: `account_id` vem em toda transação e casa com o `id` de `get-accounts`.
+E o nome era pior do que uma limitação — era um defeito: `account_name` é o nome
+do **banco**, idêntico para a conta corrente e para o cartão do mesmo banco.
+Filtrar por ele juntaria os dois. Com o id, duas contas do mesmo banco se
+separam, e há teste para isso.
+
+**PENDING não entra no Diário.** O pedido manda `includeStatus=POSTED` e vieram
+9 pendentes em 55 assim mesmo — a API não obedece ao parâmetro. Lançamento não
+confirmado muda de valor, então a barreira ficou no De-Para, onde não depende de
+ninguém obedecer.
+
+**`numeroDoPierre()` em vez de `parseNum()` para dinheiro da API.** O saldo vem
+como `"1268.01"`. `parseNum()` existe para número **digitado**, onde `1.268` vale
+mil duzentos e sessenta e oito — aqui isso erraria por mil vezes. O invariante
+do guia continua valendo para o que a pessoa digita; isto é outra coisa.
+
+**A tabela de categorias também era de cabeça.** Dos 44 lançamentos reais, 42
+caíam em "Outros". Com os nomes que a API devolve de verdade
+("Restaurantes, bares e lanchonetes", "Táxi e transporte privado urbano",
+"Telecomunicação", "Bem-estar", "Livraria"), passaram a 10 categorizados dos 26
+gastos. Transferência e PIX ficam em Outros **de propósito**: um PIX pode ser
+aluguel ou racha de pizza, e a API não diz qual — chutar em 25 lançamentos
+estragaria o relatório do mês.
+
+**O que a prova confirmou que já estava certo:** o saldo calculado bate ao
+centavo com o `total_balance` da própria API; compra de cartão fica fora do
+Diário; sincronizar duas vezes não duplica (44 → 44); `type` e o sinal de
+`amount` concordam em 100% das transações de banco (discordam em 11 de cartão,
+que não importamos).
+
+**O limite de bancos continua sem confirmação**, mas apareceu a estrutura de
+planos: `Basic / Pro / Premium`, com cota para alertas de gasto (0 / 2 / 5). Nada
+sobre número de bancos. `get-api-key-info` devolve o que a própria chave libera
+— nesta conta, 8 ferramentas de leitura mais `manual-update`; alertas, lembretes,
+memórias e `get-book` não vieram.

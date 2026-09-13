@@ -76,7 +76,7 @@ async function validarChavePierre() {
   const r = await chamarPierre('get-accounts');
   const corpo = r.data;
   const contas = Array.isArray(corpo) ? corpo : [];
-  const instituicoes = [...new Set(contas.map(c => c.providerCode).filter(Boolean))];
+  const instituicoes = [...new Set(contas.map(c => c.connectorName).filter(Boolean))];
   return { contas, instituicoes, quantas: contas.length };
 }
 

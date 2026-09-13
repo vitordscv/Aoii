@@ -97,6 +97,7 @@ const FUNCOES=[
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'semAcento','categoriaDoPierre','ehEntradaNoPierre','ehDeCartao','transacaoDoPierre',
   'saldoDoPierre','planoDeSincronizacaoPierre','aplicarSincronizacaoPierre',
+  'numeroDoPierre','contaEhBanco','nomeDaContaPierre','aindaNaoCaiu',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'empurrarParaNuvem','conteudoFinanceiroParaConflito','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',

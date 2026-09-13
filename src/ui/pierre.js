@@ -120,22 +120,21 @@ function pierreDesenharContas(contas){
 
     const marca=document.createElement('input');
     marca.type='checkbox';
-    marca.value=c.accountId;
+    marca.value=c.id;
     /* nada escolhido = tudo escolhido */
-    marca.checked=!escolhidas.length||escolhidas.includes(c.accountId);
+    marca.checked=!escolhidas.length||escolhidas.includes(c.id);
     linha.appendChild(marca);
 
     const texto=document.createElement('span');
     texto.className='pierre-conta-nome';
     /* nome de banco e de conta vêm de fora: texto, nunca marcação */
-    texto.textContent=[c.providerCode,c.accountName||c.accountMarketingName]
-      .filter(Boolean).join(' · ');
+    texto.textContent=[c.connectorName,nomeDaContaPierre(c)]
+      .filter(Boolean).join(' · ')||L('pierre.contaSemNome');
     linha.appendChild(texto);
 
     const tipo=document.createElement('span');
     tipo.className='pierre-conta-tipo';
-    const ehBanco=String(c.accountType||'').toUpperCase()==='BANK';
-    tipo.textContent=ehBanco?formatBRL(parseNum(c.accountBalance)||0):L('pierre.naoEhConta');
+    tipo.textContent=contaEhBanco(c)?formatBRL(numeroDoPierre(c.balance)):L('pierre.naoEhConta');
     linha.appendChild(tipo);
 
     marca.addEventListener('change',async()=>{

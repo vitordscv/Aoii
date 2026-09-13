@@ -25,10 +25,17 @@ const doBanco=(id,desc,valor,tipo,extra)=>Object.assign({
   account_type:'BANK', account_subtype:'CHECKING_ACCOUNT', account_name:'Conta',
 },extra||{});
 
+/* A forma REAL de `get-accounts`, conferida contra a API com chave de verdade
+   em 12/09/2026. Uma conta nao usa os mesmos nomes de campo que uma transacao:
+   aqui e `id`/`type`/`balance`/`connectorName`, la e `account_id`/`account_type`.
+   A primeira versao disto foi inventada — `accountId`, `accountType`,
+   `accountBalance` — e o teste passava porque testava a invencao. */
 const conta=(id,tipo,saldo,banco)=>({
-  accountId:id, providerCode:banco||'NUBANK', accountName:'Conta',
-  accountType:tipo, accountSubtype:tipo==='BANK'?'CHECKING_ACCOUNT':'CREDIT_CARD',
-  accountBalance:saldo, accountCurrencyCode:'BRL',
+  id, connectorName:banco||'Nubank', name:'Conta', customName:null, marketingName:null,
+  type:tipo, subtype:tipo==='BANK'?'CHECKING_ACCOUNT':'CREDIT_CARD',
+  /* o saldo vem como TEXTO com ponto decimal: "1268.01" */
+  balance:String(saldo.toFixed ? saldo.toFixed(2) : saldo), currencyCode:'BRL',
+  itemIsActive:true,
 });
 
 module.exports=function(t){
@@ -152,21 +159,74 @@ module.exports=function(t){
     t.igual(c.categoriaDoPierre('Coisa que ninguém viu'),'Outros','e o desconhecido também');
   }
 
+  console.log('\n\x1b[1mA forma que a API devolve de verdade\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    /* copia fiel do que veio com chave real, so com id e nome trocados */
+    const comoVem=[
+      {id:'f71a9461',name:'gold',customName:null,marketingName:null,type:'CREDIT',
+       subtype:'CREDIT_CARD',balance:'520.38',connectorName:'Nubank',itemIsActive:true},
+      {id:'84eb73a1',name:'Nu Pagamentos S.A. - Instituição de Pagamento',customName:null,
+       marketingName:'Nu Pagamentos S.A. - Instituição de Pagamento (Conta Pré-paga)',
+       type:'BANK',subtype:'CHECKING_ACCOUNT',balance:'1268.01',connectorName:'Nubank',
+       itemIsActive:true},
+      {id:'0960aea0',name:'Carteira',customName:'Carteira Pierre',marketingName:null,
+       type:'BANK',subtype:'SAVINGS',balance:'0.00',connectorName:null,itemIsActive:true},
+    ];
+    t.valor(c.saldoDoPierre(comoVem),1268.01,
+      'o saldo sai das contas de banco, e o cartão fica de fora');
+    const p=c.planoDeSincronizacaoPierre(comoVem,[]);
+    t.igual(p.contasDeBanco,2,'duas das três são conta de banco');
+    t.igual(p.instituicoes.join(','),'Nubank','e a instituição tem nome');
+
+    /* "1268.01" nao pode virar 126801: parseNum() leria o ponto como milhar */
+    t.valor(c.numeroDoPierre('1268.01'),1268.01,'"1268.01" é mil duzentos e sessenta e oito');
+    t.valor(c.numeroDoPierre('0.00'),0,'"0.00" é zero');
+    t.valor(c.numeroDoPierre(null),0,'e o que não é número vira zero, não NaN');
+  }
+
+  console.log('\n\x1b[1mLançamento que o banco ainda não confirmou\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    const pendente=doBanco('tp','Restaurante',-80,'DEBIT',{status:'PENDING'});
+    t.igual(c.transacaoDoPierre(pendente),null,
+      'PENDING não entra no Diário: o valor ainda pode mudar');
+    const firme=doBanco('tf','Restaurante',-80,'DEBIT',{status:'POSTED'});
+    t.verdadeiro(!!c.transacaoDoPierre(firme),'POSTED entra');
+
+    const plano=c.planoDeSincronizacaoPierre([],[pendente,firme]);
+    t.igual(plano.novas.length,1,'só o confirmado vira lançamento novo');
+    t.igual(plano.recusadas.length,1,'e o outro é contado, não some calado');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();
     const c=criarAmbiente(d,HOJE);
-    const contas=[conta('a','BANK',2000,'NUBANK'),conta('b','BANK',500,'INTER')];
-    contas[0].accountName='Nu Conta'; contas[1].accountName='Inter Conta';
+    const contas=[conta('a','BANK',2000,'Nubank'),conta('b','BANK',500,'Inter')];
+    contas[0].name='Nu Conta'; contas[1].name='Inter Conta';
+    /* `account_name` na transacao e o nome do BANCO, nao o da conta: as duas
+       contas do mesmo banco chegam com o mesmo texto. O vinculo e o id. */
     const vindas=[
-      doBanco('t1','Do Nu',-100,'DEBIT',{account_name:'Nu Conta'}),
-      doBanco('t2','Do Inter',-50,'DEBIT',{account_name:'Inter Conta'}),
+      doBanco('t1','Do Nu',-100,'DEBIT',{account_id:'a',account_name:'Nubank'}),
+      doBanco('t2','Do Inter',-50,'DEBIT',{account_id:'b',account_name:'Inter'}),
     ];
 
     /* sem escolher nada, tudo entra: e o que acontecia antes desta opcao */
     const tudo=c.planoDeSincronizacaoPierre(contas,vindas);
     t.igual(tudo.novas.length,2,'sem escolha, vem de todas as contas');
     t.valor(tudo.saldo,2500,'e o saldo soma todas');
+
+    /* duas contas do MESMO banco: pelo nome elas seriam a mesma coisa */
+    const doMesmoBanco=[conta('x','BANK',100,'Nubank'),conta('y','BANK',900,'Nubank')];
+    const dasDuas=[
+      doBanco('m1','Da corrente',-10,'DEBIT',{account_id:'x',account_name:'Nubank'}),
+      doBanco('m2','Da poupança',-20,'DEBIT',{account_id:'y',account_name:'Nubank'}),
+    ];
+    const soUma=c.planoDeSincronizacaoPierre(doMesmoBanco,dasDuas,{contas:['y']});
+    t.igual(soUma.novas.length,1,'duas contas do mesmo banco se separam pelo id');
+    t.igual(soUma.novas[0].nome,'Da poupança','e é a escolhida que entra');
+    t.valor(soUma.saldo,900,'com o saldo só dela');
 
     const soUmBanco=c.planoDeSincronizacaoPierre(contas,vindas,{contas:['a']});
     t.igual(soUmBanco.novas.length,1,'escolhendo uma conta, so os lancamentos dela entram');

@@ -6,7 +6,8 @@
    antes de gravar, o que grava, e o que faz na segunda vez.
 
    O formato do dublê veio da documentação deles, não de invenção:
-   `get-accounts` devolve `accountBalance`/`accountType`/`providerCode`, e
+   `get-accounts` devolve `balance`/`type`/`connectorName` (nomes conferidos
+   contra a API de verdade, com chave real), e
    `get-transactions` devolve `amount` com sinal, `type` DEBIT/CREDIT, `date`,
    `category` e `description`. */
 'use strict';
@@ -25,12 +26,12 @@ const DUBLE = `
     const rota=new URL(url,location.origin).searchParams.get('rota');
     const corpo = rota==='get-accounts' ? {
       success:true, count:3, data:[
-        {accountId:'a1',providerCode:'NUBANK',accountName:'Conta',accountType:'BANK',
-         accountSubtype:'CHECKING_ACCOUNT',accountBalance:2500.75,accountCurrencyCode:'BRL'},
-        {accountId:'a2',providerCode:'NUBANK',accountName:'Cartao',accountType:'CREDIT',
-         accountSubtype:'CREDIT_CARD',accountBalance:-1800,accountCurrencyCode:'BRL'},
-        {accountId:'a3',providerCode:'INTER',accountName:'Poupanca',accountType:'BANK',
-         accountSubtype:'SAVINGS_ACCOUNT',accountBalance:500,accountCurrencyCode:'BRL'},
+        {id:'a1',connectorName:'Nubank',name:'Conta',customName:null,type:'BANK',
+         subtype:'CHECKING_ACCOUNT',balance:'2500.75',currencyCode:'BRL',itemIsActive:true},
+        {id:'a2',connectorName:'Nubank',name:'Cartao',customName:null,type:'CREDIT',
+         subtype:'CREDIT_CARD',balance:'1800.00',currencyCode:'BRL',itemIsActive:true},
+        {id:'a3',connectorName:'Inter',name:'Poupanca',customName:null,type:'BANK',
+         subtype:'SAVINGS',balance:'500.00',currencyCode:'BRL',itemIsActive:true},
       ]} : {
       success:true, count:4, data:[
         {id:'px1',description:'Padaria do Ze',amount:-42.9,type:'DEBIT',date:'2026-09-10',
@@ -131,7 +132,7 @@ const abrirPainel = cdp => avaliar(cdp, `
       mandouChave:(window.__pierreChamadas[0]||{}).auth||''};`);
   conferir(verificou.ok && /3/.test(verificou.texto),
     `diz quantas contas vieram: "${verificou.texto}"`);
-  conferir(/NUBANK/.test(verificou.texto) && /INTER/.test(verificou.texto),
+  conferir(/Nubank/.test(verificou.texto) && /Inter/.test(verificou.texto),
     'e de quais instituições');
   conferir(/^Bearer sk-/.test(verificou.mandouChave), 'a chave viajou no cabeçalho');
   conferir(verificou.syncVisivel, 'e o botão de sincronizar aparece');
@@ -210,13 +211,13 @@ const abrirPainel = cdp => avaliar(cdp, `
         nomes:linhas.map(l=>l.querySelector('.pierre-conta-nome').textContent)};`);
     conferir(contas.quantas === 3, `as três contas aparecem para escolher (${contas.quantas})`);
     conferir(contas.todasMarcadas, 'e todas vêm marcadas: nada escolhido quer dizer tudo');
-    conferir(contas.nomes.some(n => /NUBANK/.test(n)) && contas.nomes.some(n => /INTER/.test(n)),
+    conferir(contas.nomes.some(n => /Nubank/.test(n)) && contas.nomes.some(n => /Inter/.test(n)),
       'com o banco no rótulo, pra dar pra distinguir');
 
     /* desmarca a conta do Inter: os lançamentos dela e o saldo dela saem */
     const escolhido = await avaliar(cdp, `
       const linhas=[...document.querySelectorAll('.pierre-conta')];
-      const inter=linhas.find(l=>/INTER/.test(l.querySelector('.pierre-conta-nome').textContent));
+      const inter=linhas.find(l=>/Inter/.test(l.querySelector('.pierre-conta-nome').textContent));
       const marca=inter.querySelector('input');
       marca.checked=false; marca.dispatchEvent(new Event('change',{bubbles:true}));
       await new Promise(r=>setTimeout(r,500));
