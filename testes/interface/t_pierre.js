@@ -129,7 +129,7 @@ const abrirPainel = cdp => avaliar(cdp, `
 
   titulo('o caminho até a chave aparece antes do campo');
   const tutorial = await avaliar(cdp, `
-    const passos=[...document.querySelectorAll('.pierre-passos li')];
+    const passos=document.querySelectorAll('.pierre-passos li');
     const campo=document.getElementById('pierre-chave-input');
     const lista=document.querySelector('.pierre-passos');
     return {quantos:passos.length,
@@ -137,13 +137,27 @@ const abrirPainel = cdp => avaliar(cdp, `
          pro campo vazio, não depois de rolar até o fim */
       antesDoCampo:lista.getBoundingClientRect().top<campo.getBoundingClientRect().top,
       pintado:lista.offsetParent!==null,
-      links:[...document.querySelectorAll('.pierre-passos a')].map(a=>a.getAttribute('href'))};`);
-  conferir(tutorial.quantos === 4, `os quatro passos estão lá (${tutorial.quantos})`);
+      texto:[...passos].map(p=>p.textContent).join(' | '),
+      marcacaoCrua:[...passos].some(p=>/[<>]/.test(p.textContent))};`);
+  conferir(tutorial.quantos === 5, `os cinco passos estão lá (${tutorial.quantos})`);
   conferir(tutorial.pintado && tutorial.antesDoCampo,
     'e vêm acima do campo da chave');
-  conferir(tutorial.links.includes('https://pierre.finance/api-key'),
-    'com o link direto da página da chave',
-    'mandar a pessoa "procurar no site" é o mesmo que não explicar');
+
+  /* O caminho real, dado por quem o percorreu: o banco só se vincula pelo app
+     do Pierre no celular. Mandar para o site levaria a pessoa a gerar a chave e
+     travar na hora de conectar a conta. */
+  conferir(/app/i.test(tutorial.texto),
+    'o passo a passo começa pelo app do celular',
+    'o banco só se vincula por lá; o site sozinho não resolve');
+  conferir(/configura|ajuste|r[ée]glage|impostazioni|settings/i.test(tutorial.texto),
+    'e diz onde a chave nasce: nas configurações do app deles');
+  conferir(/sk-/.test(tutorial.texto), 'com o formato da chave, pra reconhecer quando copiar');
+
+  /* applyIdioma() escreve por textContent: marcação dentro de uma chave de
+     tradução aparece como TEXTO na tela. Já aconteceu aqui. */
+  conferir(!tutorial.marcacaoCrua,
+    'e nenhum passo mostra marcação crua na tela',
+    'chave de tradução vai por textContent — um <b> ali vira "<b>" visível');
 
   titulo('verificar a chave lista o que existe do outro lado');
   await avaliar(cdp, `

@@ -1693,3 +1693,20 @@ muda e so o carimbo. Na sincronizacao seguinte ele vira "ja estava".
 **Historico de importacoes.** Dez linhas, so contagem e data. Desfazer continua
 valendo so para a ultima -- saber que aconteceu e diferente de manter o efeito,
 e por isso desfazer NAO apaga o historico.
+
+### 13/09 - o passo a passo da chave, do jeito que se faz
+
+Os quatro passos vinham da documentacao do Pierre e comecavam em
+`pierre.finance/login`. Quem percorreu o caminho de verdade corrigiu: **o banco
+so se vincula pelo app do celular**. Mandar a pessoa para o site a faria gerar a
+chave e travar na hora de conectar a conta -- o pior tipo de instrucao, a que
+funciona ate a metade.
+
+Cinco passos agora: baixar o app, conectar o banco por la, gerar a API key nas
+CONFIGURACOES do app deles, copiar, colar aqui. O link para o site saiu de
+proposito, pelo mesmo motivo.
+
+**Um defeito que quase entrou junto:** eu ia escrever `<b>configuracoes</b>`
+dentro da chave de traducao. `applyIdioma()` escreve por `textContent`, entao a
+marcacao apareceria como TEXTO na tela, nos cinco idiomas. O teste agora recusa
+qualquer `<` ou `>` visivel num passo.
