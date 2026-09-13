@@ -89,6 +89,43 @@ function pierreDesenharPlano(plano){
         .replace('{n}',c.parcelasAbertas.length)
         .replace('{v}',formatBRL(c.totalParcelas)));
     }
+    if(c.faturasSemPagamento&&c.faturasSemPagamento.length){
+      linha(L('pierre.planoFaturaSemPagamento').replace('{n}',c.faturasSemPagamento.length));
+    }
+    if(c.parcelasSemCartao) linha(L('pierre.planoParcelaSemCartao').replace('{n}',c.parcelasSemCartao));
+    if(c.faturasComItens) linha(L('pierre.planoFaturaReconcilia').replace('{n}',c.faturasComItens));
+
+    /* cada fatura, com o mês e de onde o número veio: é o que permite conferir
+       antes de deixar entrar, em vez de confiar num total */
+    if(c.faturas.length){
+      const detalhe=document.createElement('div');
+      detalhe.hidden=true;
+      caixa.appendChild(detalhe);
+      c.faturas.forEach(f=>{
+        const d=document.createElement('div');
+        d.className='pierre-amostra';
+        const fonte=f.origem==='banco'||f.origem==='banco-paga'?L('pierre.fonteBanco')
+          :f.origem==='saldo'?L('pierre.fonteSaldo'):L('pierre.fonteParcelas');
+        d.textContent=String(f.mes).padStart(2,'0')+'/'+f.ano+' · '
+          +formatBRL(f.valor)+' · '+fonte
+          +(f.origem==='banco-paga'?' · '+L('pierre.fonteJaPaga'):'');
+        detalhe.appendChild(d);
+      });
+      const verF=document.createElement('button');
+      verF.type='button';
+      verF.className='pierre-ver-todos';
+      verF.setAttribute('aria-expanded','false');
+      verF.textContent=L('pierre.verFaturas').replace('{n}',c.faturas.length);
+      verF.addEventListener('click',()=>{
+        detalhe.hidden=!detalhe.hidden;
+        verF.setAttribute('aria-expanded',detalhe.hidden?'false':'true');
+        verF.textContent=detalhe.hidden
+          ? L('pierre.verFaturas').replace('{n}',c.faturas.length)
+          : L('pierre.verMenos');
+      });
+      caixa.appendChild(verF);
+    }
+
     linha(L('pierre.planoFaturaFonte'),'pierre-amostra');
   }
 
@@ -127,11 +164,40 @@ function pierreDesenharPlano(plano){
     });
   }
 
-  /* as três primeiras, pra conferir que é mesmo o extrato certo */
-  plano.novas.slice(0,3).forEach(t=>{
-    linha((t.tipo==='receita'?'+ ':'− ')+formatBRL(t.valor)+' · '+t.nome+' · '+t.data,'pierre-amostra');
-  });
-  if(plano.novas.length>3) linha(L('pierre.planoEMais').replace('{n}',plano.novas.length-3),'pierre-amostra');
+  /* Três linhas bastam pra reconhecer o extrato, e não bastam pra conferir o
+     que vai entrar. Mostra três e abre o resto a um toque: quem confia segue,
+     quem quer olhar item a item consegue. */
+  const AMOSTRA=3;
+  const linhaDoLancamento=t=>(t.tipo==='receita'?'+ ':'− ')
+    +formatBRL(t.valor)+' · '+t.nome+' · '+t.data
+    +(t.categoria?' · '+t.categoria:'');
+
+  plano.novas.slice(0,AMOSTRA).forEach(t=>linha(linhaDoLancamento(t),'pierre-amostra'));
+
+  if(plano.novas.length>AMOSTRA){
+    const resto=document.createElement('div');
+    resto.hidden=true;
+    caixa.appendChild(resto);
+    plano.novas.slice(AMOSTRA).forEach(t=>{
+      const d=document.createElement('div');
+      d.className='pierre-amostra';
+      d.textContent=linhaDoLancamento(t);
+      resto.appendChild(d);
+    });
+    const ver=document.createElement('button');
+    ver.type='button';
+    ver.className='pierre-ver-todos';
+    ver.setAttribute('aria-expanded','false');
+    ver.textContent=L('pierre.verTodos').replace('{n}',plano.novas.length-AMOSTRA);
+    ver.addEventListener('click',()=>{
+      resto.hidden=!resto.hidden;
+      ver.setAttribute('aria-expanded',resto.hidden?'false':'true');
+      ver.textContent=resto.hidden
+        ? L('pierre.verTodos').replace('{n}',plano.novas.length-AMOSTRA)
+        : L('pierre.verMenos');
+    });
+    caixa.appendChild(ver);
+  }
 
   const acoes=document.createElement('div');
   acoes.className='pierre-plano-acoes';
@@ -167,6 +233,10 @@ function pierreDesenharPlano(plano){
     await persist(); render();
     caixa.hidden=true; caixa.innerHTML='';
     let aviso=L('pierre.pronto').replace('{n}',r.lancadas);
+    if(r.jaEstavam) aviso+=' '+L('pierre.prontoJaEstavam').replace('{n}',r.jaEstavam);
+    if(doCartao&&doCartao.estourando&&doCartao.estourando.length){
+      aviso+=' '+L('pierre.prontoEstouro').replace('{n}',doCartao.estourando.length);
+    }
     if(doCartao&&(doCartao.criados||doCartao.faturasNovas)){
       aviso+=' '+L('pierre.prontoCartao')
         .replace('{c}',doCartao.criados).replace('{f}',doCartao.faturasNovas);
@@ -211,11 +281,14 @@ function pierreDesenharContas(contas){
     linha.appendChild(tipo);
 
     marca.addEventListener('change',async()=>{
-      const marcadas=[...caixa.querySelectorAll('input:checked')].map(i=>i.value);
-      const todas=contas.length;
-      /* todas marcadas volta a ser "vazio = todas": assim, uma conta nova que
-         apareça depois no Pierre entra sozinha, em vez de ficar de fora calada */
-      data.pierreContas=marcadas.length===todas?[]:marcadas;
+      /* A lista guardada é sempre a lista MARCADA, inteira. Antes, "todas
+         marcadas" virava vazio para que conta nova entrasse sozinha — mas
+         vazio também era o que sobrava ao desmarcar tudo, e aí o app trazia
+         justamente o extrato inteiro que a pessoa acabara de dispensar.
+         Agora vazio quer dizer nenhuma, e conta nova aparece desmarcada com o
+         plano avisando — de fora sabendo, em vez de dentro sem querer. */
+      data.pierreContas=[...caixa.querySelectorAll('input:checked')].map(i=>i.value);
+      data.pierreContasDefinidas=true;
       await persist();
     });
 
@@ -320,8 +393,10 @@ function setupPierre(){
         : '';
       const {lista}=await buscarTransacoesPierre(desde,todayISO());
       pierreDesenharContas(contas.contas);
+      const escolhidas=data.pierreContas||[];
+      const definidas=data.pierreContasDefinidas===true;
       const plano=planoDeSincronizacaoPierre(contas.contas,lista,{
-        contas:data.pierreContas||[],
+        contas:escolhidas, definidas,
         trazerSaldo:data.pierreTrazerSaldo!==false,
         trazerLancamentos:data.pierreTrazerLancamentos!==false,
       });
@@ -329,12 +404,21 @@ function setupPierre(){
       /* O cartao pede duas chamadas a mais, e so as faz se estiver ligado:
          quem nao usa cartao nao espera por elas. */
       if(data.pierreTrazerCartao===true){
-        const faturas=await buscarFaturasPierre();
+        /* o cartão também obedece a escolha de contas: dispensar um cartão na
+           lista e vê-lo aparecer assim mesmo seria a escolha não valer */
+        const doCartao=definidas
+          ? contas.contas.filter(c=>escolhidas.includes(c.id))
+          : contas.contas;
+        const faturas=(await buscarFaturasPierre())
+          .filter(f=>!definidas||escolhidas.includes(String(f.accountId||'')));
         /* janela larga de proposito: parcela de compra antiga ainda esta
            caindo hoje, e `startDate` em branco faz o Pierre olhar so 3 meses */
-        const parcelas=await buscarParcelasPierre(
-          isoDate(new Date(new Date().getTime()-540*86400000)),todayISO());
-        plano.cartao=planoDoCartaoPierre(contas.contas,faturas,parcelas,todayISO());
+        const desdeLonge=isoDate(new Date(new Date().getTime()-540*86400000));
+        const parcelas=await buscarParcelasPierre(desdeLonge,todayISO());
+        /* o pagamento de fatura mora no extrato do cartão, e a janela curta da
+           sincronização não alcança as faturas fechadas do ano */
+        const {lista:extratoLongo}=await buscarTransacoesPierre(desdeLonge,todayISO());
+        plano.cartao=planoDoCartaoPierre(doCartao,faturas,parcelas,todayISO(),extratoLongo);
       }
 
       /* Sugestao de gasto fixo sai do MESMO extrato que ja veio: nao custa

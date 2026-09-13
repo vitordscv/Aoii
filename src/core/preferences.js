@@ -61,7 +61,8 @@ function definirTema(tema){
 }
 function definirPreferenciaBooleana(chave,valor){
   if(!['fundoIlustrado','temaAutoNoite','gastoDiario','iaAtiva','pierreAtivo','pierreTrazerSaldo','pierreTrazerLancamentos',
-  'pierreTrazerCartao','pierreTrazerFixos','pierreBuscarAoAbrir'].includes(chave)||typeof valor!=='boolean') return null;
+  'pierreTrazerCartao','pierreTrazerFixos','pierreBuscarAoAbrir',
+  'pierreContasDefinidas'].includes(chave)||typeof valor!=='boolean') return null;
   data[chave]=valor;
   return valor;
 }

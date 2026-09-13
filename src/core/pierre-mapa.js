@@ -176,13 +176,16 @@ function saldoDoPierre(contas){
    e o que permite testar a conta sem gravar nada. */
 function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
   const {
-    contas:escolhidas=null,        /* null ou vazio = todas */
+    contas:escolhidas=null,
+    /* `definidas` separa "nunca escolhi" de "escolhi nenhuma". Sem ela, lista
+       vazia significava as duas coisas, e desmarcar todas trazia tudo. */
+    definidas=false,
     trazerLancamentos=true,
     trazerSaldo=true,
   }=escolhas||{};
 
   const todas=contas||[];
-  const querTodas=!escolhidas||!escolhidas.length;
+  const querTodas=!definidas&&(!escolhidas||!escolhidas.length);
   const aceitas=querTodas?todas:todas.filter(c=>escolhidas.includes(c.id));
 
   /* O vinculo entre conta escolhida e transacao e o `account_id`, que casa com
@@ -229,19 +232,36 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
 
 /* Aplica o plano. Fora do `planoDe…` de propósito: quem desenha a tela mostra
    o plano primeiro e só chama isto depois de a pessoa confirmar. */
+/* O plano foi montado num instante; entre montar e confirmar a nuvem pode ter
+   trazido os mesmos lançamentos, ou a pessoa pode clicar duas vezes num plano
+   velho. Conferir de novo aqui, contra o `data` do momento, é o que impede
+   duplicata — o `jaTem` do plano é uma foto, e foto envelhece. */
+function novasAindaInexistentes(novas){
+  const existentes=new Set((data.transacoes||[]).map(t=>t.idExterno).filter(Boolean));
+  const passam=[], repetidas=[];
+  (novas||[]).forEach(t=>{
+    if(t.idExterno&&existentes.has(t.idExterno)){ repetidas.push(t); return; }
+    if(t.idExterno) existentes.add(t.idExterno);
+    passam.push(t);
+  });
+  return {passam,repetidas};
+}
+
 function aplicarSincronizacaoPierre(plano,opcoes){
   if(!plano) return null;
   /* o plano ja carrega a escolha; `opcoes` so serve pra sobrepor na hora */
   const trazerSaldo=(opcoes&&'trazerSaldo' in opcoes)?opcoes.trazerSaldo
     :(plano.trazerSaldo!==false);
   if(!data.transacoes) data.transacoes=[];
-  plano.novas.forEach(t=>{ data.transacoes.push(t); });
+  const {passam,repetidas}=novasAindaInexistentes(plano.novas);
+  passam.forEach(t=>{ data.transacoes.push(t); });
   if(trazerSaldo&&plano.contasDeBanco>0){
     data.saldoAtual=plano.saldo;
     data.saldoAtualizadoEm=new Date().toISOString();
   }
   data.pierreSincronizadoEm=new Date().toISOString();
-  return {lancadas:plano.novas.length,saldoAtualizado:trazerSaldo&&plano.contasDeBanco>0};
+  return {lancadas:passam.length,jaEstavam:repetidas.length,
+    saldoAtualizado:trazerSaldo&&plano.contasDeBanco>0};
 }
 
 /* ══ O CARTÃO ═══════════════════════════════════════════════════════════════
@@ -309,11 +329,43 @@ function cartaoDoPierre(conta,faturas){
 /* Parcela que ainda não foi paga, com o mês em que cai. O Pierre repete a
    mesma parcela em registros irmãos — um com `status`, outro sem — então junta
    por número de parcela e fica com a versão que tem status. */
-function parcelasAbertasDoPierre(resposta){
+/* De que cartao e a compra parcelada. O Pierre agrupa em `purchasesByCard`,
+   com `cardName`; cada compra de dentro repete a chave. Com dois cartoes, jogar
+   tudo no primeiro estragaria limite e fatura dos dois -- e era o que fazia. */
+function cartaoDaCompraParcelada(compra,porNome,contasDeCredito){
+  const nome=semAcento(compra&&(compra.cardName||compra.accountName));
+  if(nome&&porNome.has(nome)) return porNome.get(nome);
+  /* com um cartao so nao ha ambiguidade; com mais de um, sem nome que case,
+     a parcela fica SEM cartao e quem chama decide -- adivinhar e o que
+     estragava os limites */
+  return contasDeCredito.length===1?contasDeCredito[0].id:null;
+}
+
+function parcelasAbertasDoPierre(resposta,contas){
   const raiz=(resposta&&resposta.data)||resposta||{};
-  const compras=raiz.purchases||[];
+  const contasDeCredito=(contas||[]).filter(contaEhCartao);
+
+  /* nome do cartao -> id da conta. Tenta `connectorName`, o nome da conta, e
+     os dois juntos, que e como o rotulo aparece na tela. */
+  const porNome=new Map();
+  contasDeCredito.forEach(c=>{
+    [c.connectorName,nomeDaContaPierre(c),
+     [c.connectorName,nomeDaContaPierre(c)].filter(Boolean).join(' ')]
+      .map(semAcento).filter(Boolean)
+      .forEach(n=>{ if(!porNome.has(n)) porNome.set(n,c.id); });
+  });
+
+  /* `purchasesByCard` diz de que cartao e cada compra; sem ele, sobra o
+     `purchases` solto, que nao diz */
+  const compras=[];
+  (raiz.purchasesByCard||[]).forEach(grupo=>{
+    (grupo.purchases||[]).forEach(c=>compras.push(Object.assign({},c,{cardName:grupo.cardName})));
+  });
+  if(!compras.length) (raiz.purchases||[]).forEach(c=>compras.push(c));
+
   const abertas=[];
   compras.forEach(compra=>{
+    const cartaoExterno=cartaoDaCompraParcelada(compra,porNome,contasDeCredito);
     const porNumero=new Map();
     (compra.installments||[]).forEach(pa=>{
       const atual=porNumero.get(pa.installmentNumber);
@@ -326,7 +378,7 @@ function parcelasAbertasDoPierre(resposta){
       const valor=numeroDoPierre(pa.amount);
       if(!(valor>0)) return;
       abertas.push({
-        ano:quando.ano, mes:quando.mes, valor,
+        ano:quando.ano, mes:quando.mes, valor, cartaoExterno,
         numero:pa.installmentNumber, de:pa.totalInstallments,
         nome:String(pa.description||'').trim()||L('pierre.semDescricao'),
         categoria:categoriaDoPierre(pa.category),
@@ -337,8 +389,25 @@ function parcelasAbertasDoPierre(resposta){
 }
 
 /* O que a sincronização faria com o cartão, sem gravar nada. */
-function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO){
+/* Um pagamento de fatura no extrato do cartão: entra no cartão (CREDIT) e o
+   Pierre marca a operação. O valor bate com o da fatura, a menos de centavos. */
+function pagamentosDeFaturaPierre(transacoes){
+  return (transacoes||[]).filter(t=>{
+    if(!ehDeCartao(t)) return false;
+    if(String(t&&t.type||'').toUpperCase()!=='CREDIT') return false;
+    const op=semAcento(t.operation_type||t.operationType);
+    const cat=semAcento(t.category);
+    return op==='pagamento'||/pagamento de cartao|pagamento de fatura/.test(cat);
+  }).map(t=>Math.abs(numeroDoPierre(t.amount))).filter(v=>v>0);
+}
+
+function pagamentoConfere(pagamentos,valor){
+  return (pagamentos||[]).some(v=>Math.abs(v-valor)<0.02);
+}
+
+function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
   const hoje=String(hojeISO||todayISO()).slice(0,10);
+  const pagamentos=pagamentosDeFaturaPierre(transacoes);
   const agora=anoMesDoIso(hoje)||{ano:2000,mes:1};
   const chaveDeAgora=agora.ano*12+agora.mes;
 
@@ -346,29 +415,42 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO){
     .map(c=>cartaoDoPierre(c,faturas))
     .filter(Boolean);
 
-  const abertas=parcelasAbertasDoPierre(parcelas);
+  const abertas=parcelasAbertasDoPierre(parcelas,contas);
   const meses=new Map();   /* 'ano-mes' → {ano,mes,valor,origem,cartaoExterno} */
 
   const porMes=(ano,mes,valor,origem,cartaoExterno)=>{
     const k=ano+'-'+mes+'-'+cartaoExterno;
     /* a primeira fonte a chegar manda: a ordem de chamada é a prioridade */
     if(meses.has(k)) return;
-    /* Fatura de mês que já passou entra como PAGA. Sem isto, `computeCartao()`
-       — que soma TODA fatura em aberto — leu as seis faturas fechadas do ano
-       como dívida viva: R$ 5.314 comprometidos num limite de R$ 700, e limite
-       disponível negativo em R$ 4.614. Elas são histórico; o que se deve está
-       no mês corrente e nos que vêm. */
-    const jaPassou=ano*12+mes<chaveDeAgora;
-    meses.set(k,{ano,mes,valor,origem,cartaoExterno,pago:jaPassou});
+    /* so a fatura com pagamento confirmado pelo extrato nasce paga; o resto
+       nasce em aberto, que e o unico estado que nao inventa nada */
+    meses.set(k,{ano,mes,valor,origem,cartaoExterno,pago:origem==='banco-paga'});
   };
 
-  /* 1. fatura fechada: o número do banco */
+  /* 1. fatura fechada: o número do banco.
+
+     "Já passou o mês, logo foi paga" era palpite meu, e palpite errado esconde
+     dívida atrasada — que é o pior jeito de errar num app de finanças. A API
+     não tem campo de pagamento, então a evidência vem do extrato do cartão: um
+     lançamento de entrada (`type: CREDIT`) com operação de PAGAMENTO e valor
+     igual ao da fatura. Sem essa evidência, a fatura fechada **não é trazida**,
+     e o plano diz quantas ficaram de fora e por quê. */
+  const semPagamento=[];
   (faturas||[]).forEach(f=>{
     const quando=anoMesDoIso(f.dueDate);
     if(!quando) return;
     const valor=numeroDoPierre(f.totalAmount);
     if(!(valor>0)) return;
-    porMes(quando.ano,quando.mes,valor,'banco',String(f.accountId||''));
+    const jaPassou=quando.ano*12+quando.mes<chaveDeAgora;
+    if(!jaPassou){
+      porMes(quando.ano,quando.mes,valor,'banco',String(f.accountId||''));
+      return;
+    }
+    if(pagamentoConfere(pagamentos,valor)){
+      porMes(quando.ano,quando.mes,valor,'banco-paga',String(f.accountId||''));
+      return;
+    }
+    semPagamento.push({ano:quando.ano,mes:quando.mes,valor});
   });
 
   /* 2. mês corrente: o saldo que o cartão informa */
@@ -378,35 +460,64 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO){
     porMes(agora.ano,agora.mes,valor,'saldo',String(c.id||''));
   });
 
-  /* 3. meses futuros: as parcelas que ainda vão cair */
+  /* 3. meses futuros: as parcelas que ainda vão cair, CADA UMA no seu cartão.
+     Somar tudo no primeiro cartão inflava o limite de um e esvaziava o do
+     outro; com um cartão só o erro não aparecia. */
   const soma=new Map();
+  const orfas=[];
   abertas.forEach(pa=>{
     if(pa.ano*12+pa.mes<=chaveDeAgora) return;   /* passado e mês corrente já têm fonte */
-    const k=pa.ano+'-'+pa.mes;
+    if(!pa.cartaoExterno){ orfas.push(pa); return; }
+    const k=pa.ano+'|'+pa.mes+'|'+pa.cartaoExterno;
     soma.set(k,(soma.get(k)||0)+pa.valor);
   });
-  const doCartao=cartoes[0]?cartoes[0].idExterno:'';
   soma.forEach((valor,k)=>{
-    const [ano,mes]=k.split('-').map(Number);
-    porMes(ano,mes,Math.round(valor*100)/100,'parcelas',doCartao);
+    const [ano,mes,externo]=k.split('|');
+    porMes(Number(ano),Number(mes),Math.round(valor*100)/100,'parcelas',externo);
   });
 
   const jaTenho=new Set((data.cartoes||[]).map(c=>c.idExterno).filter(Boolean));
+  const futuras=abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora);
+
+  /* quantas faturas do plano ja tem gasto itemizado aqui: sao as que vao ser
+     reconciliadas em vez de sobrescritas, e a pessoa merece ver isso antes */
+  const porExterno=new Map();
+  (data.cartoes||[]).forEach(c=>{ if(c.idExterno) porExterno.set(c.idExterno,c.id); });
+  let comItens=0;
+  [...meses.values()].forEach(f=>{
+    const id=porExterno.get(f.cartaoExterno);
+    if(!id) return;
+    const atual=(data.faturas||[]).find(x=>x.ano===f.ano&&x.mes===f.mes&&x.cartaoId===id);
+    if(atual&&(atual.gastos||[]).length) comItens++;
+  });
   return {
     cartoes,
     cartoesNovos:cartoes.filter(c=>!jaTenho.has(c.idExterno)).length,
     faturas:[...meses.values()].sort((a,b)=>(a.ano*12+a.mes)-(b.ano*12+b.mes)),
-    faturasFechadas:[...meses.values()].filter(f=>f.pago).length,
-    parcelasAbertas:abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora),
-    totalParcelas:abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora)
-      .reduce((s,pa)=>s+pa.valor,0),
+    faturasFechadas:[...meses.values()].filter(f=>f.origem==='banco-paga').length,
+    faturasSemPagamento:semPagamento,
+    parcelasAbertas:futuras,
+    parcelasSemCartao:orfas.length,
+    faturasComItens:comItens,
+    totalParcelas:futuras.reduce((s,pa)=>s+pa.valor,0),
   };
 }
 
-/* Grava o cartão e as faturas. Fatura que já existe tem o valor SUBSTITUÍDO,
-   não somado: a fonte é o banco, e o banco é quem está certo sobre a fatura
-   dele. Os `gastos[]` de quem já tinha ficam como estão — foi você que
-   digitou, e apagar o que a pessoa escreveu nunca é a resposta. */
+/* Grava o cartão e as faturas.
+
+   **O total do banco é o teto da fatura, não uma linha a mais.** No Aoii uma
+   fatura vale `valor` MAIS a soma dos `gastos[]` não pagos — veja
+   `computeCartao()`. Gravar o total do banco em `valor` sem olhar os gastos que
+   a pessoa já tinha digitado contava o mesmo dinheiro duas vezes: banco diz
+   R$ 500, existe um gasto manual de R$ 100, e o comprometido virava R$ 600.
+
+   Então `valor` passa a ser **o resto**: total do banco menos o que já está
+   itemizado. As duas parcelas somam exatamente o que o banco diz, e os
+   lançamentos que a pessoa escreveu continuam lá, com nome e categoria.
+
+   Se o que foi digitado passa do total do banco, `valor` vai a zero e a
+   diferença é devolvida no plano — é sinal de gasto lançado em duplicidade ou
+   na fatura errada, e esconder isso seria pior do que mostrar. */
 function aplicarCartaoPierre(plano){
   if(!plano) return null;
   if(!data.cartoes) data.cartoes=[];
@@ -434,15 +545,22 @@ function aplicarCartaoPierre(plano){
   });
 
   let faturasNovas=0, faturasAtualizadas=0;
+  const estourando=[];
   (plano.faturas||[]).forEach(f=>{
-    const cartaoId=idPorExterno.get(f.cartaoExterno)
-      ||((data.cartoes||[])[0]||{}).id||null;
+    /* sem cartão conhecido a fatura não é gravada: jogá-la no primeiro cartão
+       é o que embaralhava limite e fatura de quem tem mais de um */
+    const cartaoId=idPorExterno.get(f.cartaoExterno)||null;
+    if(!cartaoId) return;
     const existente=(data.faturas||[]).find(x=>
       x.ano===f.ano&&x.mes===f.mes&&x.cartaoId===cartaoId);
     if(existente){
-      /* o valor é do banco, mas o "pago" é de quem usa: se a pessoa marcou
-         como paga aqui, uma sincronização não desmarca */
-      if(existente.valor!==f.valor){ existente.valor=f.valor; faturasAtualizadas++; }
+      const itemizado=(existente.gastos||[]).reduce((soma,g)=>soma+(Number(g.valor)||0),0);
+      const resto=Math.round((f.valor-itemizado)*100)/100;
+      if(resto<0) estourando.push({ano:f.ano,mes:f.mes,banco:f.valor,itemizado});
+      const novo=Math.max(0,resto);
+      if(existente.valor!==novo){ existente.valor=novo; faturasAtualizadas++; }
+      /* o "pago" é de quem usa: marcar aqui não desmarca lá, e o contrário
+         também não — a sincronização só acrescenta a confirmação do banco */
       if(f.pago&&!existente.pago) existente.pago=true;
       return;
     }
@@ -451,7 +569,7 @@ function aplicarCartaoPierre(plano){
     faturasNovas++;
   });
 
-  return {criados,atualizados,faturasNovas,faturasAtualizadas};
+  return {criados,atualizados,faturasNovas,faturasAtualizadas,estourando};
 }
 
 /* ══ GASTOS FIXOS ═══════════════════════════════════════════════════════════

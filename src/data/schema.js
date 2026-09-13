@@ -303,6 +303,11 @@ const ESQUEMA = {
   pierreTrazerSaldo: { tipo: 'booleano', padrao: true },
   pierreTrazerLancamentos: { tipo: 'booleano', padrao: true },
   pierreContas: { tipo: 'listaTexto', max: 120 },
+  /* Sem isto, `pierreContas: []` queria dizer DUAS coisas: "nunca escolhi,
+     traga tudo" e "desmarquei todas, nao traga nada". Quem desmarcasse todas
+     recebia o extrato inteiro. Agora a lista e sempre explicita, e esta bandeira
+     separa quem nunca mexeu (padrao, traz tudo) de quem escolheu. */
+  pierreContasDefinidas: { tipo: 'booleano', padrao: false },
   pierreTrazerCartao: { tipo: 'booleano', padrao: false },
   pierreTrazerFixos: { tipo: 'booleano', padrao: false },
   /* buscar sozinho ao abrir o app. Desligado por padrao: exige a chave no

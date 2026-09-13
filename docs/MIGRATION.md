@@ -1506,3 +1506,69 @@ de pele ocupam varios caracteres e sao um simbolo so.
 **Um teste que era fragil:** `t_celular.js` tinha `base: 6` escrito na mao para
 a contagem de categorias, e quebrou quando "Assinaturas" entrou - falha por
 motivo que nao era o dele. Agora conta antes do toque.
+
+### 13/09 - o que a revisao pegou
+
+Cinco defeitos e uma brecha, todos confirmados no codigo antes de mexer.
+
+**1. A fatura importada contava gasto duas vezes.** No Aoii uma fatura vale
+`valor` MAIS a soma dos `gastos[]` nao pagos (`computeCartao()`). Gravar o total
+do banco em `valor` sem olhar o que a pessoa ja tinha digitado somava os dois:
+banco diz R$ 500, existe um gasto manual de R$ 100, comprometido virava R$ 600.
+
+Agora **o total do banco e o TETO**: `valor` passa a ser o resto (total menos o
+itemizado), e as duas parcelas somam exatamente o que o banco diz. O que foi
+digitado continua la, com nome e categoria. Se o digitado passa do total, `valor`
+vai a zero e a diferenca e devolvida no plano - costuma ser gasto lancado duas
+vezes, e esconder isso seria pior.
+
+**2. "Passou o mes, logo foi paga" era palpite - e palpite que esconde atraso.**
+A API nao tem campo de pagamento. A evidencia agora vem do extrato do cartao: um
+lancamento de entrada (`type: CREDIT`) com operacao PAGAMENTO e valor igual ao da
+fatura. Sem essa prova a fatura fechada **nao e trazida**, e o plano diz quantas
+ficaram de fora e por que.
+
+Na conta real, com a janela de 540 dias, as seis faturas fechadas do ano TEM
+pagamento no extrato - o historico continua, agora com prova.
+
+**3. Parcelas de cartoes diferentes iam todas para o primeiro.** Com um cartao
+so o erro nao aparecia; com dois, inflava o limite de um e esvaziava o do outro.
+Agora `purchasesByCard` diz de qual cartao e cada compra, e o nome casa com a
+conta. Parcela que nao da pra atribuir fica de fora e e contada no plano - com
+um cartao so nao ha ambiguidade e ela e atribuida direto.
+
+E fatura sem cartao conhecido deixou de cair no primeiro cartao: simplesmente
+nao e gravada.
+
+**4. Desmarcar todas as contas trazia todas.** `pierreContas: []` queria dizer
+duas coisas: "nunca escolhi, traga tudo" e "desmarquei tudo, nao traga nada".
+Quem desmarcasse tudo recebia o extrato inteiro. Agora a lista guardada e sempre
+a marcada, inteira, e `pierreContasDefinidas` separa quem nunca mexeu de quem
+escolheu. Quem ja usava continua com [] e recebendo tudo, ate escolher.
+
+O efeito colateral aceito: conta nova que apareca depois no Pierre nasce
+desmarcada, em vez de entrar sozinha. De fora sabendo e melhor que dentro sem
+querer.
+
+**A importacao de cartao passou a respeitar o filtro de contas**, que era o
+outro lado do mesmo item.
+
+**5. O Enter da IA furava a trava.** O botao ficava desabilitado durante a
+resposta, mas o Enter nao passa pelo botao - chamava `enviar()` direto. Digitar
+outra pergunta enquanto a primeira esta em voo disparava as duas: respostas fora
+de ordem, historico embaralhado, chamada paga a toa. A trava foi para dentro de
+`enviar()`, o caminho unico dos dois. `testes/interface/t_iaenvio.js` conta as
+chamadas: **sem a correcao sao 3 em voo; com ela, 1.**
+
+**6. Confirmar um plano velho duplicava.** O `jaTem` do plano e uma FOTO do
+momento em que ele foi montado. Entre montar e confirmar, a nuvem pode trazer os
+mesmos lancamentos. `novasAindaInexistentes()` reconfere contra o `data` do
+momento, na hora de gravar, e o resultado diz quantos ja estavam.
+
+**Da lista de adicoes, uma entrou:** a previa mostrava tres lancamentos e agora
+abre o resto a um toque, com categoria em cada linha, e detalha cada fatura com
+o mes e de onde o numero veio.
+
+Ficam propostas, nao feitas: conciliacao entre lancamento importado e um ja
+cadastrado a mao; transferencia entre contas proprias sem inflar receita e
+despesa; e historico de importacoes.

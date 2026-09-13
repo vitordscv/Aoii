@@ -101,6 +101,8 @@ const FUNCOES=[
   'diaDoIso','anoMesDoIso','contaEhCartao','cartaoDoPierre','parcelasAbertasDoPierre',
   'planoDoCartaoPierre','aplicarCartaoPierre','sugerirGastosFixosPierre',
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
+  'cartaoDaCompraParcelada','pagamentosDeFaturaPierre','pagamentoConfere',
+  'novasAindaInexistentes',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
   'empurrarParaNuvem','conteudoFinanceiroParaConflito','consultarSincronizacao','chaveSenhaDispensada','senhaFoiDispensada','marcarSenhaDispensada','limparSenhaDispensada','computeInsights','invalidarTimeline',

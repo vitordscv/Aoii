@@ -60,6 +60,12 @@ const DUBLE = `
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
         {id:'px6',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-09-05',
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
+        /* o pagamento da fatura de JULHO (900), e nenhum da de agosto (1200):
+           uma entra com prova, a outra fica de fora */
+        {id:'px7',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
+         date:'2026-08-02',status:'POSTED',operation_type:'PAGAMENTO',
+         category:'Pagamento de cartão de crédito',
+         account_type:'CREDIT',account_subtype:'CREDIT_CARD'},
       ]};
     return new Response(JSON.stringify(corpo),{status:200,headers:{'Content-Type':'application/json'}});
   };
@@ -178,7 +184,9 @@ const abrirPainel = cdp => avaliar(cdp, `
 
   titulo('confirmar traz para o Diário');
   const depois = await avaliar(cdp, `
-    const botoes=[...document.querySelectorAll('#pierre-plano button')];
+    /* pela CLASSE do botao, nao pela posicao: o plano ganhou botoes de
+       "ver todos" e a posicao 0 deixou de ser a de confirmar */
+    const botoes=[document.querySelector('#pierre-plano .add-gasto-confirm')].filter(Boolean);
     botoes[0].click();
     await new Promise(r=>setTimeout(r,1200));
     const d=JSON.parse(localStorage.getItem('financas-data'));
@@ -260,7 +268,7 @@ const abrirPainel = cdp => avaliar(cdp, `
 
     /* confirma e confere que o saldo NAO mudou */
     const depoisDoPlano = await avaliar(cdp, `
-      const b=[...document.querySelectorAll('#pierre-plano button')];
+      const b=[document.querySelector('#pierre-plano .add-gasto-confirm')].filter(Boolean);
       if(!b[0].disabled) b[0].click();
       await new Promise(r=>setTimeout(r,1000));
       return JSON.parse(localStorage.getItem('financas-data')).saldoAtual;`);
@@ -323,7 +331,8 @@ const abrirPainel = cdp => avaliar(cdp, `
        O cenário já vem com cartões e faturas próprios — "Nubank Ultravioleta"
        e "Itaú" —, então o que importa aqui é a DIFERENÇA, não o total. */
     const depois = await avaliar(cdp, `
-      const b=[...document.querySelectorAll('#pierre-plano button')];
+      const planoTexto=document.getElementById('pierre-plano').textContent;
+      const b=[document.querySelector('#pierre-plano .add-gasto-confirm')].filter(Boolean);
       if(!b[0].disabled) b[0].click();
       await new Promise(r=>setTimeout(r,1200));
       const d=JSON.parse(localStorage.getItem('financas-data'));
@@ -332,6 +341,9 @@ const abrirPainel = cdp => avaliar(cdp, `
       const delas=(d.faturas||[]).filter(f=>ids.has(f.cartaoId));
       const passadas=delas.filter(f=>f.ano*12+f.mes<2026*12+9);
       return {cartoes:(d.cartoes||[]).length,
+        temJulho:passadas.some(f=>f.mes===7),
+        temAgosto:passadas.some(f=>f.mes===8),
+        textoDoPlano:planoTexto,
         doPierre:doPierre.length,
         faturasDoCartao:delas.length,
         passadas:passadas.length,
@@ -342,11 +354,37 @@ const abrirPainel = cdp => avaliar(cdp, `
       'o id externo é o que impede criar outro a cada sincronização');
     conferir(depois.faturasDoCartao >= 4,
       `as faturas dele entraram (${depois.faturasDoCartao})`);
-    conferir(depois.passadasPagas === depois.passadas && depois.passadas > 0,
-      `fatura de mês que já passou entra paga (${depois.passadasPagas} de ${depois.passadas})`,
+    conferir(depois.passadasPagas === depois.passadas,
+      `fatura fechada que entrou está marcada como paga (${depois.passadasPagas} de ${depois.passadas})`,
       'sem isso computeCartao() soma o histórico como dívida e o limite fica negativo');
+    conferir(depois.temJulho && !depois.temAgosto,
+      `só a fatura com pagamento confirmado entra (julho sim, agosto não)`,
+      'trazer a de agosto como paga, só porque o mês virou, esconderia um atraso');
+    conferir(/n\u00e3o confirma|ficam de fora/.test(depois.textoDoPlano),
+      'e o plano explica por que a outra ficou de fora');
     conferir(depois.fixos === antesDosFixos,
       `e nenhum gasto fixo foi criado, porque nada foi marcado (${depois.fixos})`);
+  }
+
+  titulo('dá pra conferir tudo antes de confirmar');
+  {
+    const r = await avaliar(cdp, `
+      document.getElementById('pierre-sync-btn').click();
+      await new Promise(r=>setTimeout(r,2400));
+      const p=document.getElementById('pierre-plano');
+      const antes=p.querySelectorAll('.pierre-amostra').length;
+      const visiveisAntes=[...p.querySelectorAll('.pierre-amostra')]
+        .filter(e=>e.offsetParent!==null).length;
+      const ver=[...p.querySelectorAll('.pierre-ver-todos')];
+      ver.forEach(b=>b.click());
+      await new Promise(r=>setTimeout(r,300));
+      const visiveisDepois=[...p.querySelectorAll('.pierre-amostra')]
+        .filter(e=>e.offsetParent!==null).length;
+      return {antes,visiveisAntes,visiveisDepois,quantosBotoes:ver.length};`);
+    conferir(r.quantosBotoes >= 1, `há botão para abrir o detalhe (${r.quantosBotoes})`);
+    conferir(r.visiveisDepois > r.visiveisAntes,
+      `abrir mostra mais linhas (${r.visiveisAntes} → ${r.visiveisDepois})`,
+      'três linhas bastam pra reconhecer o extrato, e não bastam pra conferir');
   }
 
   titulo('desligar a integração apaga a chave');

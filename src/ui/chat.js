@@ -43,9 +43,17 @@ function setupIaChatSheet(){
   }
   input.addEventListener('input',ajustarAltura);
 
+  /* O botão ficava desabilitado durante a resposta, mas o Enter não passa pelo
+     botão: chamava `enviar()` direto. Dois envios em voo dão respostas fora de
+     ordem — a segunda chega antes, o histórico embaralha — além de gastar
+     chamada. A trava fica aqui, no caminho único por onde os dois passam. */
+  let emVoo=false;
+
   async function enviar(){
+    if(emVoo) return;
     const pergunta=input.value.trim();
     if(!pergunta) return;
+    emVoo=true;
     input.value='';
     ajustarAltura();                 // volta a uma linha depois de enviar
     addMsg('user',pergunta);
@@ -64,7 +72,7 @@ function setupIaChatSheet(){
     }catch(err){
       loadingEl.className='ia-chat-msg bot';
       loadingEl.textContent='⚠️ '+(err.message||L('ia.erroGenerico'));
-    }finally{ sendBtn.disabled=false; input.focus(); }
+    }finally{ emVoo=false; sendBtn.disabled=false; input.focus(); }
   }
 
   function open(){

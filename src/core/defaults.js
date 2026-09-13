@@ -51,6 +51,7 @@ function defaultData(){
     pierreTrazerSaldo:true,
     pierreTrazerLancamentos:true,
     pierreContas:[],
+    pierreContasDefinidas:false,
     pierreTrazerCartao:false,
     pierreTrazerFixos:false,
     pierreBuscarAoAbrir:false,
@@ -232,6 +233,8 @@ function migrateData(d){
   if(typeof d.pierreTrazerSaldo!=='boolean') d.pierreTrazerSaldo=true;
   if(typeof d.pierreTrazerLancamentos!=='boolean') d.pierreTrazerLancamentos=true;
   if(!Array.isArray(d.pierreContas)) d.pierreContas=[];
+  /* quem ja usava tinha [] querendo dizer "todas": continua assim ate escolher */
+  if(typeof d.pierreContasDefinidas!=='boolean') d.pierreContasDefinidas=false;
   /* cartao e fixos nascem DESLIGADOS mesmo para quem ja usava: sao os dois que
      mexem em projecao, e ligar sozinho mudaria o numero de alguem sem aviso */
   if(typeof d.pierreTrazerCartao!=='boolean') d.pierreTrazerCartao=false;

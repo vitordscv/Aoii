@@ -236,10 +236,16 @@ module.exports=function(t){
         {installmentNumber:2,totalInstallments:3,amount:15.94,dueDate:'2026-10-20',isPaid:false,status:'PENDING',description:'Compra'},
         {installmentNumber:3,totalInstallments:3,amount:15.94,dueDate:'2026-11-20',isPaid:false,status:'PENDING',description:'Compra'}]}]}};
 
-    const p=c.planoDoCartaoPierre([cartao],faturas,parcelas,HOJE);
+    /* o pagamento da fatura de agosto, como ele aparece no extrato do cartão */
+    const pagouAgosto=[{id:'pg1',description:'Pagamento de fatura',amount:-1049.43,
+      type:'CREDIT',date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',category:'Pagamento de cartão de crédito'}];
+
+    const p=c.planoDoCartaoPierre([cartao],faturas,parcelas,HOJE,pagouAgosto);
     const acha=(ano,mes)=>p.faturas.find(f=>f.ano===ano&&f.mes===mes);
 
-    t.igual(acha(2026,8).origem,'banco','mês fechado usa o número do banco');
+    t.igual(acha(2026,8).origem,'banco-paga',
+      'fatura fechada com pagamento confirmado usa o número do banco');
     t.valor(acha(2026,8).valor,1049.43,'com o valor que o banco diz');
     t.igual(acha(2026,9).origem,'saldo','o mês corrente usa o saldo do cartão');
     t.valor(acha(2026,9).valor,520.38,'que é o que se deve hoje');
@@ -252,30 +258,82 @@ module.exports=function(t){
 
     const chaves=p.faturas.map(f=>f.ano+'-'+f.mes);
     t.igual(chaves.length,new Set(chaves).size,'nenhum mês aparece duas vezes');
+
+    /* SEM a prova de pagamento, a fatura fechada não é trazida */
+    const semProva=c.planoDoCartaoPierre([cartao],faturas,parcelas,HOJE,[]);
+    t.igual(semProva.faturas.find(f=>f.ano===2026&&f.mes===8),undefined,
+      'sem confirmação do banco, a fatura fechada NÃO entra',
+      'trazer como paga por ter passado o mês esconderia uma dívida atrasada');
+    t.igual(semProva.faturasSemPagamento.length,2,
+      'e o plano diz quantas ficaram de fora, em vez de calar');
+    t.verdadeiro(!!semProva.faturas.find(f=>f.ano===2026&&f.mes===9),
+      'o mês corrente continua entrando, que é o que se deve agora');
   }
 
-  console.log('\n\x1b[1mFatura de mês que já passou entra paga\x1b[0m');
+  console.log('\n\x1b[1mO total do banco é o teto da fatura, não uma linha a mais\x1b[0m');
   {
     const d=base();
     const c=criarAmbiente(d,HOJE);
     const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
-      balance:'520.38',connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-08-28'}};
-    /* seis meses fechados, como veio da conta real */
-    const faturas=[3,4,5,6,7,8].map(m=>({accountId:'cc1',
-      dueDate:'2026-0'+m+'-28',totalAmount:600+m*50}));
-    const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE);
+      balance:'500.00',connectorName:'Nubank',creditData:{creditLimit:2000,balanceDueDate:'2026-09-28'}};
+
+    /* primeiro a importação cria o cartão */
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],[],{},HOJE,[]));
+    const cartaoId=d.cartoes.find(k=>k.idExterno==='cc1').id;
+
+    /* agora a pessoa lança um gasto à mão dentro da fatura do mês */
+    const fatura=d.faturas.find(f=>f.ano===2026&&f.mes===9&&f.cartaoId===cartaoId);
+    fatura.gastos.push({id:'g1',nome:'Livraria',valor:100,pago:false,categoria:'Lazer'});
+
+    /* e sincroniza de novo: o banco continua dizendo 500 */
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],[],{},HOJE,[]));
+
+    /* Este é o defeito que a revisão pegou: 500 do banco + 100 do gasto = 600,
+       e o comprometido passava a ser um número que não existe em lugar nenhum. */
+    const uso=c.computeCartao(cartaoId);
+    t.valor(uso.comprometido,500,
+      'o comprometido é o total do banco, e não o total mais o que foi digitado');
+    t.valor(fatura.valor,400,'o valor da fatura vira o RESTO: 500 do banco menos os 100 lançados');
+    t.igual((fatura.gastos||[]).length,1,'e o gasto digitado continua lá, com nome e categoria');
+
+    /* o que foi digitado passando do total do banco não é escondido */
+    fatura.gastos.push({id:'g2',nome:'Outro',valor:900,pago:false,categoria:'Outros'});
+    const r=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],[],{},HOJE,[]));
+    t.valor(fatura.valor,0,'com o digitado passando do total, o resto vai a zero');
+    t.igual(r.estourando.length,1,
+      'e a diferença é devolvida, porque costuma ser gasto lançado duas vezes');
+  }
+
+  console.log('\n\x1b[1mParcela de cada cartão fica no cartão dela\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const nu={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',balance:'100.00',
+      connectorName:'Nubank',creditData:{creditLimit:700,balanceDueDate:'2026-09-28'}};
+    const itau={id:'cc2',name:'platinum',type:'CREDIT',subtype:'CREDIT_CARD',balance:'50.00',
+      connectorName:'Itau',creditData:{creditLimit:3000,balanceDueDate:'2026-09-10'}};
+
+    const parcelas={data:{purchasesByCard:[
+      {cardName:'Nubank',purchases:[{purchaseDate:'2026-08-01',totalAmount:200,installments:[
+        {installmentNumber:2,totalInstallments:2,amount:100,dueDate:'2026-10-01',isPaid:false,description:'Fone'}]}]},
+      {cardName:'Itau',purchases:[{purchaseDate:'2026-08-02',totalAmount:600,installments:[
+        {installmentNumber:2,totalInstallments:2,amount:300,dueDate:'2026-10-02',isPaid:false,description:'Mala'}]}]},
+    ]}};
+
+    const p=c.planoDoCartaoPierre([nu,itau],[],parcelas,HOJE,[]);
+    const outubro=p.faturas.filter(f=>f.ano===2026&&f.mes===10);
+    t.igual(outubro.length,2,'outubro tem uma fatura para cada cartão');
+    const doNu=outubro.find(f=>f.cartaoExterno==='cc1');
+    const doItau=outubro.find(f=>f.cartaoExterno==='cc2');
+    t.valor(doNu.valor,100,'a parcela do Nubank fica no Nubank');
+    t.valor(doItau.valor,300,'e a do Itaú, no Itaú',
+      'juntar tudo no primeiro cartão inflava o limite de um e esvaziava o do outro');
+
     c.aplicarCartaoPierre(p);
-
-    const emAberto=d.faturas.filter(f=>!f.pago);
-    t.igual(emAberto.length,1,'só o mês corrente fica em aberto');
-
-    /* Este é o teste que faltava. Sem o "pago", computeCartao() somava as seis
-       faturas fechadas como dívida viva: R$ 5.314 comprometidos num limite de
-       R$ 700, e disponível negativo em R$ 4.614. */
-    const uso=c.computeCartao(d.cartoes[0].id);
-    t.valor(uso.comprometido,520.38,'o comprometido é só a fatura aberta');
-    t.valor(uso.disponivel,179.62,'e sobra limite de verdade, não número negativo absurdo');
-    t.verdadeiro(uso.disponivel>0,'o limite disponível não fica negativo por causa do histórico');
+    const idNu=d.cartoes.find(k=>k.idExterno==='cc1').id;
+    const idItau=d.cartoes.find(k=>k.idExterno==='cc2').id;
+    t.valor(c.computeCartao(idNu).comprometido,200,'o limite do Nubank conta 100 agora + 100 em outubro');
+    t.valor(c.computeCartao(idItau).comprometido,350,'e o do Itaú, 50 agora + 300 em outubro');
   }
 
   console.log('\n\x1b[1mSincronizar o cartão duas vezes não duplica\x1b[0m');
@@ -380,6 +438,50 @@ module.exports=function(t){
     t.verdadeiro(criado.cartao===true&&criado.cartaoId==='k1',
       'e o gasto fixo nasce ligado ao cartão',
       'sem isso o dinheiro sairia da conta no dia, em vez de entrar na fatura');
+  }
+
+  console.log('\n\x1b[1mDesmarcar todas quer dizer nenhuma\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank'),conta('b','BANK',500,'Inter')];
+    const vindas=[
+      doBanco('t1','Do Nu',-100,'DEBIT',{account_id:'a',account_name:'Nubank'}),
+      doBanco('t2','Do Inter',-50,'DEBIT',{account_id:'b',account_name:'Inter'}),
+    ];
+
+    /* quem nunca escolheu continua recebendo tudo: e o que ja acontecia */
+    const nuncaEscolheu=c.planoDeSincronizacaoPierre(contas,vindas,{contas:[],definidas:false});
+    t.igual(nuncaEscolheu.novas.length,2,'quem nunca escolheu recebe de todas as contas');
+
+    /* Este é o defeito: desmarcar tudo caía na mesma lista vazia e o app
+       trazia justamente o extrato inteiro que a pessoa tinha dispensado. */
+    const desmarcouTudo=c.planoDeSincronizacaoPierre(contas,vindas,{contas:[],definidas:true});
+    t.igual(desmarcouTudo.novas.length,0,
+      'desmarcar todas as contas não traz nada',
+      'vazio significava "todas" e "nenhuma" ao mesmo tempo');
+    t.igual(desmarcouTudo.deOutrasContas.length,2,'e as duas são contadas como de fora');
+  }
+
+  console.log('\n\x1b[1mConfirmar duas vezes o mesmo plano não duplica\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const vindas=[doBanco('t1','Padaria',-42.9,'DEBIT',{account_id:'a'})];
+    const plano=c.planoDeSincronizacaoPierre(contas,vindas);
+
+    const primeira=c.aplicarSincronizacaoPierre(plano);
+    t.igual(primeira.lancadas,1,'a primeira confirmação lança');
+
+    /* O plano é uma FOTO: entre montar e confirmar, a nuvem pode ter trazido os
+       mesmos lançamentos, ou a pessoa clica duas vezes num plano velho. */
+    const segunda=c.aplicarSincronizacaoPierre(plano);
+    t.igual(segunda.lancadas,0,'reaplicar o mesmo plano não lança de novo');
+    t.igual(segunda.jaEstavam,1,'e diz quantos já estavam');
+    t.igual((d.transacoes||[]).filter(x=>x.idExterno).length,1,
+      'o Diário continua com um lançamento só',
+      'o `jaTem` do plano envelhece; a conferência tem que ser na hora de gravar');
   }
 
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
