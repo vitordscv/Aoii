@@ -711,7 +711,7 @@ module.exports=function(t){
     const compra=(id,valor)=>({id,description:'Compra '+id,amount:-valor,type:'DEBIT',
       date:'2026-08-10',status:'POSTED',category:'Serviços',
       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
-      credit_card_data:{billForecastDate:'2026-08'}});
+      account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}});
     const pagou=[{id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
       date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
@@ -747,7 +747,7 @@ module.exports=function(t){
     const tx=[
       {id:'x1',description:'Compra',amount:-950,type:'DEBIT',date:'2026-08-10',
        status:'POSTED',category:'Serviços',account_type:'CREDIT',
-       account_subtype:'CREDIT_CARD',credit_card_data:{billForecastDate:'2026-08'}},
+       account_subtype:'CREDIT_CARD',account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}},
       {id:'pg',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
        date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
        account_type:'CREDIT',account_subtype:'CREDIT_CARD',
@@ -774,7 +774,7 @@ module.exports=function(t){
     const tx=[
       {id:'c1',description:'Compra',amount:-400,type:'DEBIT',date:'2026-08-10',
        status:'POSTED',category:'Serviços',account_type:'CREDIT',
-       account_subtype:'CREDIT_CARD',credit_card_data:{billForecastDate:'2026-08'}},
+       account_subtype:'CREDIT_CARD',account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}},
       {id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
        date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
        account_type:'CREDIT',account_subtype:'CREDIT_CARD',
@@ -794,6 +794,178 @@ module.exports=function(t){
     t.igual(aindaLa.gastos[0].id,'meu',
       'a que fica é a que a pessoa digitou',
       'apagar o que a pessoa escreveu nunca é a resposta');
+  }
+
+  console.log('\n\x1b[1mCompra de um cartão não entra na fatura do outro\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    /* os dois com saldo: assim as duas faturas do MÊS CORRENTE entram, sem
+       depender de prova de pagamento */
+    const nu={id:'ccA',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',balance:'400.00',
+      connectorName:'Nubank',creditData:{creditLimit:5000,balanceDueDate:'2026-09-28'}};
+    const itau={id:'ccB',name:'platinum',type:'CREDIT',subtype:'CREDIT_CARD',balance:'400.00',
+      connectorName:'Itau',creditData:{creditLimit:5000,balanceDueDate:'2026-09-10'}};
+    /* a compra é do cartão A, e só dele */
+    const tx=[{id:'a1',description:'Compra do A',amount:-300,type:'DEBIT',
+      date:'2026-09-05',status:'POSTED',category:'Serviços',account_id:'ccA',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      credit_card_data:{billForecastDate:'2026-09'}}];
+
+    const p=c.planoDoCartaoPierre([nu,itau],[],{},HOJE,tx);
+    const doA=p.faturas.find(f=>f.cartaoExterno==='ccA'&&f.mes===9);
+    const doB=p.faturas.find(f=>f.cartaoExterno==='ccB'&&f.mes===9);
+    t.verdadeiro(!!doA&&!!doB,'cada cartão tem a sua fatura do mês');
+    t.igual((doA.compras||[]).length,1,'a compra aparece na fatura do cartão dela');
+    t.igual((doB.compras||[]).length,0,
+      'e NÃO aparece na fatura do outro cartão',
+      'agrupar as compras só por mês fazia os dois cartões receberem a mesma lista');
+
+    c.aplicarCartaoPierre(p);
+    const d2=c.data||null;
+    void d2;
+  }
+
+  console.log('\n\x1b[1mPagamento de um cartão não quita a fatura do outro\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    const nu={id:'ccA',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',balance:'0.00',
+      connectorName:'Nubank',creditData:{creditLimit:5000,balanceDueDate:'2026-08-28'}};
+    const itau={id:'ccB',name:'platinum',type:'CREDIT',subtype:'CREDIT_CARD',balance:'0.00',
+      connectorName:'Itau',creditData:{creditLimit:5000,balanceDueDate:'2026-08-10'}};
+    /* duas faturas fechadas, MESMO valor, e um pagamento só — no cartão B */
+    /* MESMO vencimento nos dois, de proposito: assim a janela de data nao
+       separa nada e quem tem que separar e a conta */
+    const faturas=[
+      {accountId:'ccA',dueDate:'2026-08-28',totalAmount:500},
+      {accountId:'ccB',dueDate:'2026-08-28',totalAmount:500},
+    ];
+    const tx=[{id:'p1',description:'Pagamento de fatura',amount:-500,type:'CREDIT',
+      date:'2026-08-30',status:'POSTED',operation_type:'PAGAMENTO',account_id:'ccB',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      category:'Pagamento de cartão de crédito'}];
+
+    const p=c.planoDoCartaoPierre([nu,itau],faturas,{},HOJE,tx);
+    const doB=p.faturas.find(f=>f.cartaoExterno==='ccB'&&f.mes===8);
+    const doA=p.faturas.find(f=>f.cartaoExterno==='ccA'&&f.mes===8);
+
+    t.verdadeiro(!!doB&&doB.origem==='banco-paga',
+      'a fatura do cartão que recebeu o pagamento entra como paga');
+    t.igual(doA,undefined,
+      'e a do OUTRO cartão não entra, porque ninguém provou que foi paga',
+      'o pagamento de R$ 500 no B dava a do A como paga: ela sumia do limite sem ter sido paga');
+    t.igual(p.faturasSemPagamento.length,1,'e o plano diz que uma ficou de fora');
+  }
+
+  console.log('\n\x1b[1mUm pagamento quita uma fatura só\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',balance:'0.00',
+      connectorName:'Nubank',creditData:{creditLimit:5000,balanceDueDate:'2026-08-28'}};
+    /* dois meses com o MESMO valor, e um pagamento só */
+    const faturas=[
+      {accountId:'cc1',dueDate:'2026-07-28',totalAmount:400},
+      {accountId:'cc1',dueDate:'2026-08-28',totalAmount:400},
+    ];
+    const tx=[{id:'pg',description:'Pagamento de fatura',amount:-400,type:'CREDIT',
+      date:'2026-08-02',status:'POSTED',operation_type:'PAGAMENTO',account_id:'cc1',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      category:'Pagamento de cartão de crédito'}];
+
+    const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx);
+    const pagas=p.faturas.filter(f=>f.origem==='banco-paga');
+    t.igual(pagas.length,1,
+      'um pagamento marca UMA fatura, não as duas de mesmo valor',
+      'sem consumir o pagamento, ele quitava todo mês que tivesse aquele valor');
+    t.igual(pagas[0].mes,7,'e é a do mês cujo vencimento fica perto do pagamento');
+  }
+
+  console.log('\n\x1b[1mDesfazer não passa por cima do que veio depois\x1b[0m');
+  {
+    const d=base();
+    d.saldoAtual=10;
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const vindas=[doBanco('t1','Padaria',-42.9,'DEBIT',{account_id:'a'})];
+    const plano=c.planoDeSincronizacaoPierre(contas,vindas);
+    const sinc=c.aplicarSincronizacaoPierre(plano);
+    c.registrarImportacaoPierre({sinc,cartao:null,fixos:{criados:0,ids:[]}});
+    t.valor(d.saldoAtual,1000,'a importação pôs o saldo do banco');
+
+    /* a pessoa corrige o saldo à mão DEPOIS da importação */
+    d.saldoAtual=1234.56;
+
+    const feito=c.desfazerImportacaoPierre();
+    t.valor(d.saldoAtual,1234.56,
+      'desfazer NÃO derruba a correção feita depois',
+      'o saldo voltava para o de antes da importação e a edição posterior sumia');
+    t.verdadeiro(feito.saldoMexidoDepois,'e o resultado diz que preservou');
+    t.igual(d.transacoes.length,0,'mas os lançamentos da importação saem do mesmo jeito');
+  }
+
+  console.log('\n\x1b[1mDesfazer não deixa fatura vazia nem carimbo solto\x1b[0m');
+  {
+    const d=base();
+    /* um gasto que a pessoa digitou, e que o banco vai confirmar */
+    d.transacoes=[{id:'meu',nome:'Padaria da esquina',valor:42.9,categoria:'Mercado',
+      metodo:'debito',data:'2026-09-10'}];
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',balance:'0.00',
+      connectorName:'Nubank',creditData:{creditLimit:5000,balanceDueDate:'2026-08-28'}};
+    const faturas=[{accountId:'cc1',dueDate:'2026-08-28',totalAmount:500}];
+    const tx=[{id:'c1',description:'Compra',amount:-300,type:'DEBIT',date:'2026-08-05',
+      status:'POSTED',category:'Serviços',account_id:'cc1',account_type:'CREDIT',
+      account_subtype:'CREDIT_CARD',credit_card_data:{billForecastDate:'2026-08'}},
+      {id:'pg',description:'Pagamento de fatura',amount:-500,type:'CREDIT',
+       date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',account_id:'cc1',
+       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+       category:'Pagamento de cartão de crédito'}];
+
+    const plano=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('tx1','PADARIA DO ZE',-42.9,'DEBIT',{account_id:'a',date:'2026-09-11'})]);
+    t.igual(plano.conciliadas.length,1,'o banco confirma o que a pessoa escreveu');
+    const sinc=c.aplicarSincronizacaoPierre(plano);
+    const doCartao=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx));
+    c.registrarImportacaoPierre({sinc,cartao:doCartao,fixos:{criados:0,ids:[]}});
+
+    t.igual(d.transacoes[0].idExterno,'tx1','o lançamento dela foi carimbado');
+    t.igual(d.faturas.length,1,'e a fatura foi criada');
+
+    const feito=c.desfazerImportacaoPierre();
+    t.igual(d.faturas.length,0,
+      'a fatura criada sai inteira, sem deixar casca vazia',
+      'as compras saíam DEPOIS de decidir quais faturas ficavam, e sobrava uma fatura de R$ 0,00');
+    t.igual(d.transacoes[0].idExterno,undefined,
+      'e o carimbo da conciliação é solto',
+      'sem isso o lançamento ficaria para sempre como "já estava" e o gasto nunca mais seria trazido');
+    t.igual(feito.carimbosSoltos,1,'o resultado conta quantos soltou');
+    t.igual(d.transacoes.length,1,'e o lançamento da pessoa continua lá');
+  }
+
+  console.log('\n\x1b[1mConciliar não mistura carteira com conta\x1b[0m');
+  {
+    const d=base();
+    d.transacoes=[{id:'vivo',nome:'Almoço',valor:35,categoria:'Mercado',
+      metodo:'dinheiro',data:'2026-09-10'}];
+    const c=criarAmbiente(d,HOJE);
+    const contas=[conta('a','BANK',1000,'Nubank')];
+
+    const p=c.planoDeSincronizacaoPierre(contas,
+      [doBanco('tx1','Restaurante',-35,'DEBIT',{account_id:'a',date:'2026-09-11'})]);
+    t.igual(p.conciliadas.length,0,
+      'gasto em dinheiro não concilia com gasto na conta',
+      'são dois gastos de verdade: juntá-los some da carteira o que nunca saiu dela');
+    t.igual(p.novas.length,1,'o do banco entra como novo');
+
+    /* mas pix e débito saem da mesma bolsa */
+    const d2=base();
+    d2.transacoes=[{id:'meu',nome:'Restaurante',valor:35,categoria:'Mercado',
+      metodo:'pix',data:'2026-09-10'}];
+    const c2=criarAmbiente(d2,HOJE);
+    const p2=c2.planoDeSincronizacaoPierre(contas,
+      [doBanco('tx2','Restaurante',-35,'DEBIT',{account_id:'a',date:'2026-09-11'})]);
+    t.igual(p2.conciliadas.length,1,
+      'pix e débito conciliam: os dois saem da conta');
   }
 
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');

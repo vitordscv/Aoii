@@ -199,12 +199,21 @@ function diasEntreISO(a,b){
 /* O lançamento que a pessoa digitou e que parece ser este mesmo. Só considera
    quem ainda NÃO tem id externo: o que já veio do banco não se concilia com o
    banco de novo. */
+/* De onde o dinheiro saiu. `dinheiro` é a carteira; pix e débito saem da conta
+   e são a mesma bolsa para quem olha o saldo — ver `aplicarEfeitoTransacao()`.
+   Conciliar um gasto em dinheiro com um no débito juntaria dois gastos de
+   verdade num só: some da carteira o que nunca saiu dela. */
+function bolsaDoMetodo(metodo){
+  return String(metodo||'debito')==='dinheiro'?'carteira':'conta';
+}
+
 function jaLancadoAMao(pronta,candidatos,usados){
   let melhor=null;
   (candidatos||[]).forEach(t=>{
     if(t.idExterno) return;
     if(usados&&usados.has(t.id)) return;
     if((t.tipo==='receita'?'receita':'gasto')!==pronta.tipo) return;
+    if(bolsaDoMetodo(t.metodo)!==bolsaDoMetodo(pronta.metodo)) return;
     if(Math.abs((Number(t.valor)||0)-pronta.valor)>=0.005) return;
     const dias=diasEntreISO(t.data,pronta.data);
     if(dias>PIERRE_DIAS_DE_FOLGA) return;
@@ -317,11 +326,13 @@ function aplicarSincronizacaoPierre(plano,opcoes){
      escreveu — nome, categoria, nota — e passa a carregar o id do Pierre, para
      as próximas sincronizações o reconhecerem. */
   let conciliadas=0;
+  const idsConciliados=[];
   ((plano.conciliadas)||[]).forEach(par=>{
     if(par.dispensada) return;
     const meu=(data.transacoes||[]).find(t=>t.id===par.meuId);
     if(!meu||meu.idExterno) return;
     meu.idExterno=par.doBanco.idExterno;
+    idsConciliados.push(meu.id);
     conciliadas++;
   });
   const mexeuNoSaldo=trazerSaldo&&plano.contasDeBanco>0;
@@ -330,7 +341,7 @@ function aplicarSincronizacaoPierre(plano,opcoes){
     data.saldoAtualizadoEm=new Date().toISOString();
   }
   data.pierreSincronizadoEm=new Date().toISOString();
-  return {lancadas:passam.length,jaEstavam:repetidas.length,conciliadas,
+  return {lancadas:passam.length,jaEstavam:repetidas.length,conciliadas,idsConciliados,
     saldoAtualizado:mexeuNoSaldo,
     /* o rastro: ids do que entrou e o saldo de antes */
     idsLancados:passam.map(t=>t.id),
@@ -464,6 +475,10 @@ function parcelasAbertasDoPierre(resposta,contas){
 /* O que a sincronização faria com o cartão, sem gravar nada. */
 /* Um pagamento de fatura no extrato do cartão: entra no cartão (CREDIT) e o
    Pierre marca a operação. O valor bate com o da fatura, a menos de centavos. */
+/* Um pagamento de fatura carrega DE QUAL CONTA e QUANDO. Antes virava uma lista
+   solta de valores, e aí um pagamento de R$ 900 no cartão B marcava como paga
+   uma fatura de R$ 900 do cartão A — e a fatura do A sumia do limite
+   comprometido sem nunca ter sido paga. */
 function pagamentosDeFaturaPierre(transacoes){
   return (transacoes||[]).filter(t=>{
     if(!ehDeCartao(t)) return false;
@@ -471,11 +486,44 @@ function pagamentosDeFaturaPierre(transacoes){
     const op=semAcento(t.operation_type||t.operationType);
     const cat=semAcento(t.category);
     return op==='pagamento'||/pagamento de cartao|pagamento de fatura/.test(cat);
-  }).map(t=>Math.abs(numeroDoPierre(t.amount))).filter(v=>v>0);
+  }).map(t=>({
+    conta:String(t.account_id||t.accountId||''),
+    valor:Math.abs(numeroDoPierre(t.amount)),
+    dia:String(t.date||'').slice(0,10),
+    usado:false,
+  })).filter(x=>x.valor>0);
 }
 
-function pagamentoConfere(pagamentos,valor){
-  return (pagamentos||[]).some(v=>Math.abs(v-valor)<0.02);
+/* Uma fatura vence num dia; o pagamento acontece por volta dele. Antes desta
+   janela, o pagamento de um mês podia quitar a fatura de outro. */
+const PIERRE_DIAS_ANTES_DO_VENCIMENTO=12;
+const PIERRE_DIAS_DEPOIS_DO_VENCIMENTO=45;
+
+/* CONSOME o pagamento: um pagamento quita no máximo uma fatura. Sem isso, dois
+   meses com o mesmo valor seriam ambos dados como pagos por um pagamento só. */
+function pagamentoConfere(pagamentos,valor,conta,vencimento){
+  const achou=(pagamentos||[]).find(pg=>{
+    if(pg.usado) return false;
+    if(Math.abs(pg.valor-valor)>=0.02) return false;
+    if(conta&&pg.conta&&pg.conta!==conta) return false;
+    if(vencimento&&pg.dia){
+      const dias=diasComSinalISO(pg.dia,vencimento);
+      if(dias<-PIERRE_DIAS_ANTES_DO_VENCIMENTO) return false;
+      if(dias>PIERRE_DIAS_DEPOIS_DO_VENCIMENTO) return false;
+    }
+    return true;
+  });
+  if(!achou) return false;
+  achou.usado=true;
+  return true;
+}
+
+/* dias de `a` em relação a `b`: negativo quando `a` veio antes */
+function diasComSinalISO(a,b){
+  const x=new Date(String(a).slice(0,10)+'T12:00:00').getTime();
+  const y=new Date(String(b).slice(0,10)+'T12:00:00').getTime();
+  if(!Number.isFinite(x)||!Number.isFinite(y)) return 0;
+  return Math.round((x-y)/86400000);
 }
 
 /* ── O detalhe da fatura ───────────────────────────────────────────────────
@@ -496,6 +544,9 @@ function pagamentoConfere(pagamentos,valor){
    com o total, sem detalhe, e o plano diz quantas foram assim — detalhar com um
    número que não fecha seria voltar ao problema pelo outro lado. */
 function comprasDaFaturaPierre(transacoes){
+  /* Chave é CARTÃO + mês, não mês. Agrupar só por mês fazia a compra do cartão
+     A aparecer também na fatura do B: com dois cartões, os dois recebiam a
+     mesma lista e o mesmo dinheiro era contado duas vezes. */
   const porMes=new Map();
   (transacoes||[]).forEach(t=>{
     if(!ehDeCartao(t)||aindaNaoCaiu(t)) return;
@@ -505,11 +556,15 @@ function comprasDaFaturaPierre(transacoes){
     const cc=t.credit_card_data||{};
     const mes=String(cc.billForecastDate||'').slice(0,7);
     if(!/^\d{4}-\d{2}$/.test(mes)) return;
+    /* sem saber de que conta é, não dá para pendurar em fatura nenhuma */
+    const conta=String(t.account_id||t.accountId||'');
+    if(!conta) return;
     const valor=Math.abs(numeroDoPierre(t.amount));
     if(!(valor>0)) return;
     const dia=String(t.date||'').slice(0,10);
-    if(!porMes.has(mes)) porMes.set(mes,[]);
-    porMes.get(mes).push({
+    const chave=conta+'|'+mes;
+    if(!porMes.has(chave)) porMes.set(chave,[]);
+    porMes.get(chave).push({
       idExterno:String(t.id||''),
       nome:String(t.description||'').trim()||L('pierre.semDescricao'),
       valor,
@@ -562,7 +617,7 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
       porMes(quando.ano,quando.mes,valor,'banco',String(f.accountId||''));
       return;
     }
-    if(pagamentoConfere(pagamentos,valor)){
+    if(pagamentoConfere(pagamentos,valor,String(f.accountId||''),String(f.dueDate||''))){
       porMes(quando.ano,quando.mes,valor,'banco-paga',String(f.accountId||''));
       return;
     }
@@ -595,7 +650,7 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
   /* o detalhe entra onde a soma das compras cabe dentro do total do banco */
   let comDetalhe=0, semDetalhe=0;
   meses.forEach(f=>{
-    const chave=f.ano+'-'+String(f.mes).padStart(2,'0');
+    const chave=f.cartaoExterno+'|'+f.ano+'-'+String(f.mes).padStart(2,'0');
     const compras=comprasPorMes.get(chave);
     if(!compras||!compras.length) return;
     const soma=compras.reduce((s2,c)=>s2+c.valor,0);
@@ -713,6 +768,8 @@ function aplicarCartaoPierre(plano){
       /* o "pago" é de quem usa: marcar aqui não desmarca lá, e o contrário
          também não — a sincronização só acrescenta a confirmação do banco */
       if(f.pago&&!existente.pago) existente.pago=true;
+      const anotada=faturasAntes.find(x=>x.id===existente.id);
+      if(anotada){ anotada.valorDepois=existente.valor; anotada.pagoDepois=!!existente.pago; }
       return;
     }
     const gastos=(f.compras||[]).map(c=>{
@@ -913,6 +970,8 @@ function registrarImportacaoPierre(partes){
     faturasAntes:(cartao&&cartao.faturasAntes)||[],
     gastosFixos:(fixos&&fixos.ids)||[],
     saldoAntes:(sinc&&sinc.saldoAntes)||0,
+    saldoDepois:data.saldoAtual||0,
+    conciliadas:(sinc&&sinc.idsConciliados)||[],
     saldoMexido:!!(sinc&&sinc.saldoAtualizado),
     saldoEmAntes:(sinc&&sinc.saldoEmAntes)||null,
     sincronizadoEmAntes:(sinc&&sinc.sincronizadoEmAntes)||null,
@@ -967,35 +1026,53 @@ function desfazerImportacaoPierre(){
   data.transacoes=(data.transacoes||[]).filter(t=>!tirar.has(t.id));
   const lancamentos=antes-data.transacoes.length;
 
-  /* fatura que a importação criou e que ganhou gasto digitado depois NÃO é
-     removida: apagar o que a pessoa escreveu nunca é a resposta */
-  const guardadas=[];
-  const criadas=new Set(reg.faturasCriadas||[]);
-  data.faturas=(data.faturas||[]).filter(f=>{
-    if(!criadas.has(f.id)) return true;
-    /* gasto que veio da importação já saiu acima; se sobrou algum, é da
-       pessoa — e aí a fatura fica */
-    if((f.gastos||[]).length){ f.valor=0; guardadas.push(f.id); return true; }
-    return false;
-  });
+  /* A conciliação não criou lançamento: ela CARIMBOU um que já era seu com o id
+     do Pierre. Desfazer tem que soltar o carimbo — senão aquele lançamento fica
+     para sempre como "já estava", e o gasto de verdade nunca mais é trazido. */
+  let carimbosSoltos=0;
+  const carimbadas=new Set(reg.conciliadas||[]);
+  if(carimbadas.size){
+    (data.transacoes||[]).forEach(t=>{
+      if(!carimbadas.has(t.id)||!t.idExterno) return;
+      delete t.idExterno;
+      carimbosSoltos++;
+    });
+  }
 
-  /* as compras que a importação pôs nas faturas saem; as que a pessoa digitou
-     ficam, que é a mesma regra de sempre */
+  /* ORDEM: as compras da importação saem ANTES de decidir quais faturas ficam.
+     Ao contrário, a fatura era vista com gastos, escapava da remoção, e depois
+     perdia os gastos — sobrava uma fatura vazia de R$ 0,00 que ninguém criou. */
   const gastosDaImportacao=new Set(reg.gastosDeFatura||[]);
   let gastosTirados=0;
   if(gastosDaImportacao.size){
     (data.faturas||[]).forEach(f=>{
       if(!f.gastos||!f.gastos.length) return;
-      const antes=f.gastos.length;
+      const quantos=f.gastos.length;
       f.gastos=f.gastos.filter(g=>!gastosDaImportacao.has(g.id));
-      gastosTirados+=antes-f.gastos.length;
+      gastosTirados+=quantos-f.gastos.length;
     });
   }
 
-  let faturasRestauradas=0;
+  /* fatura criada pela importação que ainda tem gasto DIGITADO fica; a que
+     ficou vazia sai inteira */
+  const guardadas=[];
+  const criadas=new Set(reg.faturasCriadas||[]);
+  data.faturas=(data.faturas||[]).filter(f=>{
+    if(!criadas.has(f.id)) return true;
+    if((f.gastos||[]).length){ f.valor=0; guardadas.push(f.id); return true; }
+    return false;
+  });
+
+  /* Restaurar só o que ninguém mexeu depois. Se o valor de agora não é o que a
+     importação deixou, houve edição posterior — e desfazer a importação não
+     pode desfazer o que a pessoa fez depois dela. */
+  let faturasRestauradas=0, faturasMexidas=0;
   (reg.faturasAntes||[]).forEach(antiga=>{
     const f=(data.faturas||[]).find(x=>x.id===antiga.id);
     if(!f) return;
+    const mexeram=(typeof antiga.valorDepois==='number'&&Math.abs(f.valor-antiga.valorDepois)>=0.005)
+      ||(typeof antiga.pagoDepois==='boolean'&&!!f.pago!==antiga.pagoDepois);
+    if(mexeram){ faturasMexidas++; return; }
     f.valor=antiga.valor;
     f.pago=!!antiga.pago;
     faturasRestauradas++;
@@ -1017,16 +1094,25 @@ function desfazerImportacaoPierre(){
   data.gastosMensais=(data.gastosMensais||[]).filter(g=>!fixos.has(g.id));
   const gastosFixos=antesFixos-data.gastosMensais.length;
 
+  /* o saldo também: se ele não é mais o que a importação deixou, alguém o
+     corrigiu à mão depois — e a correção vale mais que o desfazer */
+  let saldoMexidoDepois=false;
   if(reg.saldoMexido){
-    data.saldoAtual=reg.saldoAntes||0;
-    data.saldoAtualizadoEm=reg.saldoEmAntes||null;
+    const esperado=typeof reg.saldoDepois==='number'?reg.saldoDepois:null;
+    if(esperado!==null&&Math.abs((data.saldoAtual||0)-esperado)>=0.005){
+      saldoMexidoDepois=true;
+    }else{
+      data.saldoAtual=reg.saldoAntes||0;
+      data.saldoAtualizadoEm=reg.saldoEmAntes||null;
+    }
   }
   /* volta o relógio: a próxima sincronização busca de novo o mesmo período, em
      vez de pular o que acabou de ser removido */
   data.pierreSincronizadoEm=reg.sincronizadoEmAntes||null;
   data.pierreUltimaImportacao=null;
 
-  return {lancamentos,faturasRestauradas,gastosFixos,gastosTirados,
+  return {lancamentos,faturasRestauradas,gastosFixos,gastosTirados,carimbosSoltos,
     faturasGuardadas:guardadas.length,cartoesGuardados:cartoesGuardados.length,
-    saldoVoltou:!!reg.saldoMexido};
+    faturasMexidas,saldoMexidoDepois,
+    saldoVoltou:!!reg.saldoMexido&&!saldoMexidoDepois};
 }

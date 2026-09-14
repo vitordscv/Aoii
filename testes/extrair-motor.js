@@ -104,7 +104,8 @@ const FUNCOES=[
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
   'cartaoDaCompraParcelada','pagamentosDeFaturaPierre','pagamentoConfere',
   'novasAindaInexistentes','registrarImportacaoPierre',
-  'diasEntreISO','jaLancadoAMao','comprasDaFaturaPierre',
+  'diasEntreISO','diasComSinalISO','jaLancadoAMao','comprasDaFaturaPierre',
+  'bolsaDoMetodo',
   'resumoDaUltimaImportacaoPierre','desfazerImportacaoPierre',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',
@@ -129,9 +130,12 @@ function montarMotor(arquivo){
   const prefixos=/const PIERRE_PREFIXOS_DE_MAQUINA\s*=\s*\/[^\n]*\/;/.exec(src);
   /* a folga de dias da conciliacao: jaLancadoAMao() consulta */
   const folgaDias=/const PIERRE_DIAS_DE_FOLGA\s*=\s*\d+;/.exec(src);
+  /* a janela em que um pagamento pode quitar uma fatura */
+  const janelaPg=/const PIERRE_DIAS_ANTES_DO_VENCIMENTO\s*=\s*\d+;/.exec(src);
+  const janelaPg2=/const PIERRE_DIAS_DEPOIS_DO_VENCIMENTO\s*=\s*\d+;/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
     (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
-    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'');
+    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'')+(janelaPg?janelaPg[0]+'\n':'')+(janelaPg2?janelaPg2[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

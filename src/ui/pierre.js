@@ -150,7 +150,11 @@ function pierreDesenharPlano(plano){
         d.className='pierre-amostra';
         const fonte=f.origem==='banco'||f.origem==='banco-paga'?L('pierre.fonteBanco')
           :f.origem==='saldo'?L('pierre.fonteSaldo'):L('pierre.fonteParcelas');
-        const quantasCompras=(f.compras||[]).length;
+        /* `f.valor` é o total do banco ANTES de virar resto; mas quando há
+           detalhe o que a pessoa vê na fatura é resto + compras. Mostrar o
+           resto aqui fazia uma fatura de R$ 500 aparecer como R$ 100. */
+        const compras=f.compras||[];
+        const quantasCompras=compras.length;
         d.textContent=String(f.mes).padStart(2,'0')+'/'+f.ano+' · '
           +formatBRL(f.valor)+' · '+fonte
           +(quantasCompras?' · '+L('pierre.fonteComDetalhe').replace('{n}',quantasCompras):'')
@@ -291,8 +295,17 @@ function pierreDesenharPlano(plano){
     /* o rastro é gravado ANTES do persist: se a gravação falhar, o rastro cai
        junto com o resto, e não sobra um "desfazer" apontando pro nada */
     registrarImportacaoPierre({sinc:r,cartao:doCartao,fixos});
-    await persist(); render();
+    /* `persist()` devolve se conseguiu gravar. Dizer "pronto, N lançamentos"
+       quando o disco recusou é a mentira mais cara que esta tela pode contar:
+       a pessoa fecha o app achando que está guardado. */
+    const salvou=await persist();
+    render();
     caixa.hidden=true; caixa.innerHTML='';
+    if(!salvou){
+      pierreEstado(L('pierre.naoSalvou'),'erro');
+      pierreMostrarDesfazer();
+      return;
+    }
     /* o achado virou lançamento: a faixa do Resumo não tem mais o que oferecer */
     pierrePlanoPendente=null;
     pierreDesenharAviso();
@@ -657,8 +670,16 @@ function setupPierre(){
       try{
         const plano=await pierreBuscarPlano();
         if(data.pierreTrazerCartao===true){
-          const doCartao=plano._contas;
-          const faturas=await buscarFaturasPierre();
+          /* a busca ao abrir obedece a mesma escolha de contas que a manual:
+             dispensar um cartão na lista e vê-lo entrar sozinho seria a escolha
+             não valer justamente quando ninguém está olhando */
+          const escolhidas=data.pierreContas||[];
+          const definidas=data.pierreContasDefinidas===true;
+          const doCartao=definidas
+            ? plano._contas.filter(c=>escolhidas.includes(c.id))
+            : plano._contas;
+          const faturas=(await buscarFaturasPierre())
+            .filter(f=>!definidas||escolhidas.includes(String(f.accountId||'')));
           const desdeLonge=isoDate(new Date(new Date().getTime()-540*86400000));
           const parcelas=await buscarParcelasPierre(desdeLonge,todayISO());
           const {lista:extratoLongo}=await buscarTransacoesPierre(desdeLonge,todayISO());
@@ -693,7 +714,14 @@ function setupPierre(){
       .replace('{f}',r.faturas);
     if(!(await confirmDialog({text:pergunta}))) return;
     const feito=desfazerImportacaoPierre();
-    await persist(); render();
+    const salvouDesfeito=await persist();
+    render();
+    if(!salvouDesfeito){
+      pierreEstado(L('pierre.naoSalvou'),'erro');
+      pierreMostrarDesfazer();
+      pierreDesenharHistorico();
+      return;
+    }
     pierreMostrarDesfazer();
     pierreDesenharHistorico();
     if(feito){

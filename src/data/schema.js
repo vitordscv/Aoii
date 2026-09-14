@@ -185,6 +185,9 @@ const ITEM_FATURA_ANTES = {
   id: { tipo: 'texto', max: 40, padrao: '' },
   valor: { tipo: 'dinheiro', padrao: 0 },
   pago: { tipo: 'booleano', padrao: false },
+  /* o que a importacao deixou, para saber se alguem mexeu depois */
+  valorDepois: { tipo: 'dinheiro', padrao: 0 },
+  pagoDepois: { tipo: 'booleano', padrao: false },
 };
 
 const ITEM_CARTAO = {
@@ -350,9 +353,16 @@ const ESQUEMA = {
       cartoes: { tipo: 'listaTexto', max: 40 },
       faturasCriadas: { tipo: 'listaTexto', max: 40 },
       gastosDeFatura: { tipo: 'listaTexto', max: 200 },
+      /* as transacoes que a conciliacao CARIMBOU com o id do Pierre. Desfazer
+         precisa soltar o carimbo, senao aquele lancamento nunca mais e
+         reconhecido -- fica para sempre como "ja estava". */
+      conciliadas: { tipo: 'listaTexto', max: 200 },
       faturasAntes: { tipo: 'lista', item: ITEM_FATURA_ANTES },
       gastosFixos: { tipo: 'listaTexto', max: 40 },
       saldoAntes: { tipo: 'dinheiro', padrao: 0 },
+      /* o saldo que a importacao DEIXOU. Se o saldo de agora nao for mais este,
+         alguem mexeu depois -- e desfazer nao pode passar por cima disso. */
+      saldoDepois: { tipo: 'dinheiro', padrao: 0 },
       saldoMexido: { tipo: 'booleano', padrao: false },
       saldoEmAntes: { tipo: 'iso', nulo: true },
       sincronizadoEmAntes: { tipo: 'iso', nulo: true },

@@ -1782,3 +1782,56 @@ cofre e obrigar a pessoa a digitar a senha de novo.
 
 Sobraram 3 sem cobertura, todas de interface: `categoriaLabel`, `alertDialog` e
 `agendarEspelho`. 267 de 270, 99%.
+
+### 13/09 - a revisao dos cartoes cruzados
+
+Dez achados, todos conferidos no codigo antes de mexer. Nove eram reais.
+
+**Compra de um cartao entrava na fatura do outro.** `comprasDaFaturaPierre()`
+agrupava por MES, e a atribuicao tambem: com dois cartoes, os dois recebiam a
+mesma lista e o mesmo dinheiro era contado duas vezes. A chave passou a ser
+conta + mes, e compra sem `account_id` nao e atribuida a fatura nenhuma.
+
+**Pagamento quitava a fatura errada.** `pagamentosDeFaturaPierre()` devolvia uma
+lista solta de VALORES -- conta e data eram descartadas. Um pagamento de R$ 500
+no cartao B marcava como paga a fatura de R$ 500 do A, e a do A sumia do limite
+comprometido sem nunca ter sido paga. Agora o pagamento carrega conta e data,
+tem janela em torno do vencimento, e e CONSUMIDO: um pagamento quita no maximo
+uma fatura.
+
+**Desfazer passava por cima de edicao posterior.** Restaurava `saldoAtual` sem
+perguntar. Quem corrigisse o saldo a mao depois da importacao perdia a correcao.
+Agora o registro guarda tambem o que a importacao DEIXOU; se o valor de hoje nao
+e mais esse, alguem mexeu, e a mexida vale mais que o desfazer. Vale para o
+saldo e para valor/pago de cada fatura.
+
+**Desfazer deixava casca vazia e carimbo solto.** A remocao das compras rodava
+DEPOIS de decidir quais faturas ficavam: a fatura era vista com gastos, escapava,
+e depois perdia os gastos -- sobrava uma fatura de R$ 0,00 que ninguem criou. A
+ordem foi invertida. E a conciliacao carimba `idExterno` num lancamento que e da
+pessoa; desfazer nao soltava o carimbo, e aquele lancamento ficava para sempre
+como "ja estava" -- o gasto de verdade nunca mais seria trazido.
+
+**Conciliacao misturava carteira com conta.** `jaLancadoAMao()` olhava tipo,
+valor e data, nao o metodo. Um gasto em dinheiro casava com um no debito: some
+da carteira o que nunca saiu dela. `bolsaDoMetodo()` separa carteira de conta;
+pix e debito continuam casando, porque saem da mesma bolsa.
+
+**A busca ao abrir ignorava a escolha de contas**, que a manual ja respeitava.
+
+**A confirmacao ignorava o retorno de `persist()`.** Dizer "pronto, N
+lancamentos" quando o disco recusou e a mentira mais cara que aquela tela pode
+contar: a pessoa fecha o app achando que esta guardado.
+
+**O resumo da fatura mostrava o resto, nao o total** -- uma fatura de R$ 500 com
+R$ 400 detalhados aparecia como R$ 100.
+
+**GitHub Pages:** o app mora em `/Aoii/`, e `href="/assets/..."` pula o prefixo.
+Os arquivos ESTAVAM la (conferido: 200 em `/Aoii/assets/...`); a pagina e que
+pedia o endereco errado (404 em `/assets/...`). Caminhos relativos funcionam nos
+dois dominios. A auditoria exigia `start_url === '/'` e guardava a suposicao de
+dominio raiz.
+
+**O subtitulo da aba nao acompanhava a troca de idioma:** o elemento tinha
+`data-abas-sub`, e `applyIdioma()` reescreve pelo `data-i18n`. Mesma armadilha
+de hoje cedo, terceira vez.

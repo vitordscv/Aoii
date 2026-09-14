@@ -56,6 +56,12 @@ function mostrarVisao(barra,alvo,moverFoco){
   const sub=document.querySelector('[data-abas-sub="'+grupo+'"]');
   if(sub){
     const chave=escolhida.getAttribute('data-sub');
+    /* Troca o `data-i18n` junto com o texto. `applyIdioma()` reescreve pelo
+       ATRIBUTO, e este elemento só tinha `data-abas-sub` — então, ao mudar de
+       idioma, a descrição da aba aberta continuava na língua anterior até
+       alguém trocar de aba. */
+    if(chave) sub.setAttribute('data-i18n',chave);
+    else sub.removeAttribute('data-i18n');
     sub.textContent=chave?L(chave):'';
     sub.hidden=!chave;
   }

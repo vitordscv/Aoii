@@ -181,7 +181,12 @@ titulo('PWA e funcionamento offline');
     try{
       const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
       const faltam=(manifest.icons||[]).filter(icon=>!fs.existsSync(path.join(dir,icon.src.replace(/^\//,''))));
-      if(manifest.start_url==='/'&&manifest.display==='standalone'&&!faltam.length) ok((manifest.icons||[]).length+' ícones do manifesto existem no pacote');
+      /* `start_url` relativo ('.') e tao valido quanto '/' -- e e o que faz o
+         app funcionar quando ele nao mora na raiz do dominio. No GitHub Pages
+         ele mora em /Aoii/, e caminho absoluto pulava o prefixo: o icone e o
+         manifesto davam 404 num site que servia os dois arquivos. */
+      const inicioOk=manifest.start_url==='/'||manifest.start_url==='.'||manifest.start_url==='./';
+      if(inicioOk&&manifest.display==='standalone'&&!faltam.length) ok((manifest.icons||[]).length+' ícones do manifesto existem no pacote');
       else ruim('manifesto incompleto ou apontando para ícone ausente',faltam.map(i=>i.src).join(', '));
     }catch(e){ ruim('manifest.webmanifest inválido',e.message); }
   }
