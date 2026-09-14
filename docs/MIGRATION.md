@@ -1835,3 +1835,20 @@ dominio raiz.
 **O subtitulo da aba nao acompanhava a troca de idioma:** o elemento tinha
 `data-abas-sub`, e `applyIdioma()` reescreve pelo `data-i18n`. Mesma armadilha
 de hoje cedo, terceira vez.
+
+**Emenda ao item 8, no dia seguinte a escrever que estava feito.** O resumo da
+fatura eu "corrigi" no lugar errado -- mexi na linha do plano, que ja mostrava o
+total certo. O defeito estava em `computeCartao()`:
+
+    faturaAberta = soma dos gastos      <- o `valor` ficava de fora
+
+Havia um teste dizendo que isso era DE PROPOSITO: `faturaAberta` seria so o que
+ainda pode crescer ate o fechamento, e o `valor` seria a parte ja fechada. Isso
+parou de valer quando a importacao passou a dividir a fatura em resto +
+compras: numa fatura vinda do banco, o `valor` sao os juros e o IOF DA MESMA
+fatura, nao uma parte futura. Uma fatura de R$ 500 com R$ 400 itemizados
+aparecia como R$ 400.
+
+`faturaAberta` passou a ter o mesmo formato de `comprometido` -- valor mais
+gastos nao pagos -- e o teste antigo foi atualizado com o motivo da troca de
+sentido, em vez de silenciosamente.

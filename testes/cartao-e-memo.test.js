@@ -54,7 +54,17 @@ module.exports=function(t){
        são duas dívidas distintas, e é aqui que isso costuma vazar */
     t.valor(c.computeCartao('c2').comprometido,80,'cada cartão conta só o que é dele');
 
-    t.valor(roxo.faturaAberta,300,'a fatura aberta é só a do mês corrente, sem o valor fechado dela');
+    /* MUDOU DE SENTIDO em 13/09. Antes `faturaAberta` somava só os gastos
+       soltos, deixando o `valor` de fora: a ideia era "o que ainda pode crescer
+       até o fechamento". Isso parou de valer quando a importação passou a
+       dividir a fatura em resto + compras — para uma fatura vinda do banco, o
+       `valor` são os juros e o IOF DA MESMA fatura, não uma parte futura. Uma
+       fatura de R$ 500 com R$ 400 itemizados aparecia como R$ 400.
+
+       Agora é o mesmo formato de `comprometido`: valor + gastos não pagos. */
+    t.valor(roxo.faturaAberta,600,
+      'a fatura aberta do mês soma o valor e os gastos, como o comprometido',
+      'deixar o valor de fora escondia os juros e o IOF de uma fatura importada');
     t.igual(roxo.faturaAbertaMes,'Setembro','e diz de que mês ela é');
   }
 

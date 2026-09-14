@@ -10,7 +10,14 @@ function computeCartao(cartaoId){
   const pct=limite>0?Math.max(0,Math.min(100,(comprometido/limite)*100)):0;
   const hoje=new Date();
   const faturaAtual=(data.faturas||[]).find(f=>f.cartaoId===cartaoId&&f.ano===hoje.getFullYear()&&f.mes===hoje.getMonth()+1&&!f.pago);
-  const faturaAberta=faturaAtual?(faturaAtual.gastos||[]).reduce((s,g)=>s+g.valor,0):0;
+  /* Uma fatura vale `valor` MAIS os gastos — é assim que `comprometido` logo
+     acima a soma. Aqui só os gastos entravam, e o `valor` sumia da conta:
+     fatura importada, que nasce só com o total, aparecia como R$ 0,00; e desde
+     que a importação passou a detalhar as compras, uma fatura de R$ 500 com
+     R$ 400 itemizados mostrava R$ 400 e escondia os R$ 100 de juros e IOF. */
+  const faturaAberta=faturaAtual
+    ?(faturaAtual.valor||0)+(faturaAtual.gastos||[]).filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0)
+    :0;
   const faturaAbertaMes=faturaAtual?MONTH_NAMES[faturaAtual.mes-1]:null;
   return {comprometido,limite,disponivel,pct,faturaAberta,faturaAbertaMes};
 }
