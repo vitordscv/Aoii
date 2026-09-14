@@ -1747,3 +1747,38 @@ usava `var(--card)` no texto e ficava azul sobre azul; passou a usar
 e `migrateData()` tambem, mas o `defaultData` discordava -- e e ele que vale para
 quem comeca hoje. Quem chegava recebia o cartao de cota diaria sem ter pedido. O
 teste de primeiro uso guardava o comportamento errado; foi invertido.
+
+### 13/09 - o cofre da sincronizacao, e a ferramenta que mentia
+
+**A cobertura estava errada, e eu repeti o numero dela a tarde inteira.**
+`cobertura.js` so enxergava contexto nascido de `criarAmbiente()`. Os testes de
+nuvem -- `conflito-real`, `sync-queue`, `ciclo-sync` -- montam o PROPRIO sandbox
+com `vm.createContext`, porque precisam de `fetch`, `crypto` e `localStorage`
+falsos. Tudo que eles exercitam ficava invisivel.
+
+Resultado: uma lista de "14 funcoes sem teste nenhum" em que metade estava
+coberta, incluindo `empurrarParaNuvem()` -- que e o coracao da resolucao de
+conflito e passa por tres cenarios em `conflito-real.test.js`. A ferramenta
+nasceu para corrigir uma contagem por texto que errava nos dois sentidos, e
+errava nos dois sentidos do mesmo jeito.
+
+`runInContext` passou a ser interceptado. O numero real era 262 de 270 (97%),
+nao 223 de 237 (94%).
+
+**O cofre.** `restaurarSessaoSync()` traz de volta, do IndexedDB, a chave de
+cifra e o token de escrita. E o ponto onde credencial errada entra em cena, e
+tem quatro guardas. A segunda e a que assusta:
+
+    cofre de OUTRO codigo de sincronizacao -> recusado
+
+Sem ela, trocar o codigo no app manteria a chave e o token do codigo anterior --
+decifraria lixo, ou escreveria com um token que nao e daquela linha. Conferido
+que o teste pega: removi a guarda e duas assercoes cairam.
+
+Tambem cobertos: chave exportavel recusada (o projeto so guarda chave que nao
+pode ser lida de volta), token ausente, cofre vazio, navegador sem IndexedDB, e
+o pedido de armazenamento duravel -- que existe para o navegador nao descartar o
+cofre e obrigar a pessoa a digitar a senha de novo.
+
+Sobraram 3 sem cobertura, todas de interface: `categoriaLabel`, `alertDialog` e
+`agendarEspelho`. 267 de 270, 99%.

@@ -32,20 +32,51 @@ const chamadas = new Map();
 const DUBLES = new Set(['esc', 'vibrate', 'catIcon', 'mediana', 'tipoInvest',
   'nomeCartao', 'L', 'formatBRL', 'todayISO', 'isFinite']);
 
-const criarOriginal = ambiente.criarAmbiente;
-ambiente.criarAmbiente = function (...args) {
-  const ctx = criarOriginal.apply(this, args);
+/* Embrulha cada função do contexto num contador. Serve para os dois tipos de
+   sandbox que a suíte usa. */
+function instrumentar(ctx) {
   for (const nome of Object.keys(ctx)) {
     const valor = ctx[nome];
     if (typeof valor !== 'function' || nome === 'Date') continue;
+    if (valor.__contado) continue;
     if (/^[A-Z]/.test(nome) && nome !== 'CATS' && nome !== 'TIPOS_INVEST') continue;
     if (!chamadas.has(nome)) chamadas.set(nome, 0);
-    ctx[nome] = function (...a) {
+    const embrulho = function (...a) {
       chamadas.set(nome, chamadas.get(nome) + 1);
       return valor.apply(this, a);
     };
+    embrulho.__contado = true;
+    ctx[nome] = embrulho;
   }
   return ctx;
+}
+
+const criarOriginal = ambiente.criarAmbiente;
+ambiente.criarAmbiente = function (...args) {
+  return instrumentar(criarOriginal.apply(this, args));
+};
+
+/* ── o furo que esta ferramenta tinha ─────────────────────────────────────
+
+   Ela só enxergava contexto nascido de `criarAmbiente()`. Os testes de nuvem —
+   `conflito-real`, `sync-queue`, `ciclo-sync` — montam o PRÓPRIO sandbox com
+   `vm.createContext`, porque precisam de `fetch`, `crypto` e `localStorage`
+   falsos. Tudo que eles exercitam ficava invisível.
+
+   O efeito foi uma lista de "13 funções sem teste nenhum" em que 7 estavam
+   cobertas, inclusive `empurrarParaNuvem()` — que é o coração da resolução de
+   conflito e passa por três cenários em `conflito-real.test.js`. A ferramenta
+   nasceu para corrigir uma contagem por texto que errava nos dois sentidos, e
+   errava nos dois sentidos do mesmo jeito.
+
+   Agora `runInContext` é interceptado: depois que o motor é avaliado dentro de
+   um sandbox qualquer, as funções daquele sandbox também entram na conta. */
+const vmReal = require('vm');
+const rodarOriginal = vmReal.runInContext.bind(vmReal);
+vmReal.runInContext = function (codigo, ctx, ...resto) {
+  const saida = rodarOriginal(codigo, ctx, ...resto);
+  try { if (ctx && typeof ctx === 'object') instrumentar(ctx); } catch (e) {}
+  return saida;
 };
 
 /* a suíte fala muito; aqui só a contagem interessa */
