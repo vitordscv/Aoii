@@ -104,7 +104,7 @@ const FUNCOES=[
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
   'cartaoDaCompraParcelada','pagamentosDeFaturaPierre','pagamentoConfere',
   'novasAindaInexistentes','registrarImportacaoPierre',
-  'diasEntreISO','jaLancadoAMao',
+  'diasEntreISO','jaLancadoAMao','comprasDaFaturaPierre',
   'resumoDaUltimaImportacaoPierre','desfazerImportacaoPierre',
   'uid','defaultData','migrateData','adotarDadosDeFora',
   'getSyncCode','setSyncCode','sufixoDeHomologacao','emHomologacao','chamarRpc','nuvemLer','nuvemGravar',

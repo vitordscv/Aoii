@@ -699,6 +699,103 @@ module.exports=function(t){
       'saber que aconteceu é diferente de manter o efeito');
   }
 
+  console.log('\n\x1b[1mA fatura ganha detalhe sem deixar de fechar\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'0.00',connectorName:'Nubank',creditData:{creditLimit:2000,balanceDueDate:'2026-08-28'}};
+    /* o banco diz 1000; as compras que ele lista somam 700. A diferença é
+       juros, IOF e saldo anterior — e tem que caber em algum lugar. */
+    const faturas=[{accountId:'cc1',dueDate:'2026-08-28',totalAmount:1000}];
+    const compra=(id,valor)=>({id,description:'Compra '+id,amount:-valor,type:'DEBIT',
+      date:'2026-08-10',status:'POSTED',category:'Serviços',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      credit_card_data:{billForecastDate:'2026-08'}});
+    const pagou=[{id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
+      date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
+      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      category:'Pagamento de cartão de crédito'}];
+    const tx=[compra('c1',400),compra('c2',300),...pagou];
+
+    const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx);
+    t.igual(p.faturasDetalhadas,1,'a fatura entra com as compras detalhadas');
+    c.aplicarCartaoPierre(p);
+
+    const f=d.faturas.find(x=>x.ano===2026&&x.mes===8);
+    t.igual((f.gastos||[]).length,2,'as duas compras estão lá');
+    t.valor(f.valor,300,'e o valor vira o RESTO: 1000 do banco menos as 700 itemizadas');
+    const total=f.valor+(f.gastos||[]).reduce((s2,g)=>s2+g.valor,0);
+    t.valor(total,1000,
+      'as duas partes somam exatamente o que o banco diz',
+      'era o motivo pelo qual eu tinha declarado o detalhe impossível');
+
+    /* sincronizar de novo nao repete as compras */
+    c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx));
+    t.igual((f.gastos||[]).length,2,'a segunda sincronização não duplica as compras');
+    t.valor(f.valor+(f.gastos||[]).reduce((s2,g)=>s2+g.valor,0),1000,'e o total continua fechando');
+  }
+
+  console.log('\n\x1b[1mQuando as compras passam do total, entra só o total\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'0.00',connectorName:'Nubank',creditData:{creditLimit:2000,balanceDueDate:'2026-08-28'}};
+    /* estorno: o banco cobra 900, mas as compras listadas somam 950 */
+    const faturas=[{accountId:'cc1',dueDate:'2026-08-28',totalAmount:900}];
+    const tx=[
+      {id:'x1',description:'Compra',amount:-950,type:'DEBIT',date:'2026-08-10',
+       status:'POSTED',category:'Serviços',account_type:'CREDIT',
+       account_subtype:'CREDIT_CARD',credit_card_data:{billForecastDate:'2026-08'}},
+      {id:'pg',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
+       date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
+       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+       category:'Pagamento de cartão de crédito'}];
+
+    const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx);
+    t.igual(p.faturasDetalhadas,0,'essa fatura não é detalhada');
+    t.igual(p.faturasSemDetalhe,1,'e o plano diz que ficou sem detalhe');
+    c.aplicarCartaoPierre(p);
+    const f=d.faturas.find(x=>x.ano===2026&&x.mes===8);
+    t.igual((f.gastos||[]).length,0,'nenhuma compra entrou');
+    t.valor(f.valor,900,
+      'só o total do banco, que é o número que se pode garantir',
+      'detalhar com uma soma que não cabe seria voltar ao problema pelo outro lado');
+  }
+
+  console.log('\n\x1b[1mDesfazer tira as compras que a importação pôs\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const cartao={id:'cc1',name:'gold',type:'CREDIT',subtype:'CREDIT_CARD',
+      balance:'0.00',connectorName:'Nubank',creditData:{creditLimit:2000,balanceDueDate:'2026-08-28'}};
+    const faturas=[{accountId:'cc1',dueDate:'2026-08-28',totalAmount:1000}];
+    const tx=[
+      {id:'c1',description:'Compra',amount:-400,type:'DEBIT',date:'2026-08-10',
+       status:'POSTED',category:'Serviços',account_type:'CREDIT',
+       account_subtype:'CREDIT_CARD',credit_card_data:{billForecastDate:'2026-08'}},
+      {id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
+       date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
+       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+       category:'Pagamento de cartão de crédito'}];
+
+    const doCartao=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx));
+    c.registrarImportacaoPierre({sinc:{idsLancados:[],saldoAntes:0},cartao:doCartao,fixos:{ids:[]}});
+
+    const f=d.faturas.find(x=>x.ano===2026&&x.mes===8);
+    /* e a pessoa acrescenta um gasto dela na mesma fatura */
+    f.gastos.push({id:'meu',nome:'Digitado por mim',valor:50,pago:false,categoria:'Lazer'});
+
+    const feito=c.desfazerImportacaoPierre();
+    t.igual(feito.gastosTirados,1,'a compra que veio do banco sai');
+    const aindaLa=d.faturas.find(x=>x.id===f.id);
+    t.igual((aindaLa.gastos||[]).length,1,'e sobra uma só');
+    t.igual(aindaLa.gastos[0].id,'meu',
+      'a que fica é a que a pessoa digitou',
+      'apagar o que a pessoa escreveu nunca é a resposta');
+  }
+
   console.log('\n\x1b[1mEscolher o que sincroniza\x1b[0m');
   {
     const d=base();

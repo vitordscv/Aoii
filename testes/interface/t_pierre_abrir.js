@@ -135,6 +135,12 @@ const DUBLE = `
     `e o achado aparece NO RESUMO ("${comChave.texto.slice(0, 52)}")`,
     'era desenhado dentro de Configurações, onde ninguém estava olhando');
   conferir(comChave.temBotao, 'com um toque para ver o plano inteiro');
+  /* A faixa ja apareceu vazia: a guarda aceitava quatro motivos e o texto
+     falava de tres, entao achado so de cartao virava um retangulo com o emoji
+     e nada mais. Emoji sozinho nao e aviso. */
+  conferir(comChave.texto.replace(/[^A-Za-z0-9]/g,'').length > 3,
+    `a faixa diz alguma coisa, nao so o emoji ("${comChave.texto.slice(0, 44)}")`,
+    'faixa com emoji e mais nada e um retangulo vazio com um botao do lado');
   conferir(!comChave.folhaAberta,
     'sem abrir Configurações na cara de quem só queria abrir o app');
   conferir(comChave.lancados === 0,

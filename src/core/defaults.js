@@ -38,7 +38,10 @@ function defaultData(){
     fundoIlustrado:false,
     /* "quanto posso gastar hoje" é o gancho diário do app e nascia
        desligado; sem renda cadastrada o cartão já diz o que falta fazer */
-    gastoDiario:true,
+    /* desligado por padrao. `schema.js` e `migrateData()` ja diziam false;
+       so o `defaultData` discordava, e era ele que valia para quem comeca
+       hoje -- a pessoa nova recebia o cartao de cota diaria sem ter pedido. */
+    gastoDiario:false,
     reservaGuardado:0,
     reservaMeses:3,
     reservaNaConta:true,

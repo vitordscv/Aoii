@@ -61,6 +61,9 @@ const ITEM_GASTO_FIXO = {
 
 const ITEM_GASTO_FATURA = {
   id: { tipo: 'id' },
+  /* o id da compra no Pierre, para a sincronizacao nao trazer a mesma duas
+     vezes. Gasto digitado a mao nao tem, e fica fora da sincronizacao. */
+  idExterno: { tipo: 'texto', max: 80, nulo: true },
   nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
   valor: { tipo: 'dinheiro', padrao: 0 },
   pago: { tipo: 'booleano', padrao: false },
@@ -346,6 +349,7 @@ const ESQUEMA = {
       transacoes: { tipo: 'listaTexto', max: 40 },
       cartoes: { tipo: 'listaTexto', max: 40 },
       faturasCriadas: { tipo: 'listaTexto', max: 40 },
+      gastosDeFatura: { tipo: 'listaTexto', max: 200 },
       faturasAntes: { tipo: 'lista', item: ITEM_FATURA_ANTES },
       gastosFixos: { tipo: 'listaTexto', max: 40 },
       saldoAntes: { tipo: 'dinheiro', padrao: 0 },

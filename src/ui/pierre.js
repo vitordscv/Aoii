@@ -136,6 +136,8 @@ function pierreDesenharPlano(plano){
     }
     if(c.parcelasSemCartao) linha(L('pierre.planoParcelaSemCartao').replace('{n}',c.parcelasSemCartao));
     if(c.faturasComItens) linha(L('pierre.planoFaturaReconcilia').replace('{n}',c.faturasComItens));
+    if(c.faturasDetalhadas) linha(L('pierre.planoFaturaDetalhe').replace('{n}',c.faturasDetalhadas));
+    if(c.faturasSemDetalhe) linha(L('pierre.planoFaturaSemDetalhe').replace('{n}',c.faturasSemDetalhe));
 
     /* cada fatura, com o mês e de onde o número veio: é o que permite conferir
        antes de deixar entrar, em vez de confiar num total */
@@ -148,8 +150,10 @@ function pierreDesenharPlano(plano){
         d.className='pierre-amostra';
         const fonte=f.origem==='banco'||f.origem==='banco-paga'?L('pierre.fonteBanco')
           :f.origem==='saldo'?L('pierre.fonteSaldo'):L('pierre.fonteParcelas');
+        const quantasCompras=(f.compras||[]).length;
         d.textContent=String(f.mes).padStart(2,'0')+'/'+f.ano+' · '
           +formatBRL(f.valor)+' · '+fonte
+          +(quantasCompras?' · '+L('pierre.fonteComDetalhe').replace('{n}',quantasCompras):'')
           +(f.origem==='banco-paga'?' · '+L('pierre.fonteJaPaga'):'');
         detalhe.appendChild(d);
       });
@@ -299,6 +303,9 @@ function pierreDesenharPlano(plano){
     if(doCartao&&doCartao.estourando&&doCartao.estourando.length){
       aviso+=' '+L('pierre.prontoEstouro').replace('{n}',doCartao.estourando.length);
     }
+    if(doCartao&&doCartao.gastosLancados){
+      aviso+=' '+L('pierre.prontoCompras').replace('{n}',doCartao.gastosLancados);
+    }
     if(doCartao&&(doCartao.criados||doCartao.faturasNovas)){
       aviso+=' '+L('pierre.prontoCartao')
         .replace('{c}',doCartao.criados).replace('{f}',doCartao.faturasNovas);
@@ -375,6 +382,7 @@ function pierreMostrarDesfazer(){
   const partes=[];
   if(r.lancamentos) partes.push(L('pierre.desfazLancamentos').replace('{n}',r.lancamentos));
   if(r.faturas) partes.push(L('pierre.desfazFaturas').replace('{n}',r.faturas));
+  if(r.comprasDeFatura) partes.push(L('pierre.desfazCompras').replace('{n}',r.comprasDeFatura));
   if(r.cartoes) partes.push(L('pierre.desfazCartoes').replace('{n}',r.cartoes));
   if(r.gastosFixos) partes.push(L('pierre.desfazFixos').replace('{n}',r.gastosFixos));
   if(r.saldoVolta!==null) partes.push(L('pierre.desfazSaldo').replace('{v}',formatBRL(r.saldoVolta)));
@@ -443,10 +451,21 @@ function pierreDesenharAviso(){
 
   const texto=document.createElement('span');
   texto.className='banco-banner-texto';
+  /* A guarda acima aceita quatro motivos e este texto só sabia falar de três:
+     achado só de cartão virava uma faixa com o emoji e mais nada — um retângulo
+     vazio com um botão do lado. Cada motivo que faz a faixa aparecer tem que
+     ter o que dizer, e a checagem no fim garante isso mesmo se eu acrescentar
+     um quinto e esquecer de novo. */
   const partes=[];
   if(novas) partes.push(L('pierre.avisoLancamentos').replace('{n}',novas));
   if(mexeNoSaldo) partes.push(L('pierre.avisoSaldo').replace('{v}',formatBRL(p.saldo)));
+  if(temCartao){
+    const quantas=((p.cartao&&p.cartao.faturas)||[]).length;
+    partes.push(quantas?L('pierre.avisoCartaoFaturas').replace('{n}',quantas)
+                       :L('pierre.avisoCartao'));
+  }
   if(temFixos) partes.push(L('pierre.avisoFixos').replace('{n}',p.fixos.length));
+  if(!partes.length) return;
   texto.textContent='🏦 '+partes.join(' · ');
   faixa.appendChild(texto);
 

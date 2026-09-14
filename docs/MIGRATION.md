@@ -1710,3 +1710,40 @@ proposito, pelo mesmo motivo.
 dentro da chave de traducao. `applyIdioma()` escreve por `textContent`, entao a
 marcacao apareceria como TEXTO na tela, nos cinco idiomas. O teste agora recusa
 qualquer `<` ou `>` visivel num passo.
+
+### 13/09 - detalhe da fatura, faixa vazia e o padrao do gasto diario
+
+**A fatura ganhou detalhe, e eu tinha enquadrado o problema errado.** Medi que a
+soma das compras nao bate com o total do banco -- agosto, R$ 694,88 contra
+R$ 1.049,43 -- e conclui que detalhar mostraria uma lista que nao fecha.
+
+Mas no Aoii uma fatura vale `valor` MAIS os `gastos[]`, e `aplicarCartaoPierre()`
+ja fazia `valor` virar o RESTO quando havia itens. Da para ter os dois: as
+compras aparecem uma a uma e a diferenca -- juros, IOF, saldo anterior, o que
+ficou fora da janela -- fica no `valor`. Conferido contra a conta real:
+
+    mes       resto      compras    total     banco diz
+    2026-08   354,55     23 itens   1049,43   1049,43   ok
+    2026-06     0,00     13 itens    710,25    710,25   ok
+    2026-05     0,00     12 itens    620,22    620,22   ok
+
+Toda fatura com total do banco fecha ao centavo, e o limite comprometido nao
+mudou (R$ 684,36 de R$ 700).
+
+So ha um caso que nao funciona: quando as compras PASSAM do total, o que
+acontece com estorno (julho: R$ 954,25 numa fatura de R$ 903,03). O resto seria
+negativo. Ai a fatura entra so com o total e o plano diz quantas foram assim --
+detalhar com um numero que nao cabe seria voltar ao problema pelo outro lado.
+Na conta real: 3 faturas detalhadas, 3 so com o total.
+
+**A faixa do banco aparecia vazia.** A guarda aceitava quatro motivos e o texto
+sabia falar de tres: achado so de cartao virava um retangulo com o emoji e nada
+mais, com um botao do lado. Agora cada motivo tem o que dizer, e ha uma checagem
+final para o caso de eu acrescentar um quinto e esquecer de novo. O botao "Ver"
+usava `var(--card)` no texto e ficava azul sobre azul; passou a usar
+`--on-accent`, que e branco garantido.
+
+**O "quanto posso gastar hoje" nascia LIGADO.** `schema.js` dizia `padrao:false`
+e `migrateData()` tambem, mas o `defaultData` discordava -- e e ele que vale para
+quem comeca hoje. Quem chegava recebia o cartao de cota diaria sem ter pedido. O
+teste de primeiro uso guardava o comportamento errado; foi invertido.

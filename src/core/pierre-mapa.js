@@ -478,6 +478,48 @@ function pagamentoConfere(pagamentos,valor){
   return (pagamentos||[]).some(v=>Math.abs(v-valor)<0.02);
 }
 
+/* ── O detalhe da fatura ───────────────────────────────────────────────────
+
+   Eu tinha declarado isto impossível, e estava enquadrando errado. Medi que a
+   soma das compras não bate com o total do banco — em agosto, R$ 694,88 contra
+   R$ 1.049,43 — e concluí que detalhar mostraria uma lista que não fecha.
+
+   Mas no Aoii uma fatura vale `valor` MAIS os `gastos[]`, e `aplicarCartaoPierre`
+   já faz `valor` virar o RESTO quando há itens. Então dá para ter os dois: as
+   compras aparecem uma a uma, e a diferença — juros, IOF, saldo anterior, o que
+   ficou fora da janela — fica no `valor`. As duas partes somam exatamente o que
+   o banco diz.
+
+   Só há um mês em que isso não funciona: quando a soma das compras PASSA do
+   total do banco, o que acontece com estorno (julho: R$ 954,25 de compras numa
+   fatura de R$ 903,03). Aí o resto seria negativo. Nesse caso a fatura entra só
+   com o total, sem detalhe, e o plano diz quantas foram assim — detalhar com um
+   número que não fecha seria voltar ao problema pelo outro lado. */
+function comprasDaFaturaPierre(transacoes){
+  const porMes=new Map();
+  (transacoes||[]).forEach(t=>{
+    if(!ehDeCartao(t)||aindaNaoCaiu(t)) return;
+    /* só compra: pagamento e estorno entram como CREDIT e já estão embutidos
+       no total que o banco informa */
+    if(String(t&&t.type||'').toUpperCase()!=='DEBIT') return;
+    const cc=t.credit_card_data||{};
+    const mes=String(cc.billForecastDate||'').slice(0,7);
+    if(!/^\d{4}-\d{2}$/.test(mes)) return;
+    const valor=Math.abs(numeroDoPierre(t.amount));
+    if(!(valor>0)) return;
+    const dia=String(t.date||'').slice(0,10);
+    if(!porMes.has(mes)) porMes.set(mes,[]);
+    porMes.get(mes).push({
+      idExterno:String(t.id||''),
+      nome:String(t.description||'').trim()||L('pierre.semDescricao'),
+      valor,
+      categoria:categoriaDoPierre(t.category),
+      dataCompra:/^\d{4}-\d{2}-\d{2}$/.test(dia)?dia:null,
+    });
+  });
+  return porMes;
+}
+
 function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
   const hoje=String(hojeISO||todayISO()).slice(0,10);
   const pagamentos=pagamentosDeFaturaPierre(transacoes);
@@ -489,6 +531,7 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
     .filter(Boolean);
 
   const abertas=parcelasAbertasDoPierre(parcelas,contas);
+  const comprasPorMes=comprasDaFaturaPierre(transacoes);
   const meses=new Map();   /* 'ano-mes' → {ano,mes,valor,origem,cartaoExterno} */
 
   const porMes=(ano,mes,valor,origem,cartaoExterno)=>{
@@ -549,6 +592,18 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
     porMes(Number(ano),Number(mes),Math.round(valor*100)/100,'parcelas',externo);
   });
 
+  /* o detalhe entra onde a soma das compras cabe dentro do total do banco */
+  let comDetalhe=0, semDetalhe=0;
+  meses.forEach(f=>{
+    const chave=f.ano+'-'+String(f.mes).padStart(2,'0');
+    const compras=comprasPorMes.get(chave);
+    if(!compras||!compras.length) return;
+    const soma=compras.reduce((s2,c)=>s2+c.valor,0);
+    if(soma>f.valor+0.005){ semDetalhe++; return; }
+    f.compras=compras;
+    comDetalhe++;
+  });
+
   const jaTenho=new Set((data.cartoes||[]).map(c=>c.idExterno).filter(Boolean));
   const futuras=abertas.filter(pa=>pa.ano*12+pa.mes>chaveDeAgora);
 
@@ -572,6 +627,8 @@ function planoDoCartaoPierre(contas,faturas,parcelas,hojeISO,transacoes){
     parcelasAbertas:futuras,
     parcelasSemCartao:orfas.length,
     faturasComItens:comItens,
+    faturasDetalhadas:comDetalhe,
+    faturasSemDetalhe:semDetalhe,
     totalParcelas:futuras.reduce((s,pa)=>s+pa.valor,0),
   };
 }
@@ -598,6 +655,7 @@ function aplicarCartaoPierre(plano){
 
   const idPorExterno=new Map();
   const idsDeCartoesNovos=[], idsDeFaturasNovas=[], faturasAntes=[];
+  const idsDeGastos=[];
   let criados=0, atualizados=0;
   (plano.cartoes||[]).forEach(novo=>{
     const existente=(data.cartoes||[]).find(c=>c.idExterno===novo.idExterno);
@@ -629,6 +687,18 @@ function aplicarCartaoPierre(plano){
     const existente=(data.faturas||[]).find(x=>
       x.ano===f.ano&&x.mes===f.mes&&x.cartaoId===cartaoId);
     if(existente){
+      if(!existente.gastos) existente.gastos=[];
+      /* as compras que ainda não estão lá. O `idExterno` é o que impede a
+         mesma compra entrar de novo a cada sincronização. */
+      const jaLa=new Set(existente.gastos.map(g=>g.idExterno).filter(Boolean));
+      (f.compras||[]).forEach(c=>{
+        if(!c.idExterno||jaLa.has(c.idExterno)) return;
+        jaLa.add(c.idExterno);
+        const g={id:uid(),idExterno:c.idExterno,nome:c.nome,valor:c.valor,
+          pago:false,categoria:c.categoria,dataCompra:c.dataCompra||undefined};
+        existente.gastos.push(g);
+        idsDeGastos.push(g.id);
+      });
       const itemizado=(existente.gastos||[]).reduce((soma,g)=>soma+(Number(g.valor)||0),0);
       const resto=Math.round((f.valor-itemizado)*100)/100;
       if(resto<0) estourando.push({ano:f.ano,mes:f.mes,banco:f.valor,itemizado});
@@ -645,15 +715,27 @@ function aplicarCartaoPierre(plano){
       if(f.pago&&!existente.pago) existente.pago=true;
       return;
     }
-    const nova={id:uid(),ano:f.ano,mes:f.mes,valor:f.valor,
-      pago:Boolean(f.pago),gastos:[],cartaoId};
+    const gastos=(f.compras||[]).map(c=>{
+      const g={id:uid(),idExterno:c.idExterno,nome:c.nome,valor:c.valor,
+        pago:false,categoria:c.categoria,dataCompra:c.dataCompra||undefined};
+      idsDeGastos.push(g.id);
+      return g;
+    });
+    /* `valor` é o RESTO: o total do banco menos o que está itemizado. Juntos,
+       somam exatamente o que o banco diz — juros, IOF e saldo anterior ficam
+       no resto, que é onde eles moram mesmo. */
+    const itemizado=gastos.reduce((soma,g)=>soma+g.valor,0);
+    const nova={id:uid(),ano:f.ano,mes:f.mes,
+      valor:Math.max(0,Math.round((f.valor-itemizado)*100)/100),
+      pago:Boolean(f.pago),gastos,cartaoId};
     data.faturas.push(nova);
     idsDeFaturasNovas.push(nova.id);
     faturasNovas++;
   });
 
   return {criados,atualizados,faturasNovas,faturasAtualizadas,estourando,
-    idsDeCartoesNovos,idsDeFaturasNovas,faturasAntes};
+    gastosLancados:idsDeGastos.length,
+    idsDeCartoesNovos,idsDeFaturasNovas,faturasAntes,idsDeGastos};
 }
 
 /* ══ GASTOS FIXOS ═══════════════════════════════════════════════════════════
@@ -827,6 +909,7 @@ function registrarImportacaoPierre(partes){
     transacoes:(sinc&&sinc.idsLancados)||[],
     cartoes:(cartao&&cartao.idsDeCartoesNovos)||[],
     faturasCriadas:(cartao&&cartao.idsDeFaturasNovas)||[],
+    gastosDeFatura:(cartao&&cartao.idsDeGastos)||[],
     faturasAntes:(cartao&&cartao.faturasAntes)||[],
     gastosFixos:(fixos&&fixos.ids)||[],
     saldoAntes:(sinc&&sinc.saldoAntes)||0,
@@ -870,6 +953,7 @@ function resumoDaUltimaImportacaoPierre(){
     faturasComGastoSeu:faturasNovas.filter(f=>(f.gastos||[]).length).length,
     faturasRestauradas:(reg.faturasAntes||[]).length,
     gastosFixos:(reg.gastosFixos||[]).filter(id=>(data.gastosMensais||[]).some(g=>g.id===id)).length,
+    comprasDeFatura:(reg.gastosDeFatura||[]).length,
     saldoVolta:reg.saldoMexido?reg.saldoAntes:null,
   };
 }
@@ -889,9 +973,24 @@ function desfazerImportacaoPierre(){
   const criadas=new Set(reg.faturasCriadas||[]);
   data.faturas=(data.faturas||[]).filter(f=>{
     if(!criadas.has(f.id)) return true;
+    /* gasto que veio da importação já saiu acima; se sobrou algum, é da
+       pessoa — e aí a fatura fica */
     if((f.gastos||[]).length){ f.valor=0; guardadas.push(f.id); return true; }
     return false;
   });
+
+  /* as compras que a importação pôs nas faturas saem; as que a pessoa digitou
+     ficam, que é a mesma regra de sempre */
+  const gastosDaImportacao=new Set(reg.gastosDeFatura||[]);
+  let gastosTirados=0;
+  if(gastosDaImportacao.size){
+    (data.faturas||[]).forEach(f=>{
+      if(!f.gastos||!f.gastos.length) return;
+      const antes=f.gastos.length;
+      f.gastos=f.gastos.filter(g=>!gastosDaImportacao.has(g.id));
+      gastosTirados+=antes-f.gastos.length;
+    });
+  }
 
   let faturasRestauradas=0;
   (reg.faturasAntes||[]).forEach(antiga=>{
@@ -927,7 +1026,7 @@ function desfazerImportacaoPierre(){
   data.pierreSincronizadoEm=reg.sincronizadoEmAntes||null;
   data.pierreUltimaImportacao=null;
 
-  return {lancamentos,faturasRestauradas,gastosFixos,
+  return {lancamentos,faturasRestauradas,gastosFixos,gastosTirados,
     faturasGuardadas:guardadas.length,cartoesGuardados:cartoesGuardados.length,
     saldoVoltou:!!reg.saldoMexido};
 }

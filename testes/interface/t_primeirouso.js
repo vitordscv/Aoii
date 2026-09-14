@@ -108,7 +108,13 @@ async function ate(cdp, expressao, oQue, limite = 12000) {
   console.log('     cartão diz:', JSON.stringify(tela.saudeTexto.slice(0, 110)));
   const dias = Math.round((new Date(tela.dataAlvo) - new Date(tela.hoje)) / 86400000);
   conferir(dias >= 90, `data-alvo ${tela.dataAlvo} = ${dias} dias à frente (mínimo 90)`);
-  conferir(tela.diario, 'o cartão "quanto posso gastar hoje" nasce ligado');
+  /* Desligado por escolha de quem usa: a cota diaria e um jeito de acompanhar,
+     nao o unico, e quem chega ainda nao pediu por ele. O `schema.js` e o
+     `migrateData()` ja diziam false; so o `defaultData` discordava, e era ele
+     que valia para quem comeca hoje. */
+  conferir(!tela.diario,
+    'o cartão "quanto posso gastar hoje" nasce DESLIGADO',
+    'schema e migracao diziam false; o defaultData discordava e ligava para quem chegava agora');
   conferir(tela.tourAberto, 'o tour começa depois do assistente', 'tour não abriu');
 
   if (tela.tourAberto) {

@@ -819,7 +819,7 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .banco-banner{background:var(--cream);border:1px solid var(--line);color:var(--ink-navy);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .banco-banner-erro{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-text);}
 .banco-banner-texto{flex:1;min-width:140px;}
-.banco-banner-btn{flex:none;min-height:36px;padding:7px 14px;border:none;border-radius:9px;background:var(--accent-ink);color:var(--card);font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;}
+.banco-banner-btn{flex:none;min-height:36px;padding:7px 14px;border:none;border-radius:9px;background:var(--disney-blue-deep);color:var(--on-accent);font-family:'Nunito Sans',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;}
 .banco-banner-fechar{flex:none;width:32px;height:32px;border:none;background:none;color:var(--muted2);font-size:15px;cursor:pointer;border-radius:8px;}
 .banco-banner-fechar:hover,.banco-banner-fechar:focus-visible{background:var(--card);color:var(--ink-navy);}
 
