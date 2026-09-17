@@ -213,6 +213,79 @@ function nomeDaContaPierre(c){
   return String(c.customName||c.name||c.marketingName||'').trim();
 }
 
+/* ── Frescor: o numero do banco tem idade, e ela importa ───────────────────
+
+   O saldo daqui e a soma de `balance`, e `balance` e o que o Pierre guardou da
+   ultima vez que falou com o banco -- nao uma leitura de agora. Enquanto isso
+   nao foi olhado, o app mostrava o valor com a mesma cara de certeza tivesse
+   ele uma hora ou uma semana. Quem move dinheiro e ve o saldo parado conclui a
+   coisa errada: que o app esta quebrado, ou pior, que o dinheiro nao chegou.
+
+   `itemIsActive` vem na conta e e o sinal mais duro que existe aqui: falso quer
+   dizer que a conexao com o banco caiu no Pierre. O `balance` continua vindo,
+   continua numero, e esta congelado na data em que a conexao morreu.
+
+   O carimbo de quando foi a ultima leitura NAO tem nome confirmado contra a API
+   -- por isso a lista de candidatos, e por isso a ausencia de todos eles nao
+   vira aviso: dizer "nao sei quando" em toda sincronizacao seria ruido que
+   ninguem le, e ruido gasta a atencao que os dois avisos de verdade precisam.
+
+   Conta com conexao caida CONTINUA somando no saldo. Tirar dali baixaria o
+   saldo da pessoa por conta propria, que e mentira de outro tipo -- a correcao
+   e avisar, nao subtrair. */
+
+/* mesmo limite do `saldoEstaVelho()` do hero: tres dias e o ponto em que o
+   numero na tela pode ja nao ser o da conta */
+const PIERRE_DIAS_DE_FRESCOR=3;
+
+/* Nomes plausiveis para "quando o Pierre leu isto pela ultima vez". Nenhum foi
+   confirmado contra a API; o primeiro que vier como data valida vale. */
+const PIERRE_CAMPOS_DE_DATA=['lastUpdatedAt','updatedAt','lastSyncAt',
+  'itemLastUpdatedAt','balanceDate','lastAccessedAt'];
+
+function atualizadoEmDaConta(c){
+  if(!c) return null;
+  for(let i=0;i<PIERRE_CAMPOS_DE_DATA.length;i++){
+    const v=c[PIERRE_CAMPOS_DE_DATA[i]];
+    if(!v) continue;
+    const dia=String(v).slice(0,10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(dia)) return String(v);
+  }
+  return null;
+}
+
+/* `itemIsActive` ausente nao e conexao caida: e API que nao mandou o campo. So
+   o `false` explicito conta. */
+function contaDesconectada(c){
+  return !!c&&c.itemIsActive===false;
+}
+
+/* A idade do que veio, olhando so as contas que formam o saldo. Entre varias, a
+   MAIS VELHA manda: o saldo e a soma de todas, e uma parcela velha basta para o
+   total nao ser o de agora. */
+function frescorDoPierre(contas,agoraMs){
+  const agora=Number.isFinite(agoraMs)?agoraMs:Date.now();
+  const deBanco=(contas||[]).filter(contaEhBanco);
+  let maisVelhoEm=null, maisVelhoMs=null;
+  deBanco.forEach(c=>{
+    const iso=atualizadoEmDaConta(c);
+    if(!iso) return;
+    const ms=new Date(String(iso).length<=10?iso+'T12:00:00':iso).getTime();
+    if(!Number.isFinite(ms)) return;
+    if(maisVelhoMs===null||ms<maisVelhoMs){ maisVelhoMs=ms; maisVelhoEm=iso; }
+  });
+  const dias=maisVelhoMs===null?null
+    :Math.floor((agora-maisVelhoMs)/86400000);
+  return {
+    atualizadoEm:maisVelhoEm,
+    dias,
+    velho:dias!==null&&dias>PIERRE_DIAS_DE_FRESCOR,
+    desconectadas:(contas||[]).filter(contaDesconectada).map(c=>
+      [c.connectorName,nomeDaContaPierre(c)].filter(Boolean).join(' ')
+        ||L('pierre.contaSemNome')),
+  };
+}
+
 /* O saldo em conta: só as contas de banco. Cartão tem saldo também, e é
    dívida — somar os dois daria um número que não é nada. */
 function saldoDoPierre(contas){
@@ -351,6 +424,7 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
     contasDeBanco:deBanco.length,
     contasAceitas:aceitas.length,
     contasIgnoradas:ignoradas,
+    frescor:frescorDoPierre(aceitas),
     instituicoes:[...new Set(aceitas.map(c=>c.connectorName).filter(Boolean))],
     saldo,
     saldoAtual:data.saldoAtual||0,

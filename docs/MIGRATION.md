@@ -1895,11 +1895,39 @@ tudo que não fosse `BANK`, então a conta `INVESTMENT` do teste carregava
 subtipo de cartão. O teste passava por acidente: o resultado certo pela razão
 errada. Corrigida junto, porque a mudança acima lê o `subtype`.
 
-### O que continua em aberto
+### ~~O que continua em aberto~~ — o frescor, fechado na mesma rodada
 
-O saldo vem da soma de `balance` das contas de `get-accounts`, e o app **não
-olha frescor nenhum** — `itemIsActive` e `lastUpdatedAt` não são lidos em lugar
-algum, e a rota `get-balance`, liberada na ponte, nunca é chamada. Se o Pierre
-servir o dado de uma conexão que não foi re-sincronizada, o Aoii mostra o
-antigo sem dizer que é antigo. Isso não é o mesmo defeito corrigido aqui e não
-foi tocado: exige ver o que a API devolve nesses campos.
+O saldo vem da soma de `balance`, e `balance` é o que o Pierre guardou da última
+vez que falou com o banco — não uma leitura de agora. O app mostrava esse número
+com a mesma cara de certeza tivesse ele uma hora ou uma semana. Quem move
+dinheiro e vê o saldo parado conclui a coisa errada: que o app quebrou, ou pior,
+que o dinheiro não chegou.
+
+`itemIsActive` passou a ser lido, e é o sinal mais duro que existe aqui: `false`
+quer dizer que a conexão com o banco caiu no Pierre. O `balance` continua vindo,
+continua número, e está congelado na data em que a conexão morreu. A tela agora
+diz isso.
+
+**A conta com conexão caída continua somando no saldo.** Tirá-la dali baixaria o
+saldo da pessoa por conta própria, que é mentira de outro tipo — a correção é
+avisar, não subtrair.
+
+O carimbo de "última leitura" é best-effort: `atualizadoEmDaConta()` tenta seis
+nomes plausíveis (`lastUpdatedAt`, `updatedAt`, `lastSyncAt`…) e **nenhum foi
+confirmado contra a API**. Se nenhum vier, não há aviso — dizer "não sei quando"
+em toda sincronização seria ruído, e ruído gasta a atenção que os dois avisos de
+verdade precisam. Entre várias contas, a leitura mais velha manda: o saldo é a
+soma de todas, e uma parcela velha basta para o total não ser o de agora.
+
+Continua sem uso a rota `get-balance`, liberada na ponte e nunca chamada. Faz
+sentido olhar quando houver o retorno real da API em mãos — pode ser uma leitura
+mais fresca que `get-accounts`, ou pode ser a mesma coisa por outro caminho.
+
+### Os avisos, agora com teste de navegador
+
+`testes/interface/t_pierre_avisos.js`: os três avisos desta rodada existem
+porque o app errava **calado**, e o motor não vê o que só existe depois de o
+navegador desenhar. O dublê troca de resposta no meio do teste — primeira leva
+com conta estranha e conexão caída, segunda só com a estranha — e a última
+conferência confirma o plano confirmando de verdade: a conta desconhecida valia
+R$ 5.000, e o saldo não se mexeu.

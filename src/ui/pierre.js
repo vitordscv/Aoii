@@ -127,6 +127,21 @@ function pierreDesenharPlano(plano){
     linha(L('pierre.planoSaldoParado'),'pierre-erro');
   }
 
+  /* A idade do que veio. Conexao caida no Pierre e o caso que mais confunde:
+     o numero chega, parece atual, e esta congelado na data em que a conexao
+     morreu -- quem acabou de movimentar a conta ve o saldo parado e conclui
+     que o app quebrou. O aviso e o que separa "seu saldo e este" de "este era
+     seu saldo quando o banco foi lido pela ultima vez". */
+  const frescor=plano.frescor||{};
+  (frescor.desconectadas||[]).forEach(nome=>{
+    linha(L('pierre.planoContaDesconectada').replace('{conta}',nome),'pierre-erro');
+  });
+  if(frescor.velho){
+    linha(L('pierre.planoDadoVelho')
+      .replace('{dias}',frescor.dias)
+      .replace('{quando}',fmtDate(frescor.atualizadoEm)),'pierre-erro');
+  }
+
   /* ── o cartão ── */
   if(plano.cartao&&plano.cartao.cartoes.length){
     const c=plano.cartao;

@@ -171,6 +171,53 @@ module.exports=function(t){
       'investimento fica fora do saldo sem virar aviso');
   }
 
+  console.log('\n\x1b[1mO número do banco tem idade\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    const agora=new Date(HOJE+'T12:00:00').getTime();
+    const com=(extra)=>Object.assign(conta('a','BANK',1000),extra);
+
+    /* o saldo é a soma de TODAS as contas de banco, então a mais velha manda:
+       uma parcela desatualizada já basta pro total não ser o de agora */
+    const f=c.frescorDoPierre([
+      com({id:'a',lastUpdatedAt:'2026-09-12T08:00:00Z'}),
+      com({id:'b',lastUpdatedAt:'2026-09-01T08:00:00Z'}),
+    ],agora);
+    t.igual(f.atualizadoEm.slice(0,10),'2026-09-01','entre várias, a leitura mais velha manda');
+    t.igual(f.dias,11,'e diz de quantos dias atrás ela é');
+    t.verdadeiro(f.velho,'onze dias é velho');
+
+    const hoje=c.frescorDoPierre([com({lastUpdatedAt:'2026-09-12T08:00:00Z'})],agora);
+    t.verdadeiro(!hoje.velho,'lido hoje não é velho');
+
+    /* nenhum nome de campo foi confirmado contra a API. Sem nenhum deles não
+       há aviso: dizer "não sei quando" toda vez seria ruído. */
+    const semData=c.frescorDoPierre([conta('a','BANK',1000)],agora);
+    t.igual(semData.atualizadoEm,null,'sem campo de data, não há data');
+    t.verdadeiro(!semData.velho,'e sem data não se inventa aviso');
+  }
+
+  console.log('\n\x1b[1mConexão caída no Pierre é dita, e não muda o saldo\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const caida=Object.assign(conta('a','BANK',2500,'C6'),{itemIsActive:false});
+
+    t.verdadeiro(c.contaDesconectada(caida),'`itemIsActive:false` é conexão caída');
+    t.verdadeiro(!c.contaDesconectada(conta('a','BANK',2500)),
+      'campo ausente NÃO é conexão caída — é API que não mandou o campo');
+
+    const plano=c.planoDeSincronizacaoPierre([caida],[]);
+    t.igual(plano.frescor.desconectadas.length,1,'o plano avisa qual conexão caiu');
+    t.igual(plano.frescor.desconectadas[0],'C6 Conta','com o nome que a pessoa reconhece');
+
+    /* o valor continua entrando: tirar a conta do saldo baixaria o dinheiro da
+       pessoa por conta própria, que é mentira de outro tipo */
+    t.valor(plano.saldo,2500,'a conta caída continua somando no saldo');
+    c.aplicarSincronizacaoPierre(plano,{trazerSaldo:true});
+    t.valor(d.saldoAtual,2500,'a correção é avisar, não subtrair');
+  }
+
   console.log('\n\x1b[1mCompra de cartão sem `account_type` também fica fora\x1b[0m');
   {
     const c=criarAmbiente(base(),HOJE);
