@@ -98,7 +98,7 @@ const FUNCOES=[
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
   'semAcento','categoriaDoPierre','ehEntradaNoPierre','ehDeCartao','transacaoDoPierre',
   'saldoDoPierre','planoDeSincronizacaoPierre','aplicarSincronizacaoPierre',
-  'numeroDoPierre','contaEhBanco','nomeDaContaPierre','aindaNaoCaiu',
+  'numeroDoPierre','contaEhBanco','contaNaoReconhecida','nomeDaContaPierre','aindaNaoCaiu',
   'diaDoIso','anoMesDoIso','contaEhCartao','cartaoDoPierre','parcelasAbertasDoPierre',
   'planoDoCartaoPierre','aplicarCartaoPierre','sugerirGastosFixosPierre',
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
@@ -128,6 +128,9 @@ function montarMotor(arquivo){
   const naoEhFixo=/const PIERRE_NAO_EH_FIXO\s*=\s*\/[^\n]*\/;/.exec(src);
   /* os prefixos de maquininha: assinaturaDoGasto() consulta */
   const prefixos=/const PIERRE_PREFIXOS_DE_MAQUINA\s*=\s*\/[^\n]*\/;/.exec(src);
+  /* os rotulos que dizem se uma conta e de banco: contaEhBanco() consulta */
+  const rotBanco=/const PIERRE_CONTA_DE_BANCO\s*=\s*new Set\(\[[\s\S]*?\n\]\);/.exec(src);
+  const rotNaoBanco=/const PIERRE_CONTA_NAO_BANCO\s*=\s*new Set\(\[[\s\S]*?\n\]\);/.exec(src);
   /* a folga de dias da conciliacao: jaLancadoAMao() consulta */
   const folgaDias=/const PIERRE_DIAS_DE_FOLGA\s*=\s*\d+;/.exec(src);
   /* a janela em que um pagamento pode quitar uma fatura */
@@ -135,7 +138,7 @@ function montarMotor(arquivo){
   const janelaPg2=/const PIERRE_DIAS_DEPOIS_DO_VENCIMENTO\s*=\s*\d+;/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
     (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
-    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'')+(janelaPg?janelaPg[0]+'\n':'')+(janelaPg2?janelaPg2[0]+'\n':'');
+    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(rotBanco?rotBanco[0]+'\n':'')+(rotNaoBanco?rotNaoBanco[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'')+(janelaPg?janelaPg[0]+'\n':'')+(janelaPg2?janelaPg2[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

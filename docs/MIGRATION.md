@@ -1852,3 +1852,54 @@ aparecia como R$ 400.
 `faturaAberta` passou a ter o mesmo formato de `comprometido` -- valor mais
 gastos nao pagos -- e o teste antigo foi atualizado com o motivo da troca de
 sentido, em vez de silenciosamente.
+
+## O Pierre além do Nubank
+
+Todo o De-Para do Pierre foi escrito e conferido contra **uma conta Nubank**.
+Isso está nos comentários como elogio à medição — "conferido contra a API de
+verdade" — e era, mas escondia o que a medição não cobria: um banco só. Outro
+banco quebrava em três lugares, e os três calados.
+
+**`contaEhBanco()` era `type === 'BANK'`, exato.** Banco que rotule a conta no
+`subtype`, ou que mande `type` vazio, sumia inteiro: fora do saldo, fora da
+contagem. E `aplicarSincronizacaoPierre()` só grava o saldo quando
+`contasDeBanco > 0` — então a sincronização rodava, dizia que deu certo, e o
+saldo ficava onde estava. A pessoa via um número velho achando que era o de
+agora. Agora os dois campos respondem, por duas listas de rótulos.
+
+**O que não está em nenhuma das listas não vira conta de banco por palpite.**
+Investimento entrando no saldo daria um número maior do que a pessoa tem, que é
+o pior erro que este app pode cometer. Fica de fora — e fica **contado**, em
+`contasIgnoradas`, com o rótulo que veio. A tela diz "veio isto e não soube o
+que fazer", e o rótulo novo aparece pra ser acrescentado à lista. Silêncio era
+o defeito; o aviso é a correção.
+
+Investimento e empréstimo estão na lista dos que ficam fora **de propósito** e
+não geram aviso: se toda conta de investimento virasse alerta, o alerta viraria
+ruído que ninguém lê.
+
+**`ehDeCartao()` dependia de campos opcionais da transação.** `account_type` e
+`account_subtype` vêm sempre no Nubank e não são obrigatórios. Sem eles, compra
+no crédito passava por gasto de conta corrente — e o mesmo real era contado
+duas vezes, uma no Diário e outra dentro da fatura, que é exatamente o que a
+decisão 1 do módulo existe para impedir. Agora a conta de origem também
+responde: `idsDeCartao` traz os ids das contas de crédito de `get-accounts`,
+que é a fonte que sempre diz o tipo. Transação sem tipo **e** sem conta
+conhecida continua entrando como antes — aí não há o que deduzir.
+
+Os ids de cartão saem de **todas** as contas, não só das escolhidas: marcar
+apenas a conta corrente não pode ser o caminho para contar em dobro.
+
+**Uma fixture mentia.** `conta()` nos testes dava `subtype: 'CREDIT_CARD'` a
+tudo que não fosse `BANK`, então a conta `INVESTMENT` do teste carregava
+subtipo de cartão. O teste passava por acidente: o resultado certo pela razão
+errada. Corrigida junto, porque a mudança acima lê o `subtype`.
+
+### O que continua em aberto
+
+O saldo vem da soma de `balance` das contas de `get-accounts`, e o app **não
+olha frescor nenhum** — `itemIsActive` e `lastUpdatedAt` não são lidos em lugar
+algum, e a rota `get-balance`, liberada na ponte, nunca é chamada. Se o Pierre
+servir o dado de uma conexão que não foi re-sincronizada, o Aoii mostra o
+antigo sem dizer que é antigo. Isso não é o mesmo defeito corrigido aqui e não
+foi tocado: exige ver o que a API devolve nesses campos.

@@ -32,7 +32,11 @@ const doBanco=(id,desc,valor,tipo,extra)=>Object.assign({
    `accountBalance` — e o teste passava porque testava a invencao. */
 const conta=(id,tipo,saldo,banco)=>({
   id, connectorName:banco||'Nubank', name:'Conta', customName:null, marketingName:null,
-  type:tipo, subtype:tipo==='BANK'?'CHECKING_ACCOUNT':'CREDIT_CARD',
+  /* subtipo coerente com o tipo. Ate 09/2026 isto era um ternario que dava
+     CREDIT_CARD a tudo que nao fosse BANK -- uma conta INVESTMENT do teste
+     carregava subtipo de cartao, e o teste passava por acidente. */
+  type:tipo, subtype:({BANK:'CHECKING_ACCOUNT',CREDIT:'CREDIT_CARD',
+    INVESTMENT:'MUTUAL_FUND',LOAN:'LOAN'})[tipo]||null,
   /* o saldo vem como TEXTO com ponto decimal: "1268.01" */
   balance:String(saldo.toFixed ? saldo.toFixed(2) : saldo), currencyCode:'BRL',
   itemIsActive:true,
@@ -114,6 +118,81 @@ module.exports=function(t){
     t.valor(plano.diferencaDeSaldo,800.5,'e a diferença pro que está no app (1000)');
     t.igual(plano.contasDeBanco,2,'diz quantas contas de banco vieram');
     t.igual(plano.instituicoes.length,1,'e de quantas instituições');
+  }
+
+  console.log('\n\x1b[1mBanco que rotula diferente do Nubank\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    /* Todo o De-Para foi conferido contra uma conta Nubank, que manda
+       `type:'BANK'`. Banco que mande o rótulo só no `subtype` sumia: fora do
+       saldo, fora da contagem, e o saldo não atualizava calado. */
+    const soSubtipo={id:'x1',connectorName:'C6',name:'Conta',customName:null,
+      type:null,subtype:'CHECKING_ACCOUNT',balance:'742.10',currencyCode:'BRL'};
+    t.verdadeiro(c.contaEhBanco(soSubtipo),
+      'conta sem `type`, com subtipo de conta corrente, é banco');
+    t.valor(c.saldoDoPierre([soSubtipo]),742.1,'e o saldo dela conta');
+
+    const poupanca={id:'x2',connectorName:'C6',name:'Poupança',customName:null,
+      type:'SAVINGS',subtype:null,balance:'100.00'};
+    t.verdadeiro(c.contaEhBanco(poupanca),
+      'poupança rotulada só no `type` também é banco');
+
+    t.verdadeiro(!c.contaEhBanco({id:'x3',type:'INVESTMENT',subtype:'MUTUAL_FUND',balance:'9000'}),
+      'investimento continua fora do saldo');
+    t.verdadeiro(!c.contaEhBanco({id:'x4',type:'CREDIT',subtype:'CREDIT_CARD',balance:'500'}),
+      'cartão também');
+  }
+
+  console.log('\n\x1b[1mConta com rótulo desconhecido é dita, não adivinhada\x1b[0m');
+  {
+    const d=base();
+    const c=criarAmbiente(d,HOJE);
+    const estranha={id:'z1',connectorName:'C6',name:'Algo',customName:null,
+      type:'COISA_NOVA',subtype:null,balance:'5000.00'};
+
+    t.verdadeiro(!c.contaEhBanco(estranha),
+      'rótulo que ninguém conhece não vira saldo por palpite');
+
+    const plano=c.planoDeSincronizacaoPierre([estranha],[]);
+    t.igual(plano.contasDeBanco,0,'nenhuma conta de banco reconhecida');
+    t.igual(plano.contasAceitas,1,'mas uma conta veio');
+    t.igual(plano.contasIgnoradas.length,1,'e ela é reportada, não sumida',
+      'sem isto o plano ficava idêntico ao de quem não tem conta nenhuma');
+    t.igual(plano.contasIgnoradas[0].rotulo,'COISA_NOVA/?',
+      'com o rótulo que veio, que é o que permite consertar a lista');
+
+    c.aplicarSincronizacaoPierre(plano,{trazerSaldo:true});
+    t.valor(d.saldoAtual,1000,'o saldo não se mexe — e agora a tela tem o que dizer');
+
+    /* investimento é conhecido e fica fora de propósito: não é "não reconhecida" */
+    const comInvestimento=c.planoDeSincronizacaoPierre(
+      [conta('a','BANK',900),conta('d','INVESTMENT',9000)],[]);
+    t.igual(comInvestimento.contasIgnoradas.length,0,
+      'investimento fica fora do saldo sem virar aviso');
+  }
+
+  console.log('\n\x1b[1mCompra de cartão sem `account_type` também fica fora\x1b[0m');
+  {
+    const c=criarAmbiente(base(),HOJE);
+    /* `account_type` é opcional. Quando não vem, a compra do cartão passava por
+       gasto de conta corrente e o mesmo real era contado duas vezes: uma no
+       Diário, outra dentro da fatura. A conta de origem é quem responde. */
+    const semTipo=doBanco('tx5','Notebook',-2500,'DEBIT',
+      {account_id:'cc1',account_type:undefined,account_subtype:undefined});
+    const contas=[conta('a','BANK',900),conta('cc1','CREDIT',-2500)];
+
+    const plano=c.planoDeSincronizacaoPierre(contas,[
+      doBanco('tx1','Mercado',-100,'DEBIT',{account_id:'a'}),
+      semTipo,
+    ]);
+    t.igual(plano.novas.length,1,'só a da conta corrente entra no Diário');
+    t.igual(plano.doCartao.length,1,'a do cartão é reconhecida pela conta de origem');
+
+    /* e sem saber de que conta veio, não dá pra inventar: segue como antes */
+    const solta=c.planoDeSincronizacaoPierre([],[
+      doBanco('tx6','Sem dono',-10,'DEBIT',
+        {account_id:'',account_type:undefined,account_subtype:undefined})]);
+    t.igual(solta.novas.length,1,'transação sem conta e sem tipo continua entrando');
   }
 
   console.log('\n\x1b[1mAplicar só mexe no que foi combinado\x1b[0m');

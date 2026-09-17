@@ -105,10 +105,23 @@ function ehEntradaNoPierre(t){
   return Number(t&&t.amount||0)>0;
 }
 
-function ehDeCartao(t){
+/* Compra no credito fica fora do Diario (decisao 1 la em cima). Quem dizia
+   isso eram os campos `account_type`/`account_subtype` da propria transacao, e
+   eles sao opcionais: conferido so contra o Nubank, que os manda sempre. Banco
+   que nao mande passava a compra do cartao por gasto de conta corrente, e o
+   mesmo real era contado duas vezes -- uma no Diario, outra dentro da fatura.
+
+   Por isso a conta de origem tambem responde: `idsDeCartao` traz os ids das
+   contas de credito de `get-accounts`, que e a fonte que sempre diz o tipo. */
+function ehDeCartao(t,idsDeCartao){
   const tipo=String(t&&t.account_type||t&&t.accountType||'').toUpperCase();
   const sub=String(t&&t.account_subtype||t&&t.accountSubtype||'').toUpperCase();
-  return tipo==='CREDIT'||sub==='CREDIT_CARD';
+  if(tipo==='CREDIT'||sub==='CREDIT_CARD'||sub==='CREDIT') return true;
+  if(idsDeCartao&&idsDeCartao.size){
+    const id=String(t&&(t.account_id||t.accountId)||'');
+    if(id&&idsDeCartao.has(id)) return true;
+  }
+  return false;
 }
 
 /* Lançamento que o banco ainda não confirmou muda de valor — a gorjeta que
@@ -121,8 +134,8 @@ function aindaNaoCaiu(t){
 }
 
 /* Uma transação do Pierre no formato do Diário, ou `null` se não deve entrar. */
-function transacaoDoPierre(t){
-  if(!t||ehDeCartao(t)||aindaNaoCaiu(t)) return null;
+function transacaoDoPierre(t,idsDeCartao){
+  if(!t||ehDeCartao(t,idsDeCartao)||aindaNaoCaiu(t)) return null;
   const valor=Math.abs(parseNum(t.amount));
   if(!Number.isFinite(valor)||valor<=0) return null;
   const dia=String(t.date||'').slice(0,10);
@@ -154,8 +167,45 @@ function numeroDoPierre(v){
 /* Os nomes dos campos de uma conta, conferidos contra a API de verdade:
    `id`, `name`, `customName`, `type`, `subtype`, `balance`, `connectorName`.
    Não são os mesmos das transações, que usam `account_id`, `account_type`… */
+/* `type==='BANK'` foi conferido numa conta Nubank, e por um tempo foi a
+   definicao inteira. Banco que rotule diferente -- ou que mande `type` vazio e
+   so o `subtype` -- desaparecia inteiro: fora do saldo e fora da contagem. E
+   `aplicarSincronizacaoPierre()` pula o saldo quando nao ha conta de banco
+   nenhuma, entao o saldo nao atualizava e o app nao dizia nada. Silencio e o
+   pior jeito de errar aqui: a pessoa ve um numero velho achando que e o de
+   agora.
+
+   Agora os dois campos respondem. O que nao cair em nenhuma das duas listas
+   NAO vira conta de banco por palpite -- investimento entrando no saldo daria
+   um numero maior do que a pessoa tem. Fica de fora e fica CONTADO, em
+   `contasIgnoradas`: quem desenha a tela avisa, e o rotulo novo aparece pra
+   ser acrescentado aqui. */
+const PIERRE_CONTA_DE_BANCO=new Set([
+  'BANK','CHECKING','CHECKING_ACCOUNT','CONTA_CORRENTE',
+  'SAVINGS','SAVINGS_ACCOUNT','CONTA_POUPANCA','DEPOSIT','PAYMENT_ACCOUNT',
+]);
+const PIERRE_CONTA_NAO_BANCO=new Set([
+  'CREDIT','CREDIT_CARD','INVESTMENT','BROKERAGE','LOAN','BENEFIT',
+]);
+
 function contaEhBanco(c){
-  return String(c&&c.type||'').toUpperCase()==='BANK';
+  if(!c||contaEhCartao(c)) return false;
+  const tipo=String(c.type||'').toUpperCase();
+  const sub=String(c.subtype||'').toUpperCase();
+  if(PIERRE_CONTA_NAO_BANCO.has(tipo)||PIERRE_CONTA_NAO_BANCO.has(sub)) return false;
+  return PIERRE_CONTA_DE_BANCO.has(tipo)||PIERRE_CONTA_DE_BANCO.has(sub);
+}
+
+/* Investimento e emprestimo ficam fora do saldo e isso e certo -- eles estao
+   na lista, o app sabe o que sao. "Nao reconhecida" e outra coisa: rotulo que
+   nao esta em lista nenhuma. So essa merece aviso, senao a tela reclamaria de
+   toda conta de investimento e o aviso viraria ruido que ninguem le. */
+function contaNaoReconhecida(c){
+  if(!c) return false;
+  const tipo=String(c.type||'').toUpperCase();
+  const sub=String(c.subtype||'').toUpperCase();
+  return !(PIERRE_CONTA_DE_BANCO.has(tipo)||PIERRE_CONTA_DE_BANCO.has(sub)
+    ||PIERRE_CONTA_NAO_BANCO.has(tipo)||PIERRE_CONTA_NAO_BANCO.has(sub));
 }
 
 function nomeDaContaPierre(c){
@@ -240,6 +290,12 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
   const querTodas=!definidas&&(!escolhidas||!escolhidas.length);
   const aceitas=querTodas?todas:todas.filter(c=>escolhidas.includes(c.id));
 
+  /* Cartao se reconhece pelas contas TODAS, e nao so pelas escolhidas: compra
+     no credito fica fora do Diario mesmo quando o cartao nao foi marcado --
+     marcar so a conta corrente nao pode ser o jeito de contar em dobro. */
+  const idsDeCartao=new Set(todas.filter(contaEhCartao)
+    .map(c=>String(c.id||'')).filter(Boolean));
+
   /* O vinculo entre conta escolhida e transacao e o `account_id`, que casa com
      o `id` de `get-accounts` — conferido contra a API de verdade. O nome NAO
      serve: `account_name` na transacao e o nome do BANCO, igual para a conta
@@ -255,7 +311,7 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
   const jaUsados=new Set();
 
   (transacoes||[]).forEach(bruta=>{
-    if(ehDeCartao(bruta)){ doCartao.push(bruta); return; }
+    if(ehDeCartao(bruta,idsDeCartao)){ doCartao.push(bruta); return; }
     if(!trazerLancamentos) return;
     if(!querTodas){
       const id=String(bruta.account_id||bruta.accountId||'');
@@ -265,7 +321,7 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
       const daConta=id?idsAceitos.has(id):(!!nome&&nomesAceitos.has(nome));
       if(!daConta){ deOutrasContas.push(bruta); return; }
     }
-    const pronta=transacaoDoPierre(bruta);
+    const pronta=transacaoDoPierre(bruta,idsDeCartao);
     if(!pronta){ recusadas.push(bruta); return; }
     if(pronta.idExterno&&jaTem.has(pronta.idExterno)){ repetidas.push(pronta); return; }
     if(pronta.idExterno) jaTem.add(pronta.idExterno);
@@ -282,10 +338,19 @@ function planoDeSincronizacaoPierre(contas,transacoes,escolhas){
 
   const deBanco=aceitas.filter(contaEhBanco);
   const saldo=saldoDoPierre(aceitas);
+  /* O rotulo que o Aoii nao conhece vai junto: e o que permite a tela dizer
+     "veio isto e nao soube o que fazer" em vez de nao dizer nada. */
+  const ignoradas=aceitas.filter(contaNaoReconhecida).map(c=>({
+    nome:[c.connectorName,nomeDaContaPierre(c)].filter(Boolean).join(' ')
+      ||L('pierre.contaSemNome'),
+    rotulo:[String(c.type||'?'),String(c.subtype||'?')].join('/'),
+  }));
   return {
     novas, repetidas, doCartao, recusadas, deOutrasContas, conciliadas,
     trazerSaldo, trazerLancamentos,
     contasDeBanco:deBanco.length,
+    contasAceitas:aceitas.length,
+    contasIgnoradas:ignoradas,
     instituicoes:[...new Set(aceitas.map(c=>c.connectorName).filter(Boolean))],
     saldo,
     saldoAtual:data.saldoAtual||0,

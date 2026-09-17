@@ -111,6 +111,22 @@ function pierreDesenharPlano(plano){
       .replace('{app}',formatBRL(plano.saldoAtual)));
   }
 
+  /* Conta que o Aoii nao soube classificar aparece com o rotulo que veio. Sem
+     isto ela sumia da tela: nao entrava no saldo, nao virava cartao, e o plano
+     ficava igualzinho ao de quem nao tem essa conta. O rotulo na tela e o que
+     permite a pessoa dizer qual e, e o que permite consertar a lista. */
+  (plano.contasIgnoradas||[]).forEach(c=>{
+    linha(L('pierre.planoContaIgnorada')
+      .replace('{conta}',c.nome).replace('{rotulo}',c.rotulo),'pierre-amostra');
+  });
+
+  /* Trazer saldo ligado e nenhuma conta de banco reconhecida: a sincronizacao
+     vai rodar e o saldo vai ficar exatamente onde estava. Isso acontecia calado
+     -- ver `aplicarSincronizacaoPierre()`, que so grava com `contasDeBanco>0`. */
+  if(plano.trazerSaldo&&!plano.contasDeBanco&&plano.contasAceitas){
+    linha(L('pierre.planoSaldoParado'),'pierre-erro');
+  }
+
   /* ── o cartão ── */
   if(plano.cartao&&plano.cartao.cartoes.length){
     const c=plano.cartao;
