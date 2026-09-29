@@ -37,7 +37,7 @@ function salvarFatura(entrada){
   const campos=camposFatura(entrada);
   if(!campos) return null;
   let fatura=(data.faturas||[]).find(f=>f.ano===campos.ano&&f.mes===campos.mes&&f.cartaoId===campos.cartaoId);
-  if(fatura){ fatura.valor=campos.valor; return fatura; }
+  if(fatura){ fatura.valor=campos.valor; fatura.pierreSaldoAplicado=null; return fatura; }
   if(!data.faturas) data.faturas=[];
   fatura={id:uid(),...campos,pago:false,gastos:[]};
   data.faturas.push(fatura);
@@ -50,6 +50,7 @@ function atualizarValorFatura(id,valor){
   valor=Number(valor);
   if(!fatura||!Number.isFinite(valor)||valor<0) return null;
   fatura.valor=valor;
+  fatura.pierreSaldoAplicado=null;
   return fatura;
 }
 

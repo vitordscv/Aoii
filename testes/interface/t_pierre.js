@@ -57,13 +57,16 @@ const DUBLE = `
         {id:'px4',description:'Uber',amount:-18.5,type:'DEBIT',date:'2026-09-11',
          category:'Transporte',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
         {id:'px5',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-08-05',
+         account_id:'a1',
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
         {id:'px6',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-09-05',
+         account_id:'a1',
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
         /* o pagamento da fatura de JULHO (900), e nenhum da de agosto (1200):
            uma entra com prova, a outra fica de fora */
         {id:'px7',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
          date:'2026-08-02',status:'POSTED',operation_type:'PAGAMENTO',
+         account_id:'a2',
          category:'Pagamento de cartão de crédito',
          account_type:'CREDIT',account_subtype:'CREDIT_CARD'},
       ]};

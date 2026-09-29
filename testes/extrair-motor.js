@@ -104,7 +104,7 @@ const FUNCOES=[
   'planoDoCartaoPierre','aplicarCartaoPierre','sugerirGastosFixosPierre',
   'aplicarGastosFixosPierre','assinaturaDoGasto','ehParcelaDoPierre',
   'cartaoDaCompraParcelada','pagamentosDeFaturaPierre','pagamentoConfere',
-  'novasAindaInexistentes','registrarImportacaoPierre',
+  'novasAindaInexistentes','registrarImportacaoPierre','estadoAplicadoPierre','planoDeDesfazerPierre',
   'diasEntreISO','diasComSinalISO','jaLancadoAMao','comprasDaFaturaPierre',
   'bolsaDoMetodo',
   'resumoDaUltimaImportacaoPierre','desfazerImportacaoPierre',

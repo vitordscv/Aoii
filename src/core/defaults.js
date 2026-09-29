@@ -57,6 +57,7 @@ function defaultData(){
     pierreContasDefinidas:false,
     pierreBuscadoEm:null,
     pierreHistorico:[],
+    /* Nenhuma prova existe antes da primeira importação. */
     pierreUltimaImportacao:null,
     pierreTrazerCartao:false,
     pierreTrazerFixos:false,
@@ -142,7 +143,11 @@ function migrateData(d){
     if(typeof c.diaVencimento!=='number')  c.diaVencimento=null;
   });
   const primeiroCartaoId=d.cartoes.length?d.cartoes[0].id:null;
-  d.faturas.forEach(f=>{ if(!f.gastos) f.gastos=[]; f.gastos.forEach(g=>{ if(!g.categoria) g.categoria='Outros'; }); if(!f.cartaoId) f.cartaoId=primeiroCartaoId; });
+  d.faturas.forEach(f=>{ if(!f.gastos) f.gastos=[]; f.gastos.forEach(g=>{ if(!g.categoria) g.categoria='Outros'; }); if(!f.cartaoId){ f.cartaoId=primeiroCartaoId; f.pierreSaldoAplicado=null; } });
+  d.faturas.forEach(f=>{
+    if(typeof f.pierreSaldoAplicado!=='number'||!Number.isFinite(f.pierreSaldoAplicado)
+       ||f.pierreSaldoAplicado<0) f.pierreSaldoAplicado=null;
+  });
   // conserta faturas duplicadas (mesmo mês+ano+cartão) que possam ter ficado de uma versão anterior — funde em vez de duplicar
   {
     const vistos={};
@@ -151,6 +156,8 @@ function migrateData(d){
       const chave=`${f.ano}-${f.mes}-${f.cartaoId}`;
       if(vistos[chave]){
         vistos[chave].valor=(vistos[chave].valor||0)+(f.valor||0);
+        /* A fusão já não é o residual de uma única leitura do banco. */
+        vistos[chave].pierreSaldoAplicado=null;
         vistos[chave].gastos=[...(vistos[chave].gastos||[]),...(f.gastos||[])];
         // se qualquer uma das duplicatas foi marcada como paga, a fatura fundida também é — nunca perde esse estado no meio da fusão
         if(f.pago) vistos[chave].pago=true;
@@ -246,6 +253,17 @@ function migrateData(d){
   if(!d.pierreUltimaImportacao||typeof d.pierreUltimaImportacao!=='object'
      ||Array.isArray(d.pierreUltimaImportacao)){
     d.pierreUltimaImportacao=null;
+  }else{
+    const reg=d.pierreUltimaImportacao;
+    /* Nunca fabricar prova usando o estado de hoje: ele pode já estar editado. */
+    if(!reg.aplicados||typeof reg.aplicados!=='object'||Array.isArray(reg.aplicados)) reg.aplicados=null;
+    if(typeof reg.saldoEmDepois!=='string') reg.saldoEmDepois=null;
+    if(typeof reg.sincronizadoEmDepois!=='string') reg.sincronizadoEmDepois=null;
+    (reg.faturasAntes||[]).forEach(f=>{
+      if(typeof f.pierreSaldoAntes!=='number') f.pierreSaldoAntes=null;
+      if(typeof f.pierreSaldoDepois!=='number') f.pierreSaldoDepois=null;
+      if(!Array.isArray(f.gastosPagosAntes)) f.gastosPagosAntes=[];
+    });
   }
   /* cartao e fixos nascem DESLIGADOS mesmo para quem ja usava: sao os dois que
      mexem em projecao, e ligar sozinho mudaria o numero de alguem sem aviso */

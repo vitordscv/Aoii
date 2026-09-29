@@ -365,7 +365,7 @@ module.exports=function(t){
     /* o pagamento da fatura de agosto, como ele aparece no extrato do cartão */
     const pagouAgosto=[{id:'pg1',description:'Pagamento de fatura',amount:-1049.43,
       type:'CREDIT',date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
-      account_type:'CREDIT',account_subtype:'CREDIT_CARD',category:'Pagamento de cartão de crédito'}];
+      account_id:'cc1',account_type:'CREDIT',account_subtype:'CREDIT_CARD',category:'Pagamento de cartão de crédito'}];
 
     const p=c.planoDoCartaoPierre([cartao],faturas,parcelas,HOJE,pagouAgosto);
     const acha=(ano,mes)=>p.faturas.find(f=>f.ano===ano&&f.mes===mes);
@@ -526,7 +526,7 @@ module.exports=function(t){
     const noCartao=(id,desc,valor,mes,extra)=>Object.assign({
       id, description:desc, amount:-valor, type:'DEBIT',
       date:'2026-0'+mes+'-24', category:'Serviços', status:'POSTED',
-      account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank',
+      account_id:'cc1', account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank',
     },extra||{});
 
     const vindas=[
@@ -543,7 +543,7 @@ module.exports=function(t){
       noCartao('q2','Cadeira (2/4)',80,'8'),
     ];
 
-    const sug=c.sugerirGastosFixosPierre(vindas,HOJE,'k1');
+    const sug=c.sugerirGastosFixosPierre(vindas,HOJE);
     const nomes=sug.map(g=>g.nome);
     t.verdadeiro(nomes.some(n=>/Claude Pro/.test(n)),
       'assinatura cobrada no cartão é sugerida',
@@ -756,13 +756,13 @@ module.exports=function(t){
     const noCartao=(id,desc,valor,mes,dia)=>({
       id, description:desc, amount:-valor, type:'DEBIT',
       date:'2026-0'+mes+'-'+dia, category:'Serviços', status:'POSTED',
-      account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank'});
+      account_id:'cc1', account_type:'CREDIT', account_subtype:'CREDIT_CARD', account_name:'Nubank'});
 
     /* a MESMA assinatura, cobrada por dois caminhos da maquininha */
     const sug=c.sugerirGastosFixosPierre([
       noCartao('a1','Ec *Melimais',9.9,'7','18'),
       noCartao('a2','Mp *Melimais',9.9,'8','19'),
-    ],HOJE,'k1');
+    ],HOJE);
     t.igual(sug.length,1,
       '"Ec *Melimais" e "Mp *Melimais" viram uma sugestão só',
       'marcadas as duas, davam R$ 19,80 por mês de uma assinatura de R$ 9,90');
@@ -840,7 +840,7 @@ module.exports=function(t){
       account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}});
     const pagou=[{id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
       date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
-      account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+      account_id:'cc1',account_type:'CREDIT',account_subtype:'CREDIT_CARD',
       category:'Pagamento de cartão de crédito'}];
     const tx=[compra('c1',400),compra('c2',300),...pagou];
 
@@ -876,7 +876,7 @@ module.exports=function(t){
        account_subtype:'CREDIT_CARD',account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}},
       {id:'pg',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
        date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
-       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+       account_id:'cc1',account_type:'CREDIT',account_subtype:'CREDIT_CARD',
        category:'Pagamento de cartão de crédito'}];
 
     const p=c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx);
@@ -903,7 +903,7 @@ module.exports=function(t){
        account_subtype:'CREDIT_CARD',account_id:'cc1',credit_card_data:{billForecastDate:'2026-08'}},
       {id:'pg',description:'Pagamento de fatura',amount:-1000,type:'CREDIT',
        date:'2026-09-02',status:'POSTED',operation_type:'PAGAMENTO',
-       account_type:'CREDIT',account_subtype:'CREDIT_CARD',
+       account_id:'cc1',account_type:'CREDIT',account_subtype:'CREDIT_CARD',
        category:'Pagamento de cartão de crédito'}];
 
     const doCartao=c.aplicarCartaoPierre(c.planoDoCartaoPierre([cartao],faturas,{},HOJE,tx));

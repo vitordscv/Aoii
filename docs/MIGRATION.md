@@ -3,6 +3,22 @@
 Registro do que já mudou, por quê, e o que vem depois. Cada rodada acrescenta
 uma seção aqui — é o lugar de procurar antes de refazer uma decisão.
 
+## 29/09/2026 — importação bancária com confirmação e desfazer conservador
+
+- Quitação exige `POSTED`, identificação do mesmo cartão e datas válidas dentro
+  da janela. Pendente, conta ausente e data impossível não confirmam pagamento.
+- Desfazer compara provas do estado aplicado, inclusive após backup/reabertura.
+  Preserva edições posteriores, os estados de pagamento anteriores e os vínculos
+  de cartões; resolve fixos antes de remover cartões. Sem prova legada, mantém
+  os dados e informa. Residual e detalhes de fatura são reconciliados juntos.
+- Zero explícito do cartão retira somente residual bancário comprovado. Campo
+  ausente não zera, nem zero quita compras. Fusão, troca de cartão e valor manual
+  invalidam a prova; valores preservados recebem aviso para conferência.
+- Sugestões recorrentes respeitam conta, cartão e seleção. O vínculo é resolvido
+  após importar cartões; sem origem inequívoca, a opção fica desabilitada.
+- Novos metadados opcionais estão no esquema e na migração. Traduções dos avisos
+  nos cinco idiomas. Regressões usam dados fictícios e não acessam contas reais.
+
 ## Ponto de partida
 
 Commit `6556d20`. O projeto inteiro era um `index.html` de 1.114.126 bytes:

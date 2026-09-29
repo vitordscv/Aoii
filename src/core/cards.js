@@ -79,10 +79,12 @@ function removerCartao(id){
     const destino=destinoId&&preservadas.find(x=>x.cartaoId===destinoId&&x.ano===f.ano&&x.mes===f.mes);
     if(destino){
       destino.valor=(Number(destino.valor)||0)+(Number(f.valor)||0);
+      destino.pierreSaldoAplicado=null;
       destino.gastos=[...(destino.gastos||[]),...(f.gastos||[])];
       destino.pago=Boolean(destino.pago)&&Boolean(f.pago);
     }else{
       f.cartaoId=destinoId;
+      f.pierreSaldoAplicado=null;
       preservadas.push(f);
     }
   });

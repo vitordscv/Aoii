@@ -222,6 +222,12 @@ function pierreDesenharPlano(plano){
     lista.id='pierre-fixos-lista';
     caixa.appendChild(lista);
     plano.fixos.forEach((g,i)=>{
+      const locais=(data.cartoes||[]).filter(c=>g.contaExterna
+        &&String(c.idExterno||'')===g.contaExterna);
+      const previstos=((plano.cartao&&plano.cartao.cartoes)||[]).filter(c=>g.contaExterna
+        &&String(c.idExterno||'')===g.contaExterna);
+      const cartao=locais.length===1?locais[0]
+        :locais.length===0&&previstos.length===1?previstos[0]:null;
       const item=document.createElement('label');
       item.className='pierre-conta';
       const marca=document.createElement('input');
@@ -230,16 +236,18 @@ function pierreDesenharPlano(plano){
       /* nasce DESMARCADO: conta fixa entra na projeção de todo mês seguinte,
          e isto aqui é palpite lido do extrato, não fato declarado pelo banco */
       marca.checked=false;
+      marca.disabled=g.cartao&&!cartao;
       item.appendChild(marca);
       const nome=document.createElement('span');
       nome.className='pierre-conta-nome';
-      nome.textContent=g.nome;
+      nome.textContent=g.nome+(g.cartao&&cartao?' · '+cartao.nome:'');
       item.appendChild(nome);
       const val=document.createElement('span');
       val.className='pierre-conta-tipo';
       val.textContent=formatBRL(g.valor)+' · '
         +L('pierre.planoFixoDia').replace('{d}',g.diaDoMes)
-        +(g.cartao?' · '+L('pierre.planoFixoCartao'):'');
+        +(g.cartao?' · '+L('pierre.planoFixoCartao'):'')
+        +(marca.disabled?' · '+L('pierre.planoFixoSemCartao'):'');
       item.appendChild(val);
       lista.appendChild(item);
     });
@@ -347,6 +355,9 @@ function pierreDesenharPlano(plano){
     if(doCartao&&doCartao.estourando&&doCartao.estourando.length){
       aviso+=' '+L('pierre.prontoEstouro').replace('{n}',doCartao.estourando.length);
     }
+    if(doCartao&&doCartao.saldosZeradosPreservados){
+      aviso+=' '+L('pierre.saldoZeroPreservado').replace('{n}',doCartao.saldosZeradosPreservados);
+    }
     if(doCartao&&doCartao.gastosLancados){
       aviso+=' '+L('pierre.prontoCompras').replace('{n}',doCartao.gastosLancados);
     }
@@ -355,6 +366,7 @@ function pierreDesenharPlano(plano){
         .replace('{c}',doCartao.criados).replace('{f}',doCartao.faturasNovas);
     }
     if(fixos.criados) aviso+=' '+L('pierre.prontoFixos').replace('{n}',fixos.criados);
+    if(fixos.semCartao) aviso+=' '+L('pierre.planoFixoSemCartao');
     pierreEstado(aviso,'ok');
     pierreMostrarDesfazer();
   });
@@ -417,7 +429,8 @@ function pierreMostrarDesfazer(){
   const resumo=document.getElementById('pierre-desfazer-resumo');
   if(!botao||!resumo) return;
   const r=resumoDaUltimaImportacaoPierre();
-  if(!r||(!r.lancamentos&&!r.faturas&&!r.gastosFixos&&!r.cartoes&&r.saldoVolta===null)){
+  if(!r||(!r.lancamentos&&!r.faturas&&!r.gastosFixos&&!r.cartoes&&!r.comprasDeFatura
+    &&!r.faturasRestauradas&&!r.carimbosSoltos&&!r.preservados&&r.saldoVolta===null)){
     botao.style.display='none';
     resumo.textContent='';
     return;
@@ -429,11 +442,11 @@ function pierreMostrarDesfazer(){
   if(r.comprasDeFatura) partes.push(L('pierre.desfazCompras').replace('{n}',r.comprasDeFatura));
   if(r.cartoes) partes.push(L('pierre.desfazCartoes').replace('{n}',r.cartoes));
   if(r.gastosFixos) partes.push(L('pierre.desfazFixos').replace('{n}',r.gastosFixos));
+  if(r.faturasRestauradas) partes.push(L('pierre.desfazRestauradas').replace('{n}',r.faturasRestauradas));
+  if(r.carimbosSoltos) partes.push(L('pierre.desfazConciliadas').replace('{n}',r.carimbosSoltos));
   if(r.saldoVolta!==null) partes.push(L('pierre.desfazSaldo').replace('{v}',formatBRL(r.saldoVolta)));
   let texto=partes.join(' · ');
-  if(r.faturasComGastoSeu){
-    texto+=' — '+L('pierre.desfazGuardadas').replace('{n}',r.faturasComGastoSeu);
-  }
+  if(r.preservados) texto+=(texto?' — ':'')+L('pierre.itensPreservados').replace('{n}',r.preservados);
   resumo.textContent=texto;
 }
 
@@ -740,9 +753,10 @@ function setupPierre(){
   if(desfazer) umEnvioPorVez(desfazer,async()=>{
     const r=resumoDaUltimaImportacaoPierre();
     if(!r) { pierreMostrarDesfazer(); return; }
-    const pergunta=L('pierre.desfazConfirma')
+    let pergunta=L('pierre.desfazConfirma')
       .replace('{n}',r.lancamentos)
       .replace('{f}',r.faturas);
+    if(r.preservados) pergunta+=' '+L('pierre.itensPreservados').replace('{n}',r.preservados);
     if(!(await confirmDialog({text:pergunta}))) return;
     const feito=desfazerImportacaoPierre();
     const salvouDesfeito=await persist();
@@ -757,11 +771,7 @@ function setupPierre(){
     pierreDesenharHistorico();
     if(feito){
       let aviso=L('pierre.desfeito').replace('{n}',feito.lancamentos);
-      if(feito.faturasGuardadas||feito.cartoesGuardados){
-        aviso+=' '+L('pierre.desfeitoGuardou')
-          .replace('{f}',feito.faturasGuardadas)
-          .replace('{c}',feito.cartoesGuardados);
-      }
+      if(feito.preservados) aviso+=' '+L('pierre.itensPreservados').replace('{n}',feito.preservados);
       pierreEstado(aviso,'ok');
     }
   });
@@ -815,12 +825,9 @@ function setupPierre(){
       if(data.pierreTrazerFixos===true){
         const {lista:historico}=await buscarTransacoesPierre(
           isoDate(new Date(new Date().getTime()-180*86400000)),todayISO());
-        /* o cartão do Pierre, se já existe aqui: assinatura cobrada no
-           crédito precisa apontar para ele, senão o dinheiro sairia da conta
-           no dia em vez de entrar na fatura */
-        const doPierre=(data.cartoes||[]).find(k=>k.idExterno);
-        plano.fixos=sugerirGastosFixosPierre(historico,todayISO(),
-          doPierre?doPierre.id:null);
+        plano.fixos=sugerirGastosFixosPierre(historico,todayISO(),{
+          contas:escolhidas,definidas,contasConhecidas:contas.contas,
+        });
       }
 
       pierreEstado('');

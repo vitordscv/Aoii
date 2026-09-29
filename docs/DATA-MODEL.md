@@ -297,6 +297,45 @@ normal.
 
 Preenchido pela BrasilAPI ou à mão.
 
+## Proveniência e desfazer de importações Pierre
+
+`transacoes.idExterno` é texto opcional (até 120 caracteres) e sobrevive à
+validação, ao backup e à sincronização. Identifica uma transação bancária para
+evitar duplicação; não é credencial.
+
+`faturas.pierreSaldoAplicado` é um número opcional, inicialmente `null`: o
+último **residual** gravado a partir do saldo corrente do cartão. Um zero
+explícito do banco só retira esse residual se ele permanece igual. Edição
+manual do valor, transferência de cartão ou fusão de faturas invalidam a
+prova. Dado ausente/inválido não significa zero. Compras detalhadas permanecem,
+e zero não confirma pagamento. Fatura informada pelo banco tem precedência
+sobre saldo corrente; divergências com itens são mostradas para conferência.
+
+`pierreUltimaImportacao.aplicados` guarda listas de provas `{id, estado}` para
+transações, cartões, cabeçalhos de faturas, gastos fixos e conciliações. Gastos
+de fatura incluem `faturaId`. `estado` é o JSON dos campos normalizados pelo
+esquema (até 16.000 caracteres); não contém chaves de API. Cabeçalhos e itens
+têm provas separadas. As listas de IDs já existentes continuam localizando as
+adições; a prova decide se ainda podem ser removidas.
+
+`faturasAntes` guarda os valores anterior/aplicado, o marcador de saldo
+anterior/aplicado e `gastosPagosAntes`: estados de pagamento e provas das
+compras existentes afetadas por quitação. Isso mantém o desfazer consistente
+depois da migração que propaga `fatura.pago` para seus itens. Uma fatura
+existente cujo detalhe foi alterado é preservada inteira quando não é seguro
+restaurar seu total; não se apagam apenas parcelas desse total.
+
+`saldoEmDepois` e `sincronizadoEmDepois` limitam a reversão ao estado aplicado.
+O estado inicial é `pierreUltimaImportacao:null`; registros antigos sem provas
+recebem `aplicados:null` e são preservados, nunca recebem provas fabricadas a
+partir do estado atual. A prévia e a execução usam o mesmo plano e informam
+os registros mantidos. São campos novos opcionais, sem mudar formatos antigos.
+
+Sugestões de fixos usam `contaExterna` apenas durante a prévia: nome, conta e
+forma de pagamento distinguem recorrências; os IDs das contas selecionadas
+filtram a busca. O cartão é resolvido por `cartoes.idExterno` na confirmação.
+Origem ausente/ambígua não escolhe um cartão arbitrário nem cria despesa.
+
 ## O que não fica em `data`
 
 | chave do localStorage | conteúdo |

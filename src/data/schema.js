@@ -91,10 +91,15 @@ const ITEM_FATURA = {
   pago: { tipo: 'booleano', padrao: false },
   cartaoId: { tipo: 'ref', de: 'cartoes', nulo: true },
   gastos: { tipo: 'lista', item: ITEM_GASTO_FATURA },
+  /* Último residual vindo do saldo do cartão. Só esse valor, se ainda
+     intacto, pode ser retirado por um saldo bancário explicitamente zero. */
+  pierreSaldoAplicado: { tipo: 'dinheiro', min: 0, nulo: true },
 };
 
 const ITEM_TRANSACAO = {
   id: { tipo: 'id' },
+  /* Também precisa sobreviver à reabertura para a conciliação e o desfazer. */
+  idExterno: { tipo: 'texto', max: 120, nulo: true },
   nome: { tipo: 'texto', max: LIMITES.nome, padrao: '' },
   valor: { tipo: 'dinheiro', padrao: 0 },
   categoria: { tipo: 'texto', max: LIMITES.categoria, padrao: 'Outros' },
@@ -188,6 +193,21 @@ const ITEM_FATURA_ANTES = {
   /* o que a importacao deixou, para saber se alguem mexeu depois */
   valorDepois: { tipo: 'dinheiro', padrao: 0 },
   pagoDepois: { tipo: 'booleano', padrao: false },
+  pierreSaldoAntes: { tipo: 'dinheiro', nulo: true },
+  pierreSaldoDepois: { tipo: 'dinheiro', nulo: true },
+  gastosPagosAntes: { tipo: 'lista', item: {
+    id: { tipo: 'texto', max: 64, padrao: '' },
+    pago: { tipo: 'booleano', padrao: false },
+    estadoDepois: { tipo: 'texto', max: 16000, nulo: true },
+  } },
+};
+
+/* Prova do estado aplicado. Texto JSON canônico evita que validar o rastro
+   recrie IDs ou referencias; sem prova completa, o desfazer preserva o item. */
+const ITEM_PROVA_IMPORTACAO = {
+  id: { tipo: 'texto', max: 64, padrao: '' },
+  estado: { tipo: 'texto', max: 16000, nulo: true },
+  faturaId: { tipo: 'texto', max: 64, nulo: true },
 };
 
 const ITEM_CARTAO = {
@@ -341,10 +361,8 @@ const ESQUEMA = {
   /* as ultimas importacoes, so a contagem do que cada uma fez. Desfazer
      continua valendo so para a ultima; isto e memoria, nao volta. */
   pierreHistorico: { tipo: 'lista', item: ITEM_IMPORTACAO },
-  /* O rastro da ultima importacao, pra ela poder ser desfeita. Guarda ID, nunca
-     conteudo: o que foi criado se acha pelo id, e o que foi alterado volta ao
-     valor anotado aqui. Uma importacao so -- desfazer a penultima nao faz
-     sentido depois que a ultima ja mexeu nos mesmos numeros. */
+  /* O rastro de uma importação: IDs localizam, provas do estado aplicado
+     autorizam remover. Edição posterior e registro antigo sem prova ficam. */
   pierreUltimaImportacao: {
     tipo: 'objeto',
     campos: {
@@ -359,13 +377,23 @@ const ESQUEMA = {
       conciliadas: { tipo: 'listaTexto', max: 200 },
       faturasAntes: { tipo: 'lista', item: ITEM_FATURA_ANTES },
       gastosFixos: { tipo: 'listaTexto', max: 40 },
+      aplicados: { tipo: 'objeto', nulo: true, campos: {
+        transacoes: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+        cartoes: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+        faturas: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+        gastosDeFatura: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+        gastosFixos: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+        conciliadas: { tipo: 'lista', item: ITEM_PROVA_IMPORTACAO },
+      } },
       saldoAntes: { tipo: 'dinheiro', padrao: 0 },
       /* o saldo que a importacao DEIXOU. Se o saldo de agora nao for mais este,
          alguem mexeu depois -- e desfazer nao pode passar por cima disso. */
       saldoDepois: { tipo: 'dinheiro', padrao: 0 },
       saldoMexido: { tipo: 'booleano', padrao: false },
       saldoEmAntes: { tipo: 'iso', nulo: true },
+      saldoEmDepois: { tipo: 'iso', nulo: true },
       sincronizadoEmAntes: { tipo: 'iso', nulo: true },
+      sincronizadoEmDepois: { tipo: 'iso', nulo: true },
     },
   },
   pierreTrazerCartao: { tipo: 'booleano', padrao: false },
