@@ -4,6 +4,7 @@ function setupBottomNav(){
   if(!items.length) return;
   const views=document.querySelectorAll('.tab-view');
   function showTab(id){
+    const anterior=[...views].find(v=>v.style.display!=='none');
     views.forEach(v=>{ const ativa=v.id===id; v.style.display=ativa?'':'none'; v.setAttribute('aria-hidden',ativa?'false':'true'); });
     items.forEach(a=>{
       const ativa=a.getAttribute('data-target')===id;
@@ -21,6 +22,7 @@ function setupBottomNav(){
       renderView(id);
       animateBars(view);
       corrigirAbasVisiveisEm(view);
+      if(anterior&&anterior!==view) animarInterface(view);
     }
   }
   items.forEach(a=>{

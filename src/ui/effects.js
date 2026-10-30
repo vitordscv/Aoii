@@ -3,6 +3,26 @@
 /* respeita a preferência do sistema por menos movimento */
 const REDUCED_MOTION=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+/* Movimento curto, sem atrasar ações nem manter conteúdo invisível ao terminar.
+   Consultar a preferência a cada gesto também respeita uma mudança no sistema. */
+const movimentosInterface=new WeakMap();
+function animarInterface(el,tipo='painel'){
+  if(!el||!el.animate) return;
+  movimentosInterface.get(el)?.cancel();
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const quadros={
+    painel:[{opacity:.3,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],
+    modal:[{opacity:0,translate:'0 12px'},{opacity:1,translate:'0 0'}],
+    fundo:[{opacity:0},{opacity:1}],
+    mes:[{opacity:.4,transform:'translateX(7px)'},{opacity:1,transform:'translateX(0)'}],
+    selecao:[{transform:'scale(.9)'},{transform:'scale(1)'}]
+  };
+  const animacao=el.animate(quadros[tipo]||quadros.painel,
+    {duration:tipo==='selecao'?140:180,easing:'cubic-bezier(.2,.7,.3,1)'});
+  movimentosInterface.set(el,animacao);
+  animacao.onfinish=()=>{if(movimentosInterface.get(el)===animacao) movimentosInterface.delete(el);};
+}
+
 /* feedback tátil leve em ações-chave (só vibra onde o navegador suporta) */
 function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
 

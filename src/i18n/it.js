@@ -87,4 +87,6 @@ const I18N_IT={'nav.entradas':'Entrate','nav.fixos':'Bollette','nav.resumo':'Pan
 'skip.abrirAjuda':"Scegli singoli giorni o un periodo. Solo i tuoi giorni lavorativi riducono il reddito."
 ,
 'skip.salvas':"Assenze salvate"
+,
+'date.anoAtual':"Anno attuale"
 };

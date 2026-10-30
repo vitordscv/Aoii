@@ -87,4 +87,6 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 'skip.abrirAjuda':"Choisissez des jours ou une période. Seuls vos jours de travail réduisent les revenus."
 ,
 'skip.salvas':"Absences enregistrées"
+,
+'date.anoAtual':"Année actuelle"
 };

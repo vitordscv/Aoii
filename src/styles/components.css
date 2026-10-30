@@ -1201,8 +1201,8 @@ select:disabled{opacity:.55;}
 footer{margin-top:50px;text-align:center;font-size:11.5px;color:var(--muted2);line-height:1.6;}
 
 /* ── abas reais (mostra/esconde, não é só scroll) ── */
-.tab-view{animation:tabFade .18s ease;}
-@keyframes tabFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+/* A entrada é controlada por animarInterface(), sem duplicar uma animação CSS. */
+.tab-view{animation:none;}
 
 /* ── barra de navegação fixa (estilo Poupa Rápido) ── */
 body{padding-bottom:78px;}

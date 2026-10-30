@@ -10,11 +10,14 @@ button.date-trigger:hover{border-color:var(--disney-blue-deep);background:var(--
 .calendar-dialog-head h2{font-family:'Sora',sans-serif;font-size:17px;line-height:1.4;margin:0;}
 #calendar-close{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--ink-navy);font-size:18px;}
 .calendar-dialog .skip-calendar{padding:0;border:0;margin:0;max-width:none;background:transparent;}
-.date-month-nav{display:grid;grid-template-columns:36px minmax(0,1fr) 78px 36px;gap:5px;align-items:center;margin:14px 0;}
+.date-month-nav{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 36px;gap:5px;align-items:center;margin:14px 0;}
 .date-month-nav>button{height:44px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink-navy);font-size:24px;}
 .date-month-nav select,.date-month-nav input{min-width:0;width:100%;box-sizing:border-box;height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--white);color:var(--ink-navy);}
-.date-month-nav input{padding-inline:4px;text-align:center;appearance:textfield;}
-.date-month-nav input::-webkit-inner-spin-button{appearance:none;}
+.date-month-nav [data-date-year]{font-variant-numeric:tabular-nums;}
+@media(prefers-reduced-motion:no-preference){
+  button.date-trigger,.skip-calendar-open,.calendar-dialog button,.view-tab{transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s;}
+  button.date-trigger:active,.skip-calendar-open:active,.calendar-dialog button:active{scale:.97;}
+}
 .date-shortcuts{display:flex;gap:8px;margin-bottom:12px;}
 .date-shortcuts button{min-height:40px;padding:6px 12px;border:0;border-radius:9px;background:var(--mist-lilac);color:var(--ink-navy);font-size:13px;}
 .date-shortcuts button:disabled{opacity:.4;cursor:default;}
@@ -31,6 +34,8 @@ button.date-trigger:hover{border-color:var(--disney-blue-deep);background:var(--
 #skip-days-count{display:inline-block;margin-left:5px;border-radius:8px;background:var(--mist-lilac);padding:2px 7px;font-size:12px;}
 /* Navegação e fechamento: alvos claros, sem apertar o lado direito. */
 .topbar-settings-btn{width:44px;height:44px;}
+.bottom-nav{padding-inline:8px;}
+.bn-item{border-radius:14px;min-width:0;}
 .topbar-right{gap:4px;}
 @media(min-width:760px){.topbar{width:min(1080px,calc(100% - 40px));right:auto;box-sizing:border-box;}}
 @media(max-width:400px){.topbar{padding-inline:10px;gap:4px;}.topbar-right{gap:0;}}

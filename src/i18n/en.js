@@ -87,4 +87,6 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 'skip.abrirAjuda':"Select individual days or a period. Only your scheduled workdays reduce income."
 ,
 'skip.salvas':"Saved absences"
+,
+'date.anoAtual':"Current year"
 };

@@ -58,7 +58,7 @@ function setupSkipCalendar(){
       const mes=skipCalendar.mes;
       if((mes.getFullYear()<=1900&&btn.dataset.skipMonth==='-1')||(mes.getFullYear()>=9998&&btn.dataset.skipMonth==='1')) return;
       skipCalendar.mes=new Date(mes.getFullYear(),mes.getMonth()+Number(btn.dataset.skipMonth),1,12);
-      renderSkipCalendar(`[data-skip-month="${btn.dataset.skipMonth}"]`);return;
+      renderSkipCalendar(`[data-skip-month="${btn.dataset.skipMonth}"]`);animarInterface(el.querySelector('.skip-cal-grid'),'mes');return;
     }
     if(btn.dataset.skipMode){
       if(skipCalendar.modo!==btn.dataset.skipMode){limparSelecaoSkip();skipCalendar.modo=btn.dataset.skipMode;}
@@ -75,7 +75,7 @@ function setupSkipCalendar(){
         if(!diasDePeriodo(inicio,fim).length){el.querySelector('.skip-cal-summary').textContent=L('skip.limite');return;}
         skipCalendar.inicio=inicio;skipCalendar.fim=fim;
       }
-      renderSkipCalendar(`[data-skip-date="${dia}"]`);return;
+      renderSkipCalendar(`[data-skip-date="${dia}"]`);animarInterface(el.querySelector(`[data-skip-date="${dia}"]`),'selecao');return;
     }
     if(btn.hasAttribute('data-skip-clear')){limparSelecaoSkip();renderSkipCalendar('[data-skip-mode="periodo"]');return;}
     if(btn.id==='skip-day-add'){

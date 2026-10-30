@@ -24,6 +24,7 @@ function mostrarVisao(barra,alvo,moverFoco){
   const abas=_abasDoGrupo(barra);
   if(!abas.length) return;
   let escolhida=abas.find(a=>a.getAttribute('data-pane')===alvo)||abas[0];
+  const anterior=abas.find(a=>a.getAttribute('aria-selected')==='true');
 
   abas.forEach(aba=>{
     const painel=document.getElementById(aba.getAttribute('aria-controls'));
@@ -77,6 +78,7 @@ function mostrarVisao(barra,alvo,moverFoco){
   else if(!moverFoco) barra.scrollIntoView({block:'nearest'});
 
   if(moverFoco) escolhida.focus();
+  if(anterior&&anterior!==escolhida) animarInterface(painelAtivo);
   try{ localStorage.setItem('financas-visao-'+grupo,escolhida.getAttribute('data-pane')); }catch(e){}
 }
 

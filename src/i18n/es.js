@@ -87,4 +87,6 @@ const I18N_ES={'nav.entradas':'Ingresos','nav.fixos':'Fijos','nav.resumo':'Resum
 'skip.abrirAjuda':"Selecciona días sueltos o un período. Solo los días de tu jornada reducen los ingresos."
 ,
 'skip.salvas':"Ausencias guardadas"
+,
+'date.anoAtual':"Año actual"
 };

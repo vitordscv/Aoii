@@ -32,6 +32,10 @@ async function init(){
   if(ensurePatrimonioSnapshot()) await persist();
   if(aplicarAportesAutomaticos()) await persist();
   render(); bindStatic();setupDatePickers();
+  document.addEventListener('toggle',e=>{
+    if(e.target.tagName!=='DETAILS'||!e.target.open) return;
+    [...e.target.children].filter(el=>el.tagName!=='SUMMARY').forEach(el=>animarInterface(el));
+  },true);
   setupInfoTips();
   setupOnboarding();
   if(data.onboardingCompleto && !data.tourCompleto) setTimeout(startTour,600);

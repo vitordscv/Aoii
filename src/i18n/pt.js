@@ -87,4 +87,6 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 'skip.abrirAjuda':"Selecione dias avulsos ou um período. Somente os dias da sua jornada descontam renda."
 ,
 'skip.salvas':"Faltas marcadas"
+,
+'date.anoAtual':"Ano atual"
 };
