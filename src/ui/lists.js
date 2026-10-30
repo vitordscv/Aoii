@@ -20,7 +20,7 @@ function renderList(key,listElId,totalElId,doneField,doneLabel){
     const rotuloDetalhes=(it.nota||it.link)?L('lista.detalhesEditar'):'+ '+L('lista.detalhesAdicionar');
     return `
     <div class="item-row${it[doneField]?' feito':''}">
-      <input type="checkbox" class="item-check" data-key="${key}" data-id="${it.id}" data-action="toggle-feito" ${it[doneField]?'checked':''} title="${doneLabel}">
+      <input type="checkbox" class="item-check" data-key="${key}" data-id="${it.id}" data-action="toggle-feito" ${it[doneField]?'checked':''}${key==='comprasPlanejadas'&&it.feito&&it.parcelasLancadas?' disabled':''} title="${doneLabel}">
       <div class="item-texts">
         <input type="text" class="item-nome" data-key="${key}" data-id="${it.id}" data-action="edit-nome" value="${esc(it.nome)}">
         ${it.nota?`<div class="item-nota">${esc(it.nota)}</div>`:''}
@@ -34,8 +34,9 @@ function renderList(key,listElId,totalElId,doneField,doneLabel){
           if(it.modo==='semPrevisao') return `<div class="item-cartao-tag">🕗 ${L('lista.foraDaProjecao')}</div>`;
           const f=fatiasAosPoucos(it);
           return `<div class="item-cartao-tag">🧩 ${f?L('lista.divididoEm').replace('{n}',f.meses).replace('{valor}',formatBRL(f.porMes)):L('lista.escolhaAte')}</div>`;})():''}
-        ${(key==='comprasPlanejadas'&&!it[doneField])?`<label class="item-cartao-toggle" title="${esc(L('tt.marqueCartao'))}"><input type="checkbox" data-action="toggle-cartao-item" data-key="${key}" data-id="${it.id}" ${it.cartao?'checked':''}> ${L('gasto.cartaoLabel')}</label>`:''}
+        ${(key==='comprasPlanejadas'&&!it[doneField])?`<label class="item-cartao-toggle" title="${esc(L('tt.marqueCartao'))}"><input type="checkbox" data-action="toggle-cartao-item" data-key="${key}" data-id="${it.id}" ${it.cartao?'checked':''}${it.parcelasLancadas?' disabled':''}> ${L('gasto.cartaoLabel')}</label>`:''}
         ${(key==='comprasPlanejadas'&&it.cartao)?`<div class="item-cartao-tag">💳 ${(data.cartoes||[]).length>1?esc((data.cartoes.find(c=>c.id===it.cartaoId)||{}).nome||L('list.cardDefault'))+' · ':''}${(it.parcelas||1)>1?`${it.parcelas}x`:''}${it.parcelasLancadas?' · '+L('list.alreadyPosted'):''}</div>`:''}
+        ${key==='comprasPlanejadas'&&it.parcelasLancadas?`<div class="item-nota">${L('compra.vinculada')}</div>`:''}
         ${(key==='comprasPlanejadas'&&it.link)?`<a class="item-link" href="${esc(it.link)}" target="_blank" rel="noopener noreferrer nofollow" title="${esc(L('lista.abrirLink'))}">🔗 ${esc(hostDoLink(it.link))}</a>`:''}
         ${(key==='comprasPlanejadas'&&!it[doneField])?`<button type="button" class="add-gasto-btn item-detalhes-btn" data-action="mostrar-detalhes" data-id="${it.id}" aria-expanded="false" aria-controls="detalhes-${it.id}">${rotuloDetalhes}</button>
         <div class="add-gasto-form item-detalhes-form" id="detalhes-${it.id}">
@@ -49,7 +50,7 @@ function renderList(key,listElId,totalElId,doneField,doneLabel){
       ${(key==='entradasExtras'&&!it[doneField])?`<select class="item-modo" data-action="edit-modo" data-key="${key}" data-id="${it.id}" title="${esc(L('tt.modoEntrada'))}">
         ${['unica','aosPoucos','semPrevisao'].map(m=>`<option value="${m}"${(it.modo||'unica')===m?' selected':''}>${L('modo.'+m)}</option>`).join('')}
       </select>`:''}
-      ${(showDate&&!(key==='entradasExtras'&&it.modo==='semPrevisao'))?`<input type="date" class="item-data" data-key="${key}" data-id="${it.id}" data-action="edit-data" value="${it.dataPrevista||''}" title="${esc(L(it.modo==='aosPoucos'?'tt.ateQuando':'tt.dataPrevista'))}">`:''}
+      ${(showDate&&!(key==='entradasExtras'&&it.modo==='semPrevisao'))?`<input type="date" class="item-data"${key==='comprasPlanejadas'&&!it.feito?' data-date-context="futuro"':''} data-key="${key}" data-id="${it.id}" data-action="edit-data" value="${it.dataPrevista||''}" title="${esc(L(it.modo==='aosPoucos'?'tt.ateQuando':'tt.dataPrevista'))}">`:''}
       <input type="text" inputmode="decimal" step="0.01" class="item-valor" data-key="${key}" data-id="${it.id}" data-action="edit-valor" value="${it.valor}">
       <button class="item-del" data-key="${key}" data-id="${it.id}" data-action="del-item" title="${esc(L('btn.remover'))}">✕</button>
     </div>`;

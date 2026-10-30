@@ -89,4 +89,13 @@ const I18N_ES={'nav.entradas':'Ingresos','nav.fixos':'Fijos','nav.resumo':'Resum
 'skip.salvas':"Ausencias guardadas"
 ,
 'date.anoAtual':"Año actual"
+,
+'date.planejamento':"Elige hoy o una fecha futura.",
+'date.reagendar':"La fecha guardada ya pasó. Elige una nueva fecha para reprogramar.",
+'date.fimMes':"Fin de mes",
+'date.fimAno':"Fin de año"
+,
+'compra.vinculada':"Las cuotas ya están registradas en la tarjeta. Corrige los cargos en las facturas; reabrir esta compra contaría el importe dos veces."
+,
+'date.projecaoVencida':"La fecha de esta proyección ya pasó. Actualiza la fecha de arriba para planificar."
 };

@@ -14,8 +14,8 @@ const {PASTA_FOTOS}=require('./fotos');
       futuro:[...ano.options].some(o=>o.value===String(atual+10)),passado:[...ano.options].some(o=>o.value===String(atual-1)),
       digitacao:!!d.querySelector('input:not([type=date])'),anima:d.getAnimations().length,
       duracao:d.getAnimations()[0]?.effect.getTiming().duration};`);
-  conferir(abertura.tag==='SELECT'&&abertura.atual&&abertura.futuro&&abertura.passado&&!abertura.digitacao,
-    'ano rolável com anos anteriores, atual e próximos, sem digitação',JSON.stringify(abertura));
+  conferir(abertura.tag==='SELECT'&&abertura.atual&&abertura.futuro&&!abertura.passado&&!abertura.digitacao,
+    'projeção oferece ano atual e próximos, sem passado nem digitação',JSON.stringify(abertura));
   conferir(abertura.anima===1&&abertura.duracao<=200,'abertura com transição curta e única',JSON.stringify(abertura));
   const antes=await avaliar(cdp,`return document.getElementById('hero-date-input').value;`);
   const ano=await avaliar(cdp,`

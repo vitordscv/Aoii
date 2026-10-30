@@ -89,4 +89,13 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 'skip.salvas':"Saved absences"
 ,
 'date.anoAtual':"Current year"
+,
+'date.planejamento':"Choose today or a future date.",
+'date.reagendar':"The saved date has passed. Choose a new date to reschedule.",
+'date.fimMes':"End of month",
+'date.fimAno':"End of year"
+,
+'compra.vinculada':"Installments are already recorded on the card. Adjust the invoice entries; reopening this purchase would count the amount twice."
+,
+'date.projecaoVencida':"This projection date has passed. Update the date above to plan ahead."
 };

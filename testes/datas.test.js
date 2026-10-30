@@ -114,8 +114,9 @@ module.exports=function(t){
    ['America/Sao_Paulo','2026-12-01','Brasil'],
    ['Pacific/Honolulu','2026-12-01','UTC−10']].forEach(([tz,dia,apelido])=>{
     const r=sonda(tz,dia);
-    t.verdadeiro(r.diaCalendarioValido&&r.dataPlanejadaValida===dia&&r.atualizarDataAlvo===dia&&r.folgaAceita,
-      `${dia} é aceita em ${apelido}`,
+    const alvoEsperado=dia>=HOJE?dia:null;
+    t.verdadeiro(r.diaCalendarioValido&&r.dataPlanejadaValida===dia&&r.atualizarDataAlvo===alvoEsperado&&r.folgaAceita,
+      `${dia} respeita calendário e horizonte da projeção em ${apelido}`,
       `${tz} (offset ${r.offset}) devolveu ${JSON.stringify(r)}`);
     t.igual(r.impossivel,false,`30 de fevereiro continua recusada em ${apelido}`);
   });

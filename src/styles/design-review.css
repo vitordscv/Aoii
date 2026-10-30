@@ -19,6 +19,10 @@ button.date-trigger:hover{border-color:var(--disney-blue-deep);background:var(--
   button.date-trigger:active,.skip-calendar-open:active,.calendar-dialog button:active{scale:.97;}
 }
 .date-shortcuts{display:flex;gap:8px;margin-bottom:12px;}
+.date-shortcuts{flex-wrap:wrap;}
+.date-context-note{font-size:12px;line-height:1.5;color:var(--muted);margin:0 0 6px;}
+.hero-date-notice{font-size:12px;line-height:1.5;color:var(--hero-text);border:1px solid rgba(255,255,255,.3);border-radius:10px;background:rgba(255,255,255,.08);padding:8px 10px;}
+.date-month-nav>button:disabled{opacity:.35;cursor:default;}
 .date-shortcuts button{min-height:40px;padding:6px 12px;border:0;border-radius:9px;background:var(--mist-lilac);color:var(--ink-navy);font-size:13px;}
 .date-shortcuts button:disabled{opacity:.4;cursor:default;}
 .calendar-dialog [data-date-cancel]{background:var(--white);color:var(--ink-navy);}

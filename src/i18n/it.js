@@ -89,4 +89,13 @@ const I18N_IT={'nav.entradas':'Entrate','nav.fixos':'Bollette','nav.resumo':'Pan
 'skip.salvas':"Assenze salvate"
 ,
 'date.anoAtual':"Anno attuale"
+,
+'date.planejamento':"Scegli oggi o una data futura.",
+'date.reagendar':"La data salvata è passata. Scegli una nuova data per riprogrammare.",
+'date.fimMes':"Fine del mese",
+'date.fimAno':"Fine dell’anno"
+,
+'compra.vinculada':"Le rate sono già registrate sulla carta. Correggi le voci nelle fatture; riaprire questo acquisto conterebbe l’importo due volte."
+,
+'date.projecaoVencida':"La data di questa previsione è passata. Aggiorna la data sopra per pianificare."
 };

@@ -346,14 +346,8 @@ function setupGastoSheet(){
       const parcelas=Math.max(1,parseInt(document.getElementById('gasto-parcelas').value,10)||1);
       const cartaoEl=document.getElementById('gasto-cartao');
       const cid=cartaoEl?cartaoEl.value:undefined;
-      const d=new Date(dataISO+'T12:00:00');
-      let anoCompra=d.getFullYear(), mesCompra=d.getMonth()+1;
-      // se a compra foi feita depois do dia de fechamento do cartão, ela cai na fatura do mês seguinte (como no cartão de verdade)
-      const cartaoObj=(data.cartoes||[]).find(c=>c.id===cid);
-      if(cartaoObj&&cartaoObj.diaFechamento&&d.getDate()>cartaoObj.diaFechamento){
-        const nx=nextMonth(anoCompra,mesCompra); anoCompra=nx.ano; mesCompra=nx.mes;
-      }
-      lancarParcelamento(nome,valor,parcelas,anoCompra,mesCompra,categoria,cid,dataISO,{viagemId,tags,nota});
+      const inicio=mesDaCompraNoCartao(dataISO,cid);
+      lancarParcelamento(nome,valor,parcelas,inicio.ano,inicio.mes,categoria,cid,dataISO,{viagemId,tags,nota});
     }else{
       // dinheiro, débito e pix passam pelo mesmo comando que atualiza o saldo
       registrarMovimento({

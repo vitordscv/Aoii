@@ -100,6 +100,14 @@ function removerCartao(id){
 /* ── parcelamento: divide uma compra parcelada nas faturas dos meses seguintes ── */
 function nextMonth(ano,mes){ mes++; if(mes>12){ mes=1; ano++; } return {ano,mes}; }
 
+/* Diário e compra planejada confirmada obedecem ao mesmo fechamento. */
+function mesDaCompraNoCartao(dataCompra,cartaoId){
+  const d=new Date(dataCompra+'T12:00:00');
+  const atual={ano:d.getFullYear(),mes:d.getMonth()+1};
+  const cartao=(data.cartoes||[]).find(c=>c.id===cartaoId)||(!cartaoId?(data.cartoes||[])[0]:null);
+  return cartao&&cartao.diaFechamento&&d.getDate()>cartao.diaFechamento?nextMonth(atual.ano,atual.mes):atual;
+}
+
 function ensureFatura(ano,mes,cartaoId){
   cartaoId=cartaoId||(data.cartoes[0]&&data.cartoes[0].id);
   let f=data.faturas.find(x=>x.ano===ano&&x.mes===mes&&x.cartaoId===cartaoId);

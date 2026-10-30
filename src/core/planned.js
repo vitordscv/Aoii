@@ -56,6 +56,7 @@ function camposPlanejados(tipo,entrada,atual){
 function criarPlanejado(tipo,entrada){
   const campos=camposPlanejados(tipo,entrada);
   if(!campos) return null;
+  if(tipo==='compra'&&!campos.feito&&campos.dataPrevista&&campos.dataPrevista<todayISO()) return null;
   const cfg=listaPlanejada(tipo); if(!cfg) return null;
   const chave=cfg.chave;
   if(!data[chave]) data[chave]=[];
@@ -69,8 +70,15 @@ function atualizarPlanejado(tipo,id,alteracoes){
   const chave=cfg.chave;
   const item=(data[chave]||[]).find(x=>x.id===id);
   if(!item) return null;
+  if(tipo==='compra'&&item.parcelasLancadas&&alteracoes&&
+    ((Object.prototype.hasOwnProperty.call(alteracoes,'parcelasLancadas')&&!alteracoes.parcelasLancadas)||alteracoes.feito===false||
+     (Object.prototype.hasOwnProperty.call(alteracoes,'cartao')&&alteracoes.cartao!==item.cartao)||
+     (Object.prototype.hasOwnProperty.call(alteracoes,'cartaoId')&&alteracoes.cartaoId!==item.cartaoId))) return null;
   const campos=camposPlanejados(tipo,alteracoes,item);
   if(!campos) return null;
+  /* Uma data antiga pode continuar no histórico enquanto nome, nota ou valor
+     são editados. Só um novo agendamento precisa apontar para hoje em diante. */
+  if(tipo==='compra'&&!campos.feito&&campos.dataPrevista!==item.dataPrevista&&campos.dataPrevista&&campos.dataPrevista<todayISO()) return null;
   Object.assign(item,campos);
   return item;
 }
@@ -127,11 +135,13 @@ function definirPlanejadoFeito(tipo,id,feito){
   const chave=cfg.chave;
   const item=(data[chave]||[]).find(x=>x.id===id);
   if(!item||typeof feito!=='boolean') return null;
+  if(item[cfg.feito]===feito) return item;
+  if(tipo==='compra'&&!feito&&item.parcelasLancadas) return null;
   item[cfg.feito]=feito;
   item[cfg.feitoEm]=feito?todayISO():null;
   if(tipo==='compra'&&feito&&item.cartao&&!item.parcelasLancadas){
-    const inicio=item.dataPrevista?new Date(item.dataPrevista+'T12:00:00'):new Date();
-    lancarParcelamento(item.nome,item.valor,item.parcelas||1,inicio.getFullYear(),inicio.getMonth()+1,'Outros',item.cartaoId);
+    const inicio=mesDaCompraNoCartao(todayISO(),item.cartaoId);
+    lancarParcelamento(item.nome,item.valor,item.parcelas||1,inicio.ano,inicio.mes,'Outros',item.cartaoId,todayISO());
     item.parcelasLancadas=true;
   }
   return item;

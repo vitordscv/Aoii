@@ -89,4 +89,13 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 'skip.salvas':"Faltas marcadas"
 ,
 'date.anoAtual':"Ano atual"
+,
+'date.planejamento':"Escolha hoje ou uma data futura.",
+'date.reagendar':"A data salva já passou. Escolha uma nova data para reagendar.",
+'date.fimMes':"Fim do mês",
+'date.fimAno':"Fim do ano"
+,
+'compra.vinculada':"Parcelas já registradas no cartão. Corrija os lançamentos nas faturas; reabrir esta compra faria o valor contar duas vezes."
+,
+'date.projecaoVencida':"A data desta projeção já passou. Atualize a data acima para planejar os próximos dias."
 };

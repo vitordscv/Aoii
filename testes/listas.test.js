@@ -9,6 +9,37 @@ const base=()=>({saldoAtual:1000,dinheiroVivo:0,tipoRenda:'mensal',rendaMensal:{
   investimentos:[],viagens:[],orcamentos:{},diasNaoTrabalhados:[],categorias:['Mercado','Outros']});
 
 module.exports=function(t){
+  {
+    const d=base(),c=criarAmbiente(d,HOJE),alvo=d.dataAlvo;
+    t.igual(c.atualizarDataAlvo('2025-12-31'),null,'projeção não aceita uma nova data no passado');
+    t.igual(d.dataAlvo,alvo,'data inválida preserva a projeção salva');
+    t.igual(c.criarPlanejado('compra',{nome:'Nova compra',valor:100,dataPrevista:'2025-12-31'}),null,'nova compra planejada não nasce no passado');
+    d.comprasPlanejadas.push({id:'antiga',nome:'Compra antiga',valor:100,dataPrevista:'2025-12-31',feito:false});
+    t.verdadeiro(!!c.atualizarPlanejado('compra','antiga',{nome:'Nome corrigido'}),'compra antiga continua editável');
+    t.igual(d.comprasPlanejadas.find(x=>x.id==='antiga').dataPrevista,'2025-12-31','editar nome preserva a data histórica');
+    t.igual(c.atualizarPlanejado('compra','antiga',{dataPrevista:'2024-12-31'}),null,'reagendamento não aponta para outra data passada');
+    t.verdadeiro(!!c.criarPlanejado('entrada',{nome:'Atrasada',valor:100,dataPrevista:'2025-12-31'}),'entrada atrasada conserva seu vencimento passado');
+    t.verdadeiro(!!c.criarPlanejado('divida',{nome:'Atrasada',valor:100,dataPrevista:'2025-12-31'}),'dívida atrasada conserva seu vencimento passado');
+  }
+  {
+    const d=base(),c=criarAmbiente(d,'2026-12-31');
+    t.igual(c.mesDaCompraNoCartao('2026-09-10','a').mes,9,'compra no dia de fechamento usa a mesma regra do Diário');
+    t.igual(c.mesDaCompraNoCartao('2026-09-11','a').mes,10,'compra após o fechamento vai para o mês seguinte');
+    const compra=c.criarPlanejado('compra',{nome:'Antecipada',valor:200,parcelas:2,cartao:true,cartaoId:'a',dataPrevista:'2027-07-01'});
+    c.definirPlanejadoFeito('compra',compra.id,true);
+    const fat=d.faturas.find(f=>f.ano===2027&&f.mes===1);
+    t.verdadeiro(!!fat,'compra confirmada após o fechamento começa na próxima fatura, inclusive na virada do ano');
+    t.igual(fat?.gastos[0].dataCompra,'2026-12-31','primeira parcela guarda a data real da confirmação');
+    t.verdadeiro(!d.faturas.some(f=>f.ano===2027&&f.mes===7),'parcelas não seguem uma previsão futura depois da compra feita');
+    t.igual(compra.dataPrevista,'2027-07-01','data prevista permanece como referência histórica');
+    const n=d.faturas.flatMap(f=>f.gastos).length;c.definirPlanejadoFeito('compra',compra.id,true);
+    t.igual(d.faturas.flatMap(f=>f.gastos).length,n,'confirmar novamente não duplica as parcelas');
+    compra.feitoEm='2026-12-30';c.definirPlanejadoFeito('compra',compra.id,true);
+    t.igual(compra.feitoEm,'2026-12-30','repetir a confirmação preserva a data da compra já registrada');
+    t.igual(c.definirPlanejadoFeito('compra',compra.id,false),null,'reabrir compra já parcelada não cria dupla contagem');
+    t.igual(compra.feito,true,'a compra permanece concluída com as parcelas lançadas');
+    t.igual(c.atualizarPlanejado('compra',compra.id,{parcelasLancadas:false}),null,'vínculo de parcelas não pode ser apagado por uma edição');
+  }
 
   console.log('\n\x1b[1mCategoria criada escolhe o próprio emoji\x1b[0m');
   {

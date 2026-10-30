@@ -121,6 +121,7 @@ function atualizarDataAlvo(valor){
   const dataTeste=typeof valor==='string'?new Date(valor+'T12:00:00'):null;
   /* isoDate() e não toISOString(): ver diaCalendarioValido() em dates.js */
   if(typeof valor!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(valor)||Number.isNaN(dataTeste.getTime())||isoDate(dataTeste)!==valor) return null;
+  if(valor<todayISO()) return null;
   data.dataAlvo=valor;
   return valor;
 }

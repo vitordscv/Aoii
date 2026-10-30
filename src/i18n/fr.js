@@ -89,4 +89,13 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 'skip.salvas':"Absences enregistrées"
 ,
 'date.anoAtual':"Année actuelle"
+,
+'date.planejamento':"Choisissez aujourd’hui ou une date future.",
+'date.reagendar':"La date enregistrée est passée. Choisissez une nouvelle date.",
+'date.fimMes':"Fin du mois",
+'date.fimAno':"Fin de l’année"
+,
+'compra.vinculada':"Les échéances sont déjà enregistrées sur la carte. Corrigez les lignes des factures ; rouvrir cet achat compterait le montant deux fois."
+,
+'date.projecaoVencida':"La date de cette projection est passée. Actualisez la date ci-dessus pour planifier."
 };

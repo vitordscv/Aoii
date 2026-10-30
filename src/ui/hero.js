@@ -33,8 +33,9 @@ function renderHero(){
   document.getElementById('hero-content').innerHTML=`
     <div class="hero-eyebrow-row">
       <span class="hero-eyebrow">${L('hero.saldoEstimado')}</span>
-      <input type="date" class="hero-date-input" id="hero-date-input" value="${esc(targetVal)}" aria-label="${esc(L('hero.saldoEstimado'))}">
+      <input type="date" class="hero-date-input" id="hero-date-input" data-date-context="futuro" data-date-shortcuts="projecao" value="${esc(targetVal)}" aria-label="${esc(L('hero.saldoEstimado'))}">
     </div>
+    ${targetVal<todayISO()?`<p class="hero-date-notice">${L('date.projecaoVencida')}</p>`:''}
     <!-- o número vive num span só dele, e o botão é IRMÃO dele, não filho.
          countUpAll() anima escrevendo textContent no elemento que carrega o
          data-countup — com o botão lá dentro, ele era apagado na primeira vez
