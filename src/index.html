@@ -488,14 +488,15 @@
 
   </div>
   <div class="view-pane" id="pane-economias-investimentos" role="tabpanel" tabindex="0" aria-labelledby="tab-economias-investimentos" hidden>
-  <div class="ticker-externo">
+  <details class="ticker-externo">
+    <summary data-i18n="inv.tickerTitulo">Cotações de mercado</summary>
     <iframe id="ticker-tape" class="ticker-frame"
             data-simbolos="PEPPERSTONE:USDX,BINANCE:BTCUSD,OANDA:XAUUSD,NASDAQ:NVDA,OANDA:SPX500USD"
             sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
             referrerpolicy="no-referrer"
             data-i18n-title="inv.tickerTitulo" title="Cotações de mercado"></iframe>
     <div class="ticker-nota" data-i18n="inv.tickerNota">Cotações do mercado, pela TradingView. Não fazem parte das suas contas — são só referência.</div>
-  </div>
+  </details>
   <!-- ══════ INVESTIMENTOS ══════ -->
   <div class="section" id="investimentos-section">
     <div class="section-head">
@@ -571,6 +572,16 @@
       <button type="button" id="settings-close-btn" class="settings-close-btn" title="Fechar" data-i18n-title="common.close">✕</button>
     </div>
     <div class="settings-body">
+      <div class="settings-section-picker"><label for="settings-section-select" data-i18n="settings.abasAria">Seções das configurações</label><select id="settings-section-select">
+        <option value="renda" data-i18n="settings.renda">Renda</option>
+        <option value="cartoes" data-i18n="settings.abaCartoes">Cartões</option>
+        <option value="categorias" data-i18n="settings.abaCategorias">Categorias</option>
+        <option value="preferencias" data-i18n="settings.preferencias">Preferências</option>
+        <option value="dados" data-i18n="settings.dados">Dados e sincronização</option>
+        <option value="ia" data-i18n="settings.ia">Assistente com IA</option>
+        <option value="banco" data-i18n="settings.banco">Banco</option>
+        <option value="zona" data-i18n="settings.zona">Zona de risco</option>
+      </select></div>
       <div class="tabs-scroll tabs-scroll-settings">
       <div class="tabs-fade tabs-fade-l" aria-hidden="true"></div>
       <div class="tabs-fade tabs-fade-r" aria-hidden="true"></div>
@@ -614,8 +625,10 @@
           </div>
           <div class="field-group">
             <label data-i18n="settings.diasNaoTrabalhados">Dias que não trabalhei (feriados, faltas, doenças)</label>
-            <div id="skip-calendar" class="skip-calendar"></div>
-            <div class="skip-tags" id="skip-days-list"></div>
+            <button type="button" class="skip-calendar-open" id="skip-calendar-open" aria-haspopup="dialog"><span data-i18n="skip.abrir">Marcar faltas ou recesso</span><span aria-hidden="true">＋</span></button>
+            <p class="section-note" data-i18n="skip.abrirAjuda">Selecione dias avulsos ou um período. Somente os dias da sua jornada descontam renda.</p>
+            <div id="skip-calendar" class="skip-calendar" hidden></div>
+            <details class="skip-saved-days" id="skip-saved-days" hidden><summary><span data-i18n="skip.salvas">Faltas marcadas</span> <span id="skip-days-count"></span></summary><div class="skip-tags" id="skip-days-list"></div></details>
           </div>
         </div>
         <div id="renda-mensal-fields">
@@ -724,7 +737,7 @@
           <button type="button" id="download-json-btn" class="reset-btn" data-i18n="btn.baixarJson">⬇️ Baixar cópia dos dados (.json)</button>
           <input type="file" id="upload-json-input" accept="application/json,.json" style="display:none;">
           <button type="button" id="upload-json-btn" class="reset-btn" data-i18n="btn.carregarJson" style="margin-top:8px;">⬆️ Carregar arquivo (.json)</button>
-          <div class="help-text" data-i18n="settings.backupLocalHelp">Um arquivo com todos os seus dados, pra guardar em outro lugar (Drive, e-mail). Se precisar restaurar, é só usar o código de sincronização acima ou pedir ajuda pra reimportar.</div>
+          <div class="help-text" data-i18n="settings.backupLocalHelp">Guarde o arquivo em um lugar seguro. Para restaurar esta cópia, use “Carregar arquivo (.json)” e selecione o arquivo salvo.</div>
         </div>
         <div class="field-group" id="sync-section">
           <label data-i18n="settings.syncTitle">Sincronizar entre aparelhos</label>
@@ -1385,6 +1398,11 @@
 </nav>
 
 
+<div class="modal-backdrop calendar-backdrop" id="calendar-backdrop" hidden></div>
+<section class="calendar-dialog" id="calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="calendar-dialog-title" hidden>
+  <div class="calendar-dialog-head"><h2 id="calendar-dialog-title"></h2><button type="button" id="calendar-close" data-i18n-aria-label="common.close" aria-label="Fechar">✕</button></div>
+  <div id="calendar-dialog-body"></div>
+</section>
 <!--build:scripts-->
 
 

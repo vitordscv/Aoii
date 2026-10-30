@@ -19,7 +19,7 @@ function setupAutoUpdate(){
   function podeRecarregar(){
     const a=document.activeElement;
     if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;
-    return !document.querySelector('.bottom-sheet[style*="block"], .modal-backdrop[style*="block"], .tour-callout');
+    return !document.querySelector('.bottom-sheet[style*="block"], .modal-backdrop[style*="block"], .calendar-dialog:not([hidden]), .tour-callout');
   }
 
   /* Quem vai recarregar quando puder. Fica pendente se a pessoa esta digitando

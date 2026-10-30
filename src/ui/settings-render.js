@@ -74,6 +74,8 @@ function renderSettings(){
 function renderSkipDays(){
   renderSkipCalendar();
   const list=data.diasNaoTrabalhados||[];
+  document.getElementById('skip-saved-days').hidden=list.length===0;
+  document.getElementById('skip-days-count').textContent=String(list.length);
   const el=document.getElementById('skip-days-list'); if(!el) return;
   if(list.length===0){
     el.innerHTML=`<span class="skip-empty">${L('skip.nenhumDiaMarcado')}</span>`; return;

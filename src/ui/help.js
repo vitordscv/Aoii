@@ -31,7 +31,7 @@ async function init(){
   await loadData();
   if(ensurePatrimonioSnapshot()) await persist();
   if(aplicarAportesAutomaticos()) await persist();
-  render(); bindStatic();
+  render(); bindStatic();setupDatePickers();
   setupInfoTips();
   setupOnboarding();
   if(data.onboardingCompleto && !data.tourCompleto) setTimeout(startTour,600);
@@ -117,6 +117,7 @@ async function init(){
   }
   setupBottomNav();
   document.addEventListener('keydown',e=>{
+    if(dialogosAtivos.length) return;
     if((e.key==='n'||e.key==='N'||e.key==='+')&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)&&!e.metaKey&&!e.ctrlKey){
       const fab=document.getElementById('gasto-fab');
       if(fab && getComputedStyle(fab).display!=='none'){ e.preventDefault(); fab.click(); }

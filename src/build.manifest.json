@@ -8,7 +8,8 @@
     "styles/themes.css",
     "styles/base.css",
     "styles/components.css",
-    "styles/enhancements.css"
+    "styles/enhancements.css",
+    "styles/design-review.css"
   ],
   "scripts": [
     "data/constants.js",
@@ -91,6 +92,7 @@
     "ui/goals.js",
     "core/networth.js",
     "ui/networth.js",
+    "ui/date-picker.js",
     "ui/skip-calendar.js",
     "ui/settings-render.js",
     "ui/pierre.js",

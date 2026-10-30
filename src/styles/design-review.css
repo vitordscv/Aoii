@@ -1,0 +1,81 @@
+/* Datas: mesmo acionador em campos novos, linhas editáveis e projeção. */
+button.date-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;max-width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink-navy);font:600 14px 'Nunito Sans',sans-serif;text-align:left;cursor:pointer;}
+.date-trigger::after{content:'▦';font-size:18px;flex:none;opacity:.7;}
+button.date-trigger:hover{border-color:var(--disney-blue-deep);background:var(--mist-lilac);color:var(--ink-navy);}
+.hero .date-trigger{background:rgba(255,255,255,.12);color:var(--hero-text);border-color:rgba(255,255,255,.35);font-size:12px;}
+.item-row>.date-trigger{width:auto;min-width:125px;min-height:44px;}
+.calendar-backdrop{z-index:240;}
+.calendar-dialog{position:fixed;z-index:241;left:50%;top:calc(var(--calendar-visible-top,0px) + var(--calendar-visible-height,100dvh) / 2);transform:translate(-50%,-50%);width:min(390px,calc(100vw - 24px));max-height:calc(var(--calendar-visible-height,100dvh) - 32px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;border:1px solid var(--line);border-radius:22px;background:var(--white);color:var(--ink-navy);padding:0 18px 18px;box-shadow:0 24px 80px rgba(0,0,0,.25);}
+.calendar-dialog-head{position:sticky;top:0;z-index:2;background:var(--white);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px;}
+.calendar-dialog-head h2{font-family:'Sora',sans-serif;font-size:17px;line-height:1.4;margin:0;}
+#calendar-close{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--ink-navy);font-size:18px;}
+.calendar-dialog .skip-calendar{padding:0;border:0;margin:0;max-width:none;background:transparent;}
+.date-month-nav{display:grid;grid-template-columns:36px minmax(0,1fr) 78px 36px;gap:5px;align-items:center;margin:14px 0;}
+.date-month-nav>button{height:44px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink-navy);font-size:24px;}
+.date-month-nav select,.date-month-nav input{min-width:0;width:100%;box-sizing:border-box;height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--white);color:var(--ink-navy);}
+.date-month-nav input{padding-inline:4px;text-align:center;appearance:textfield;}
+.date-month-nav input::-webkit-inner-spin-button{appearance:none;}
+.date-shortcuts{display:flex;gap:8px;margin-bottom:12px;}
+.date-shortcuts button{min-height:40px;padding:6px 12px;border:0;border-radius:9px;background:var(--mist-lilac);color:var(--ink-navy);font-size:13px;}
+.date-shortcuts button:disabled{opacity:.4;cursor:default;}
+.calendar-dialog [data-date-cancel]{background:var(--white);color:var(--ink-navy);}
+.date-calendar .skip-cal-day:disabled{opacity:.35;cursor:default;}
+.skip-calendar-open{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--mist-lilac);color:var(--ink-navy);font-size:15px;font-weight:700;text-align:left;}
+.skip-calendar-open:hover{border-color:var(--disney-blue-deep);}
+.skip-calendar-open+ .section-note{line-height:1.5;margin:8px 0 12px;text-align:left;}
+.skip-tag button{width:32px;height:32px;border-radius:8px;flex:none;}
+.skip-tag{padding:2px 4px 2px 9px;}
+.skip-saved-days{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:0 12px;}
+.skip-saved-days>summary{min-height:44px;padding:12px 0;box-sizing:border-box;font-size:14px;font-weight:700;cursor:pointer;}
+.skip-saved-days .skip-tags{padding-bottom:12px;}
+#skip-days-count{display:inline-block;margin-left:5px;border-radius:8px;background:var(--mist-lilac);padding:2px 7px;font-size:12px;}
+/* Navegação e fechamento: alvos claros, sem apertar o lado direito. */
+.topbar-settings-btn{width:44px;height:44px;}
+.topbar-right{gap:4px;}
+@media(min-width:760px){.topbar{width:min(1080px,calc(100% - 40px));right:auto;box-sizing:border-box;}}
+@media(max-width:400px){.topbar{padding-inline:10px;gap:4px;}.topbar-right{gap:0;}}
+.settings-close-btn{width:44px;height:44px;flex:none;}
+.settings-modal-head{z-index:5;}
+.settings-section-picker{display:none;}
+@media(max-width:559px){
+  html.settings-picker-ready .settings-section-picker{display:block;margin:4px 0 14px;}
+  html.settings-picker-ready .tabs-scroll-settings{display:none;}
+  .settings-section-picker label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  #settings-section-select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;font-size:16px;font-weight:700;padding:10px 34px 10px 12px;}
+}
+/* As abas rolam, mas a indicação da continuação precisa ser perceptível. */
+.tabs-fade-r:not(.hidden)::after{content:'›';position:absolute;right:2px;top:8px;color:var(--ink-navy);font-size:24px;}
+.view-tab-sub{line-height:1.5;}
+.ticker-externo>summary{padding:14px 16px;min-height:44px;box-sizing:border-box;cursor:pointer;font-size:14px;font-weight:700;color:var(--ink-navy);}
+.ticker-externo[open]>summary{border-bottom:1px solid var(--line);}
+@media(max-width:600px){.section-head{align-items:flex-start;}.section-head .section-note{text-align:left;flex-basis:100%;}}
+/* Entradas tinha uma caixa dentro de outra, consumindo a largura do formulário. */
+#view-entradas .section{background:transparent;border:0;box-shadow:none;padding:0;}
+#view-entradas .list-panel{padding:20px;border-radius:18px;}
+#view-entradas .panel-sub{line-height:1.5;margin-bottom:18px;}
+#view-entradas .view-tab-sub{display:none;}
+#view-entradas .item-nome{min-height:44px;}
+#view-entradas .item-del{width:40px;height:44px;}
+#view-entradas .add-item-row{padding-top:16px;}
+@media(max-width:560px){
+  .item-row>.date-trigger{width:100%;}
+  .item-row>.item-valor{min-height:40px;}
+  .gasto-del,.gasto-del-parc{width:32px;height:36px;}
+  .gasto-nome{min-height:36px;}
+  .trans-del{min-width:36px;min-height:36px;}
+  #view-entradas .list-panel{padding:16px;}
+}
+/* Leitura do resumo sem reduzir informação ou recortar valores longos. */
+.hero-eyebrow,.hero .saldo-field label,.hero .chip-label{color:var(--hero-text);opacity:1;}
+.hero-number-valor{min-width:0;flex:0 1 auto;overflow-wrap:anywhere;}
+.hero-number .hero-tip-btn{flex:none;}
+@media(max-width:480px){
+  .hero{padding:16px 18px;}
+  .hero-toolbar{margin-bottom:4px;}
+  .saldo-row{margin-top:12px;gap:10px;}
+  .saldo-field input{padding-block:7px;}
+  .saldo-total-value{padding-block:5px;}
+  .hero .chip{padding:12px 13px 10px;}
+  .hero .chip-label{margin-bottom:4px;}
+  .hero .chips{margin-top:18px;}
+}

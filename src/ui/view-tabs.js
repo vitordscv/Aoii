@@ -53,6 +53,10 @@ function mostrarVisao(barra,alvo,moverFoco){
   }
 
   const grupo=barra.getAttribute('data-grupo');
+  if(grupo==='settings'){
+    const seletor=document.getElementById('settings-section-select');
+    if(seletor) seletor.value=escolhida.getAttribute('data-pane');
+  }
   const sub=document.querySelector('[data-abas-sub="'+grupo+'"]');
   if(sub){
     const chave=escolhida.getAttribute('data-sub');
@@ -108,6 +112,13 @@ function ligarAbasDeVisao(){
     if(barra.dataset.ligada) return;
     barra.dataset.ligada='1';
     const grupo=barra.getAttribute('data-grupo');
+    if(grupo==='settings'){
+      const seletor=document.getElementById('settings-section-select');
+      if(seletor){
+        seletor.addEventListener('change',()=>mostrarVisao(barra,seletor.value));
+        document.documentElement.classList.add('settings-picker-ready');
+      }
+    }
     const abas=_abasDoGrupo(barra);
 
     abas.forEach(a=>a.addEventListener('click',()=>mostrarVisao(barra,a.getAttribute('data-pane'))));

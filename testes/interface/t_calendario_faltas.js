@@ -8,6 +8,10 @@ const {PASTA_FOTOS}=require('./fotos');
   await esperar(350);
   await avaliar(cdp,`document.querySelector('#cfg-tipo-renda [data-tipo="diaria"]').click();return 1;`);
   await esperar(250);
+  async function abrir(){await avaliar(cdp,`document.getElementById('skip-calendar-open').click();return 1;`);}
+  const fechado=await avaliar(cdp,`return document.getElementById('skip-calendar').hidden;`);
+  conferir(fechado,'calendário de faltas começa recolhido');
+  await abrir();
   async function mes(alvo){
     return avaliar(cdp,`
       for(let i=0;i<36;i++){
@@ -28,14 +32,19 @@ const {PASTA_FOTOS}=require('./fotos');
   await tirarFoto(cdp,PASTA_FOTOS+'/faltas-periodo-390.png');
   await avaliar(cdp,`document.getElementById('skip-day-add').click();return 1;`);await esperar(300);
   conferir(await total()===10,'confirma dez dias');
+  const salvoFechou=await avaliar(cdp,`return document.getElementById('calendar-dialog').hidden&&!document.getElementById('settings-panel').inert;`);
+  conferir(salvoFechou,'confirmar fecha calendário e devolve Configurações');
+  await abrir();
   await mes('2026-12-29');await clicar('2026-12-29');await mes('2027-01-04');await clicar('2027-01-04');
   const virada=await avaliar(cdp,`return document.querySelector('.skip-cal-summary').textContent;`);
   conferir(virada.includes('7')&&virada.includes('4'),'seleção atravessa mês e ano sem duplicar faltas',virada);
   await avaliar(cdp,`document.getElementById('skip-day-add').click();return 1;`);await esperar(300);
   conferir(await total()===14,'sobreposição preserva dias já marcados');
+  await abrir();
   await mes('2027-01-11');await clicar('2027-01-11');await clicar('2027-01-17');
   await avaliar(cdp,`document.getElementById('skip-day-add').click();return 1;`);await esperar(300);
   conferir(await total()===21,'adiciona outra semana separada');
+  await abrir();
   await avaliar(cdp,`document.querySelector('[data-skip-mode="dias"]').click();return 1;`);
   await clicar('2027-01-20');await clicar('2027-01-22');await clicar('2027-01-20');
   const separados=await avaliar(cdp,`return document.querySelectorAll('.skip-cal-day.is-selected').length;`);
@@ -53,9 +62,10 @@ const {PASTA_FOTOS}=require('./fotos');
     conferir(layout.width>200&&!layout.overflow&&layout.diasDentro&&layout.n===31,`calendário visível e cabe em ${largura}px`,JSON.stringify(layout));
     if([390,768].includes(largura)) await tirarFoto(cdp,PASTA_FOTOS+`/faltas-calendario-${largura}.png`);
   }
-  await avaliar(cdp,`document.querySelector('#skip-days-list button').click();return 1;`);await esperar(300);
+  await avaliar(cdp,`document.getElementById('calendar-close').click();document.getElementById('skip-saved-days').open=true;document.querySelector('#skip-days-list button').click();return 1;`);await esperar(300);
   conferir(await total()===20,'remove um dia individual de um período confirmado');
   await cdp.enviar('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:2,mobile:true});
+  await abrir();
   const temas=await avaliar(cdp,`
     const falhas=[];
     for(const tema of ['onda','noite','sakura','matcha','poupa','grafite','roxo']){

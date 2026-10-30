@@ -44,6 +44,14 @@ function renderSkipCalendar(foco=null){
 }
 function setupSkipCalendar(){
   const el=document.getElementById('skip-calendar');if(!el) return;
+  const abrir=document.getElementById('skip-calendar-open');
+  abrir.addEventListener('click',()=>{
+    limparSelecaoSkip();skipCalendar.confirmados=0;renderSkipCalendar();
+    const origem=el.parentElement;
+    abrirCalendario(L('skip.abrir'),el,()=>{
+      limparSelecaoSkip();el.hidden=true;origem.append(el);
+    });
+  });
   el.addEventListener('click',async e=>{
     const btn=e.target.closest('button');if(!btn||btn.disabled) return;
     if(btn.dataset.skipMonth){
@@ -75,8 +83,7 @@ function setupSkipCalendar(){
       const dias=skipDiasSelecionados();
       skipCalendar.confirmados=0;
       for(const d of dias) if(adicionarDiaNaoTrabalhado(d)) skipCalendar.confirmados++;
-      limparSelecaoSkip();await persist();render();
-      el.querySelector('[data-skip-mode="periodo"]')?.focus({preventScroll:true});
+      limparSelecaoSkip();await persist();render();fecharCalendario();
     }
   });
 }
