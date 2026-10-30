@@ -2,7 +2,7 @@
    Uma chave por linha lógica, na mesma ordem em todos os idiomas.
    Chave faltando cai no português — veja i18n/runtime.js. */
 const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overview','nav.diario':'Journal','nav.economias':'Savings','settings.title':'Settings','settings.renda':'Income','settings.dados':'Data & sync','settings.preferencias':'Preferences','settings.idioma':'Language','settings.abaCategoriasSub':'How you sort your spending, and trips with their own budget','settings.abaCategorias':'Categories','settings.abaCartoesSub':'Your credit cards, with closing day, due day and limit','settings.abaCartoes':'Cards','settings.ia':'AI assistant','settings.zona':'Danger zone','sheet.novogasto':'New expense','sheet.novogastofixo':'New bill','sheet.novocartao':'New card','sheet.novoinvestimento':'New investment','sheet.novarenda':'New income','btn.cancelar':'Cancel',
-    'settings.rendaPergunta':'How do you receive your income?','settings.diaria':'Daily','settings.mensal':'Monthly','settings.valorDia':'Amount per day worked','settings.diasSemana':'Days of the week you work','settings.diasNaoTrabalhados':'Days you did not work (holidays, sick days)','btn.marcarDia':'Mark day','settings.valorMensal':'Monthly amount','settings.diaMesRecebe':'Day of month you get paid','settings.rendaFixaHelp':'Fixed income, added automatically every month on that day.',
+    'settings.rendaPergunta':'How do you receive your income?','settings.diaria':'Daily','settings.mensal':'Monthly','settings.valorDia':'Amount per day worked','settings.diasSemana':'Days of the week you work','settings.diasNaoTrabalhados':"Days off (holidays, absences, time off)",'btn.marcarDia':'Mark day','settings.valorMensal':'Monthly amount','settings.diaMesRecebe':'Day of month you get paid','settings.rendaFixaHelp':'Fixed income, added automatically every month on that day.',
     'settings.syncTitle':'Sync across devices','settings.verificando':'Checking…','btn.gerarCodigoNovo':'Generate new code','btn.usarCodigo':'Use this code','settings.syncHelp':'Generate a code on your first device and paste the same code on the others. Keep it private — anyone with the code accesses the same data.',
     'settings.shareTitle':'Share with someone else','settings.shareHelp':'Generate a code with your current data and send it — the other person pastes that code on their site to load the same data, no file needed.','btn.gerarCodigo':'Generate code','btn.copiarCodigo':'Copy code','settings.receberCodigoHelp':'Received a code from someone? Paste it below and load it — this replaces your current data with theirs.','btn.carregarCodigo':'Load code',
     'settings.moedaHelp':'Only changes the displayed symbol and number format — values themselves aren\'t converted.','settings.fundoIlustrado':'Illustrated background','settings.artefundo':'Theme background art','settings.artefundoHelp':'Available in the Wave, Sakura, Matcha, Night and Save themes.','settings.sugestaoGasto':'Daily spending suggestion','settings.mostrarQuantoGastar':'Show "how much can I spend today"','settings.sugestaoHelp':'Card in Overview with the estimated daily quota. If you prefer, track it via the month calendar instead.',
@@ -58,4 +58,21 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 ,'pierre.saldoZeroPreservado':"The bank reports a zero balance for {n} card(s), but the invoice amount was kept because it was edited or its origin is unverified. Review it before adjusting."
 ,'pierre.desfazRestauradas':"{n} invoice(s) return to their previous amount"
 ,'pierre.desfazConciliadas':"{n} reconciliation(s) will be undone"
+,
+'skip.modo':"Selection type",
+'skip.periodo':"Date range",
+'skip.dias':"Separate days",
+'skip.helpPeriodo':"Choose the first and last day. You can change months without losing your selection.",
+'skip.helpDias':"Choose any days. Tap again to deselect.",
+'skip.anterior':"Previous month",
+'skip.proximo':"Next month",
+'skip.escolher':"No days selected.",
+'skip.escolherFim':"Now choose the last day.",
+'skip.selecao':"Selected: {n} · New: {novos}",
+'skip.salvo':"Absence already saved",
+'skip.limpar':"Clear selection",
+'skip.confirmar':"Confirm absences"
+,
+'skip.confirmado':"Absences saved: {n}. You can add another period.",
+'skip.limite':"Choose up to one year at a time."
 };

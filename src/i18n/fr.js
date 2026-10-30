@@ -2,7 +2,7 @@
    Uma chave por linha lógica, na mesma ordem em todos os idiomas.
    Chave faltando cai no português — veja i18n/runtime.js. */
 const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Aperçu','nav.diario':'Journal','nav.economias':'Épargne','settings.title':'Paramètres','settings.renda':'Revenus','settings.dados':'Données et synchronisation','settings.preferencias':'Préférences','settings.idioma':'Langue','settings.abaCategoriasSub':'Comment vous classez vos dépenses, et voyages à budget propre','settings.abaCategorias':'Catégories','settings.abaCartoesSub':'Vos cartes de crédit, avec clôture, échéance et plafond','settings.abaCartoes':'Cartes','settings.ia':'Assistant IA','settings.zona':'Zone de danger','sheet.novogasto':'Nouvelle dépense','sheet.novogastofixo':'Nouvelle facture','sheet.novocartao':'Nouvelle carte','sheet.novoinvestimento':'Nouvel investissement','sheet.novarenda':'Nouveau revenu','btn.cancelar':'Annuler',
-    'settings.rendaPergunta':'Comment recevez-vous vos revenus ?','settings.diaria':'Journalier','settings.mensal':'Mensuel','settings.valorDia':'Montant par jour travaillé','settings.diasSemana':'Jours de la semaine où vous travaillez','settings.diasNaoTrabalhados':'Jours non travaillés (jours fériés, absences, maladie)','btn.marcarDia':'Marquer le jour','settings.valorMensal':'Montant mensuel','settings.diaMesRecebe':'Jour du mois où vous êtes payé','settings.rendaFixaHelp':'Revenu fixe, ajouté automatiquement chaque mois ce jour-là.',
+    'settings.rendaPergunta':'Comment recevez-vous vos revenus ?','settings.diaria':'Journalier','settings.mensal':'Mensuel','settings.valorDia':'Montant par jour travaillé','settings.diasSemana':'Jours de la semaine où vous travaillez','settings.diasNaoTrabalhados':"Jours non travaillés (jours fériés, absences, congés)",'btn.marcarDia':'Marquer le jour','settings.valorMensal':'Montant mensuel','settings.diaMesRecebe':'Jour du mois où vous êtes payé','settings.rendaFixaHelp':'Revenu fixe, ajouté automatiquement chaque mois ce jour-là.',
     'settings.syncTitle':'Synchroniser entre appareils','settings.verificando':'Vérification…','btn.gerarCodigoNovo':'Générer un nouveau code','btn.usarCodigo':'Utiliser ce code','settings.syncHelp':'Générez un code sur votre premier appareil et collez le même code sur les autres. Gardez-le pour vous — quiconque a le code accède aux mêmes données.',
     'settings.shareTitle':'Partager avec quelqu\'un d\'autre','settings.shareHelp':'Générez un code avec vos données actuelles et envoyez-le — l\'autre personne colle ce code sur son site pour charger les mêmes données, sans fichier nécessaire.','btn.gerarCodigo':'Générer le code','btn.copiarCodigo':'Copier le code','settings.receberCodigoHelp':'Vous avez reçu un code de quelqu\'un ? Collez-le ci-dessous et chargez-le — cela remplace vos données actuelles par les siennes.','btn.carregarCodigo':'Charger le code',
     'settings.moedaHelp':'Change uniquement le symbole et le format du nombre affiché — les valeurs elles-mêmes ne sont pas converties.','settings.fundoIlustrado':'Fond illustré','settings.artefundo':'Illustration de fond du thème','settings.artefundoHelp':'Disponible dans les thèmes Vague, Sakura, Matcha, Nuit et Épargne.','settings.sugestaoGasto':'Suggestion de dépense quotidienne','settings.mostrarQuantoGastar':'Afficher « combien puis-je dépenser aujourd\'hui »','settings.sugestaoHelp':'Carte dans l\'Aperçu avec le quota quotidien estimé. Sinon, suivez via le calendrier du mois.',
@@ -58,4 +58,21 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 ,'pierre.saldoZeroPreservado':"La banque indique un solde nul pour {n} carte(s), mais le montant de la facture est conservé car il a été modifié ou son origine n’est pas confirmée. Vérifiez avant de l’ajuster."
 ,'pierre.desfazRestauradas':"{n} facture(s) retrouvent leur montant précédent"
 ,'pierre.desfazConciliadas':"{n} rapprochement(s) seront annulés"
+,
+'skip.modo':"Type de sélection",
+'skip.periodo':"Période",
+'skip.dias':"Jours séparés",
+'skip.helpPeriodo':"Choisissez le premier et le dernier jour. Vous pouvez changer de mois sans perdre la sélection.",
+'skip.helpDias':"Choisissez les jours souhaités. Touchez à nouveau pour désélectionner.",
+'skip.anterior':"Mois précédent",
+'skip.proximo':"Mois suivant",
+'skip.escolher':"Aucun jour sélectionné.",
+'skip.escolherFim':"Choisissez maintenant le dernier jour.",
+'skip.selecao':"Sélection : {n} · Nouveaux : {novos}",
+'skip.salvo':"Absence déjà enregistrée",
+'skip.limpar':"Effacer la sélection",
+'skip.confirmar':"Confirmer les absences"
+,
+'skip.confirmado':"Absences enregistrées : {n}. Vous pouvez ajouter une autre période.",
+'skip.limite':"Choisissez une période d’un an au maximum."
 };

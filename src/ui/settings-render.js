@@ -72,6 +72,7 @@ function renderSettings(){
 }
 
 function renderSkipDays(){
+  renderSkipCalendar();
   const list=data.diasNaoTrabalhados||[];
   const el=document.getElementById('skip-days-list'); if(!el) return;
   if(list.length===0){

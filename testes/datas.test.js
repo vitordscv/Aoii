@@ -11,6 +11,17 @@ const base=()=>({saldoAtual:0,dinheiroVivo:0,tipoRenda:'diaria',rendaDiaria:100,
   metas:[],rendasRecorrentes:[],investimentos:[],viagens:[],orcamentos:{},diasNaoTrabalhados:[]});
 
 module.exports=function(t){
+  const ferias=criarAmbiente(base(),HOJE);
+  t.igual(ferias.diasDePeriodo('2026-12-22','2026-12-31').length,10,'seleciona dez dias incluindo os extremos');
+  t.igual(ferias.diasDePeriodo('2026-12-29','2027-01-04').length,7,'período cruza ano sem perder dias');
+  t.igual(ferias.diasDePeriodo('2028-02-28','2028-03-01').length,3,'inclui dia bissexto');
+  t.igual(ferias.diasDePeriodo('2026-12-31','2026-12-22').length,0,'motor recusa período invertido');
+  t.igual(ferias.diasDePeriodo('2026-02-30','2026-03-01').length,0,'recusa data inexistente');
+  t.igual(ferias.diasDePeriodo('2026-12-22','2026-12-22').length,1,'seleção de um único dia');
+  for(const dia of ferias.diasDePeriodo('2026-12-22','2026-12-31')) ferias.adicionarDiaNaoTrabalhado(dia);
+  for(const dia of ferias.diasDePeriodo('2026-12-29','2027-01-04')) ferias.adicionarDiaNaoTrabalhado(dia);
+  t.igual(ferias.data.diasNaoTrabalhados.length,14,'sobreposição não duplica as faltas');
+
   console.log('\n\x1b[1mDia do mês que não existe\x1b[0m');
   const ctx=criarAmbiente(base(),HOJE);
   const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');

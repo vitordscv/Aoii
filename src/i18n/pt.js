@@ -2,7 +2,7 @@
    Uma chave por linha lógica, na mesma ordem em todos os idiomas.
    Chave faltando cai no português — veja i18n/runtime.js. */
 const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resumo','nav.diario':'Diário','nav.economias':'Economias','settings.title':'Configurações','settings.renda':'Renda','settings.dados':'Dados e sincronização','settings.preferencias':'Preferências','settings.idioma':'Idioma','settings.abaCategoriasSub':'Como você separa seus gastos, e viagens com orçamento próprio','settings.abaCategorias':'Categorias','settings.abaCartoesSub':'Seus cartões de crédito, com fechamento, vencimento e limite','settings.abaCartoes':'Cartões','settings.ia':'Assistente com IA','settings.zona':'Zona de risco','sheet.novogasto':'Novo gasto','sheet.novogastofixo':'Novo gasto fixo','sheet.novocartao':'Novo cartão','sheet.novoinvestimento':'Novo investimento','sheet.novarenda':'Nova renda','btn.cancelar':'Cancelar',
-    'settings.rendaPergunta':'Como você recebe sua renda?','settings.diaria':'Diária','settings.mensal':'Mensal','settings.valorDia':'Valor por dia trabalhado','settings.diasSemana':'Dias da semana que você trabalha','settings.diasNaoTrabalhados':'Dias que não trabalhei (feriados, faltas, doenças)','btn.marcarDia':'Marcar dia','settings.valorMensal':'Valor mensal','settings.diaMesRecebe':'Dia do mês em que recebe','settings.rendaFixaHelp':'Renda fixa, lançada automaticamente todo mês nesse dia.',
+    'settings.rendaPergunta':'Como você recebe sua renda?','settings.diaria':'Diária','settings.mensal':'Mensal','settings.valorDia':'Valor por dia trabalhado','settings.diasSemana':'Dias da semana que você trabalha','settings.diasNaoTrabalhados':"Dias sem trabalho (feriados, faltas, recesso)",'btn.marcarDia':'Marcar dia','settings.valorMensal':'Valor mensal','settings.diaMesRecebe':'Dia do mês em que recebe','settings.rendaFixaHelp':'Renda fixa, lançada automaticamente todo mês nesse dia.',
     'settings.syncTitle':'Sincronizar entre aparelhos','settings.verificando':'Verificando…','btn.gerarCodigoNovo':'Gerar código novo','btn.usarCodigo':'Usar este código','settings.syncHelp':'Gere um código no primeiro aparelho e cole o mesmo código nos outros. Guarde-o só com você — quem tiver o código acessa os mesmos dados.',
     'settings.shareTitle':'Compartilhar com outra pessoa','settings.shareHelp':'Gere um código com os seus dados atuais e mande por mensagem — a outra pessoa cola esse código no site dela pra carregar os mesmos dados, sem precisar do arquivo.','btn.gerarCodigo':'Gerar código','btn.copiarCodigo':'Copiar código','settings.receberCodigoHelp':'Recebeu um código de alguém? Cole abaixo e carregue — isso substitui os seus dados atuais pelos da outra pessoa.','btn.carregarCodigo':'Carregar código',
     'settings.moedaHelp':'Só muda o símbolo e o formato do número exibido — os valores em si não são convertidos.','settings.fundoIlustrado':'Fundo ilustrado','settings.artefundo':'Arte de fundo do tema','settings.artefundoHelp':'Disponível nos temas Onda, Sakura, Matcha, Noite e Poupa.','settings.sugestaoGasto':'Sugestão de gasto diário','settings.mostrarQuantoGastar':'Mostrar "quanto posso gastar hoje"','settings.sugestaoHelp':'Card no Resumo com a cota diária estimada. Se preferir, acompanhe pelo calendário do mês.',
@@ -58,4 +58,21 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 ,'pierre.saldoZeroPreservado':"O banco informa saldo zero em {n} cartão(ões), mas o valor da fatura foi mantido por ter sido editado ou não ter origem confirmada. Confira antes de ajustar."
 ,'pierre.desfazRestauradas':"{n} fatura(s) voltam ao valor anterior"
 ,'pierre.desfazConciliadas':"{n} conciliação(ões) serão desfeitas"
+,
+'skip.modo':"Tipo de seleção",
+'skip.periodo':"Período",
+'skip.dias':"Dias separados",
+'skip.helpPeriodo':"Toque no primeiro e no último dia. Você pode mudar de mês sem perder a seleção.",
+'skip.helpDias':"Toque nos dias que quiser. Toque novamente para desmarcar.",
+'skip.anterior':"Mês anterior",
+'skip.proximo':"Próximo mês",
+'skip.escolher':"Nenhum dia selecionado.",
+'skip.escolherFim':"Agora escolha o último dia.",
+'skip.selecao':"Selecionados: {n} · Novos: {novos}",
+'skip.salvo':"Falta já marcada",
+'skip.limpar':"Limpar seleção",
+'skip.confirmar':"Confirmar faltas"
+,
+'skip.confirmado':"Faltas salvas: {n}. Você pode adicionar outro período.",
+'skip.limite':"Escolha um período de até um ano por vez."
 };

@@ -56,6 +56,14 @@ function adicionarDiaNaoTrabalhado(valor){
   data.diasNaoTrabalhados.push(valor);
   return true;
 }
+function diasDePeriodo(inicio,fim){
+  if(!diaCalendarioValido(inicio)||!diaCalendarioValido(fim)||inicio>fim) return [];
+  const dia=new Date(inicio+'T12:00:00'),ultimo=new Date(fim+'T12:00:00');
+  if((ultimo-dia)/86400000>366) return [];
+  const dias=[];
+  while(dia<=ultimo){dias.push(isoDate(dia));dia.setDate(dia.getDate()+1);}
+  return dias;
+}
 function removerDiaNaoTrabalhado(valor){
   if(!data.diasNaoTrabalhados||!data.diasNaoTrabalhados.includes(valor)) return false;
   data.diasNaoTrabalhados=data.diasNaoTrabalhados.filter(dia=>dia!==valor);

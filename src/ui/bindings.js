@@ -238,12 +238,7 @@ function bindStatic(){
     });
     if(ok){ data=defaultData(); await persist(); render(); vibrate([20,60,20]); }
   });
-  document.getElementById('skip-day-add').addEventListener('click',async()=>{
-    const input=document.getElementById('skip-day-input');
-    const ds=input.value; if(!ds) return;
-    if(adicionarDiaNaoTrabalhado(ds)){ await persist(); render(); }
-    input.value='';
-  });
+  setupSkipCalendar();
 
   function bindAdd(prefix,key,doneField){
     const cartaoSelEl=document.getElementById(prefix+'-cartao-select');

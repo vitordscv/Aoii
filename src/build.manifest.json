@@ -91,6 +91,7 @@
     "ui/goals.js",
     "core/networth.js",
     "ui/networth.js",
+    "ui/skip-calendar.js",
     "ui/settings-render.js",
     "ui/pierre.js",
     "ui/report.js",
