@@ -60,7 +60,13 @@ function numerosConferiveis(texto){
   const milhar='['+String.fromCharCode(0xa0,0x202f)+']';
   const re=new RegExp(String.raw`((?:R\$|US\$|\$|€|£|¥|CHF)\s?)?(\d{1,3}(?:(?:[.,]|`+milhar+String.raw`)\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d+)?)(\s?%|\s?(?:mil|k|thousand|mille|mila)\b)?`,'gi');
   const achados=[];
-  for(const m of String(texto||'').matchAll(re)){
+  const t=String(texto||'');
+  for(const m of t.matchAll(re)){
+    /* "≈R$ 8.000", "≈15%": estimativa geral declarada (preço de mercado,
+       taxa típica), não um dado da pessoa. A regra manda marcar assim e dizer
+       que é estimativa; o sinal fica visível para quem lê. "~" não serve: era
+       o que o modelo usava para soltar juros inventados como se fossem fato. */
+    if(/≈\s?$/.test(t.slice(Math.max(0,m.index-2),m.index))) continue;
     const sufixo=(m[3]||'').trim().toLowerCase();
     const moeda=!!m[1], pct=sufixo==='%', vezesMil=!!sufixo&&!pct, comSeparador=/\D/.test(m[2]);
     if(!moeda&&!pct&&!comSeparador&&!vezesMil) continue;

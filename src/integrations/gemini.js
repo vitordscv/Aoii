@@ -89,7 +89,7 @@ Se a pergunta depender de algo dessa lista, diga com todas as letras que o dado 
 function idiomaNomeCompleto(){ return ({pt:'português do Brasil',en:'English',es:'español',fr:'français',it:'italiano'})[data.idioma||'pt']; }
 async function perguntarIA(pergunta,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(pergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  const prompt=`Você é o assistente do Aoii: um consultor financeiro pessoal, direto e prático, que também conversa sobre outros assuntos e dá opinião quando pedem, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(pergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda de forma curta (até 6 frases), sem rodeios.`;
   return consultarIAConferindo(prompt,aoTentarDeNovo,pergunta);
 }
 
@@ -99,7 +99,7 @@ async function perguntarIAComHistorico(historico,aoTentarDeNovo){
   const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Consultor'}: ${h.texto}`).join('\n');
   const falas=historico.filter(h=>h.role==='user').map(h=>h.texto);
   const ultimaPergunta=falas[falas.length-1]||'';
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(ultimaPergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  const prompt=`Você é o assistente do Aoii: um consultor financeiro pessoal, direto e prático, que também conversa sobre outros assuntos e dá opinião quando pedem, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(ultimaPergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário de forma curta (até 6 frases), sem rodeios.`;
   return consultarIAConferindo(prompt,aoTentarDeNovo,falas.join('\n'));
 }
 
@@ -158,12 +158,11 @@ function fatosCalculadosParaIA(){
    tirada de um número que não sustenta média. */
 function regrasParaIA(){
   return `REGRAS (valem acima de tudo):
-1) Use os números dos dados, dos fatos calculados e os que a pessoa escreveu. Contas simples com eles (somar, subtrair, multiplicar ou dividir por meses ou parcelas) você pode fazer, mostrando a conta; se houver CONTAS DA PERGUNTA, use exatamente esses resultados. Não estime o que depende de dado que não existe (média por dia sem saber quantos dias, rendimento sem taxa, gasto de meses que não estão nos dados) — diga qual dado falta.
-2) Nunca cite juros, taxas, rendimentos, percentuais ou preços que não estejam nos dados.
-3) Não dê ordens. Mostre as opções e o que cada uma muda, com os números dados, e deixe a decisão com a pessoa.
-4) Se faltar um dado, diga qual falta.
-5) Tom calmo e claro, sem alarmar.
-6) Pergunta que não é sobre as finanças (uma conta solta, uma dúvida geral) se responde direto, sem recusar.`;
+1) Você pode conversar sobre qualquer assunto: finanças, consumo, carreira, curiosidades, uma conta solta, o que a pessoa quiser. Responda direto, sem recusar por estar "fora do escopo".
+2) Opinião é bem-vinda quando pedirem ou quando ajudar a pensar: diga o que você acha e por quê, deixando claro que é opinião. A decisão é sempre da pessoa — nada de ordens.
+3) Sobre as finanças DELA, use só os números dos dados, dos fatos calculados e os que ela escreveu. Contas simples com eles (somar, subtrair, multiplicar ou dividir por meses ou parcelas) você pode fazer, mostrando a conta; se houver CONTAS DA PERGUNTA, use exatamente esses resultados. Não estime o que depende de um dado dela que não existe (média por dia sem saber quantos dias, gasto de meses que não estão nos dados) — diga qual dado falta.
+4) Número que NÃO vem dos dados dela (preço de mercado, taxa típica de cartão, informação geral) só pode aparecer com o sinal ≈ colado antes (≈R$ 8.000, ≈15%) e dito como estimativa geral, nunca como se fosse dado dela.
+5) Tom calmo e claro, sem alarmar.`;
 }
 
 /* A conta que a pessoa pediu, resolvida pelo app (contasDaPergunta). O
@@ -182,7 +181,7 @@ async function consultarIAConferindo(prompt,aoTentarDeNovo,pergunta){
   let texto=await chamarProvedorIA(prompt,aoTentarDeNovo);
   let v=verificarRespostaIA(texto,prompt,pergunta);
   if(v.ok) return texto;
-  const corrigir=`${prompt}\n\nATENÇÃO: uma resposta anterior citou ${v.suspeitos.join(', ')}, que não está nos dados nem sai de uma conta simples com eles ou com os números da pergunta. Responda de novo usando só esses números e, se houver, os resultados de CONTAS DA PERGUNTA. Se a resposta depender de um dado que não existe, diga qual falta.`;
+  const corrigir=`${prompt}\n\nATENÇÃO: uma resposta anterior citou ${v.suspeitos.join(', ')}, que não está nos dados nem sai de uma conta simples com eles ou com os números da pergunta. Responda de novo usando só esses números e, se houver, os resultados de CONTAS DA PERGUNTA. Se for uma estimativa geral (não um dado da pessoa), marque com ≈ colado antes e diga que é estimativa. Se a resposta depender de um dado dela que não existe, diga qual falta.`;
   texto=await chamarProvedorIA(corrigir,aoTentarDeNovo);
   v=verificarRespostaIA(texto,prompt,pergunta);
   if(v.ok) return texto;

@@ -1988,3 +1988,13 @@ atrapalha. Agora:
 - A conferência aceita também os números da pergunta e multiplicação ou
   divisão por uma contagem de 2 a 120 presente no texto (R$ 500 × 12 meses).
 
+### 17/11 - conversa livre, opinião e estimativa marcada
+
+O consultor deixou de ser só financeiro: conversa sobre qualquer assunto, dá
+opinião quando pedem (dita como opinião, decisão da pessoa) e responde em até
+6 frases. O que não mudou é o que protege o dinheiro: número sobre as finanças
+da pessoa só sai dos dados, dos fatos ou da pergunta. Número de fora (preço de
+mercado, taxa típica) agora pode aparecer, mas marcado com `≈` e dito como
+estimativa geral; sem a marca, continua barrado. `~` não serve de marca — era
+o que o modelo usava para soltar juros inventados como fato.
+

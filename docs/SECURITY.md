@@ -60,7 +60,10 @@ exportados e apagados em 11/09/2026 — hoje não há nenhum.
 valor em dinheiro, percentual ou número com separador que ela citar precisa
 estar no que foi enviado, ser soma ou diferença de dois valores em dinheiro
 (dos dados ou da pergunta), ou um deles multiplicado ou dividido por uma
-contagem de 2 a 120 que aparece no texto (meses, parcelas) — `verificarRespostaIA()` em `src/core/ia-guarda.js`. Se não estiver,
+contagem de 2 a 120 que aparece no texto (meses, parcelas). Estimativa geral
+(preço de mercado, taxa típica) só passa marcada com `≈` colado no número —
+o sinal fica visível e a regra manda dizer que não é dado da pessoa; `~` não
+vale — `verificarRespostaIA()` em `src/core/ia-guarda.js`. Se não estiver,
 o app pede de novo uma vez dizendo qual número veio de fora; se a segunda
 resposta também falhar, a pessoa vê um aviso e **não** vê o texto. Junto com o
 resumo vão os fatos já calculados pelo código (`fatosCalculadosParaIA()`) e

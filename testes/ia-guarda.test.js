@@ -45,6 +45,13 @@ module.exports=function(t){
   t.igual(v.suspeitos.length,2,'cada número barrado aparece uma vez só');
   t.verdadeiro(ctx.verificarRespostaIA('Sem números aqui, só uma opinião calma.',fonte).ok,'resposta sem número passa');
 
+  /* estimativa geral declarada com ≈ (preço de mercado, taxa típica): a
+     pessoa vê o sinal e a regra manda dizer que não é dado dela */
+  passa('Um iPhone novo custa ≈R$ 8.000 hoje, como estimativa geral.','estimativa marcada com ≈ passa');
+  passa('O rotativo do cartão costuma passar de ≈400% ao ano.','percentual geral marcado com ≈ passa');
+  barra('O rotativo do cartão costuma passar de ~400% ao ano.','400%','"~" não vale como marca de estimativa');
+  barra('Um iPhone custa R$ 8.000 e seu livre é ≈R$ 910,00.','R$ 8.000','o ≈ vale só para o número colado nele');
+
   console.log('\n\x1b[1mIA: contas que a pessoa pede\x1b[0m');
   /* Antes desta rodada, "20+20+20+7 quanto dá?" recebia uma recusa: a regra
      de não inventar número barrava até a conta que a própria pessoa
