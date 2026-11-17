@@ -106,7 +106,13 @@ function attachChartTooltip(container){
       :'';
     tip.innerHTML=`<span class="tt-date">${esc(best.getAttribute('data-tt')||'')}</span><span class="tt-balance">${esc(best.getAttribute('data-tt-val')||'')}</span>${lista}`;
     const contRect=container.getBoundingClientRect(),rect=svg.getBoundingClientRect();
-    tip.style.left=(rect.left-contRect.left+cx*(rect.width/vb.width))+'px';
+    /* o balão é centrado no ponto; perto da borda ele passava para fora do
+       cartão. Mede depois de preencher e empurra para dentro, mantendo a
+       mesma folga dos dois lados. */
+    const x=rect.left-contRect.left+cx*(rect.width/vb.width);
+    const larg=tip.offsetWidth, folga=4, cont=container.clientWidth;
+    const xMin=larg/2+folga, xMax=cont-larg/2-folga;
+    tip.style.left=(xMin>xMax?cont/2:Math.min(Math.max(x,xMin),xMax))+'px';
     tip.style.top =(rect.top -contRect.top +cy*(rect.height/vb.height))+'px';
     tip.classList.add('visible');
   }
