@@ -13,8 +13,25 @@
 
    Em nenhum dos dois casos ela entra em backup ou em sincronização. */
 
-const IA_CHAVE='financas-ia-chave';
 const IA_LEMBRAR='financas-ia-lembrar';
+
+/* Dois serviços, uma chave para cada. A do Gemini continua no nome antigo:
+   quem já usava não precisa colar de novo. A escolha do serviço é deste
+   aparelho, como a chave — não vai para o backup nem para a nuvem. */
+const IA_PROVEDORES=['gemini','nvidia'];
+const IA_PROVEDOR='financas-ia-provedor';
+const IA_CHAVES={gemini:'financas-ia-chave',nvidia:'financas-ia-chave-nvidia'};
+function iaProvedor(){
+  const p=lerGuardado(localStorage,IA_PROVEDOR);
+  return IA_PROVEDORES.includes(p)?p:'gemini';
+}
+function definirIaProvedor(p){
+  if(!IA_PROVEDORES.includes(p)) return false;
+  gravarGuardado(localStorage,IA_PROVEDOR,p);
+  return true;
+}
+/* o nome do lugar onde mora a chave do serviço escolhido agora */
+function nomeIaChave(){ return IA_CHAVES[iaProvedor()]; }
 
 function lerGuardado(onde,nome){ try{ return onde.getItem(nome)||''; }catch(e){ return ''; } }
 function gravarGuardado(onde,nome,valor){ try{ onde.setItem(nome,valor); }catch(e){} }
@@ -27,19 +44,21 @@ function lembrarIaChave(){
   const marcado=lerGuardado(localStorage,IA_LEMBRAR);
   if(marcado==='1') return true;
   if(marcado==='0') return false;
-  return !!lerGuardado(localStorage,IA_CHAVE);
+  return Object.values(IA_CHAVES).some(n=>!!lerGuardado(localStorage,n));
 }
 
 function getIaChave(){
-  return lerGuardado(sessionStorage,IA_CHAVE)||lerGuardado(localStorage,IA_CHAVE);
+  const nome=nomeIaChave();
+  return lerGuardado(sessionStorage,nome)||lerGuardado(localStorage,nome);
 }
 
 function setIaChave(v){
   const chave=String(v||'').trim();
-  if(!chave){ esquecerIaChave(); return; }
-  gravarGuardado(sessionStorage,IA_CHAVE,chave);
-  if(lembrarIaChave()) gravarGuardado(localStorage,IA_CHAVE,chave);
-  else apagarGuardado(localStorage,IA_CHAVE);
+  const nome=nomeIaChave();
+  if(!chave){ apagarGuardado(sessionStorage,nome); apagarGuardado(localStorage,nome); return; }
+  gravarGuardado(sessionStorage,nome,chave);
+  if(lembrarIaChave()) gravarGuardado(localStorage,nome,chave);
+  else apagarGuardado(localStorage,nome);
 }
 
 /* Ligar o "lembrar" desce pro disco o que já está na sessão; desligar sobe o
@@ -47,19 +66,23 @@ function setIaChave(v){
    fechar. Em nenhum dos dois a pessoa precisa colar de novo. */
 function definirLembrarIaChave(lembrar){
   gravarGuardado(localStorage,IA_LEMBRAR,lembrar?'1':'0');
-  const chave=getIaChave();
-  if(lembrar){ if(chave) gravarGuardado(localStorage,IA_CHAVE,chave); }
-  else{
-    apagarGuardado(localStorage,IA_CHAVE);
-    if(chave) gravarGuardado(sessionStorage,IA_CHAVE,chave);
+  for(const nome of Object.values(IA_CHAVES)){
+    const chave=lerGuardado(sessionStorage,nome)||lerGuardado(localStorage,nome);
+    if(lembrar){ if(chave) gravarGuardado(localStorage,nome,chave); }
+    else{
+      apagarGuardado(localStorage,nome);
+      if(chave) gravarGuardado(sessionStorage,nome,chave);
+    }
   }
 }
 
-/* Desligar a IA apaga a chave dos dois lugares. Deixá-la para trás guardaria
+/* Desligar a IA apaga as chaves dos dois serviços, dos dois lugares. Deixá-la para trás guardaria
    uma credencial de um recurso que a pessoa acabou de dispensar. */
 function esquecerIaChave(){
-  apagarGuardado(sessionStorage,IA_CHAVE);
-  apagarGuardado(localStorage,IA_CHAVE);
+  for(const nome of Object.values(IA_CHAVES)){
+    apagarGuardado(sessionStorage,nome);
+    apagarGuardado(localStorage,nome);
+  }
 }
 
 function iaAtiva(){ return data.iaAtiva===true && !!getIaChave(); }

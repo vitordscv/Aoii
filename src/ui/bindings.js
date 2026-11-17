@@ -93,6 +93,17 @@ function bindStatic(){
     vibrate(8);
     await persist(); render();
   });
+  /* trocar de serviço não apaga a chave do outro: quem alterna entre os dois
+     não precisa colar de novo */
+  document.querySelectorAll('#ia-provedor .segmented-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(!definirIaProvedor(btn.getAttribute('data-provedor'))) return;
+      const campo=document.getElementById('ia-chave-input');
+      if(campo) campo.value=getIaChave();
+      vibrate(6);
+      render();
+    });
+  });
   document.getElementById('ia-chave-input')?.addEventListener('input',e=>{
     setIaChave(e.target.value.trim());
     render();

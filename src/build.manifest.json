@@ -44,6 +44,7 @@
     "storage/local-storage.js",
     "ui/effects.js",
     "core/advisor.js",
+    "core/ia-guarda.js",
     "i18n/pt.js",
     "i18n/en.js",
     "i18n/es.js",

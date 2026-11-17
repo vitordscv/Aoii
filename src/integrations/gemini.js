@@ -89,16 +89,16 @@ Se a pergunta depender de algo dessa lista, diga com todas as letras que o dado 
 function idiomaNomeCompleto(){ return ({pt:'português do Brasil',en:'English',es:'español',fr:'français',it:'italiano'})[data.idioma||'pt']; }
 async function perguntarIA(pergunta,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${limitesDoResumoParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return chamarGemini(prompt,aoTentarDeNovo);
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return consultarIAConferindo(prompt,aoTentarDeNovo);
 }
 
 /* ── mesma coisa, mas mantendo o histórico da conversa do chat (reanalisa os dados a cada pergunta) ── */
 async function perguntarIAComHistorico(historico,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
   const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Consultor'}: ${h.texto}`).join('\n');
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${limitesDoResumoParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return chamarGemini(prompt,aoTentarDeNovo);
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return consultarIAConferindo(prompt,aoTentarDeNovo);
 }
 
 /* Respostas do Google que passam sozinhas: 503 é "estou cheio agora", 429 é
@@ -107,6 +107,117 @@ async function perguntarIAComHistorico(historico,aoTentarDeNovo){
    inglês colado numa tela em português. */
 const IA_STATUS_PASSAGEIRO=new Set([429,500,502,503,504]);
 const IA_TENTATIVAS=3;
+
+/* Os FATOS são as contas que o código já sabe fazer certo. Entregues prontas,
+   o modelo só precisa explicá-las — e a resposta não depende de ele somar,
+   subtrair ou dividir bem. Foi o que mais reduziu erro nos testes com dados
+   fictícios: com eles, 35 de 36 respostas saíram sem número de fora. */
+function fatosCalculadosParaIA(){
+  const linhas=[];
+  const livre=computeWeekSummary().livreAteFimDoMes;
+  const temLivre=typeof livre==='number'&&isFinite(livre);
+  if(temLivre) linhas.push(`Livre até o fim do mês: ${formatBRL(livre)}.`);
+  (data.comprasPlanejadas||[]).filter(c=>!c.feito&&c.valor>0&&temLivre).forEach(c=>{
+    const situacao=c.valor<=livre
+      ? `cabe no livre do mês e sobram ${formatBRL(livre-c.valor)}`
+      : `não cabe no livre do mês, faltam ${formatBRL(c.valor-livre)}`;
+    linhas.push(`Compra planejada ${c.nome} (${formatBRL(c.valor)}): ${situacao}${c.cartao?'; está marcada para o cartão, então entra na fatura em vez de sair do saldo agora':''}.`);
+  });
+  (data.metas||[]).forEach(m=>{
+    const falta=Math.max(0,(m.valorAlvo||0)-(m.valorGuardado||0));
+    if(falta<=0){ linhas.push(`Meta ${m.nome}: já completa.`); return; }
+    const meses=m.aporteMensal>0?Math.ceil(falta/m.aporteMensal):null;
+    linhas.push(`Meta ${m.nome}: faltam ${formatBRL(falta)}${meses?`; só com o aporte automático de ${formatBRL(m.aporteMensal)}/mês, ${meses} ${meses===1?'mês':'meses'}`:'; sem aporte automático, não há prazo calculado'}.`);
+  });
+  const cat=computeCategoryBreakdown();
+  Object.entries(data.orcamentos||{}).filter(([,v])=>v>0).forEach(([c,teto])=>{
+    const gasto=cat.entries.find(([cc])=>cc===c)?.[1]||0;
+    linhas.push(gasto>teto
+      ? `Teto de ${categoriaLabel(c)}: estourado em ${formatBRL(gasto-teto)} (${formatBRL(gasto)} de ${formatBRL(teto)}).`
+      : `Teto de ${categoriaLabel(c)}: dentro, restam ${formatBRL(teto-gasto)}.`);
+  });
+  const anoA=today().getFullYear(), mesA=today().getMonth()+1;
+  let pm=mesA-1, pa=anoA; if(pm<1){ pm=12; pa--; }
+  const atual=computeMonthSpend(anoA,mesA), passado=computeMonthSpend(pa,pm);
+  if(passado>0) linhas.push(`Gasto do mês contra o anterior: ${atual>=passado?'subiu':'caiu'} ${formatBRL(Math.abs(atual-passado))}.`);
+  const custoEss=custoMensalEssencial();
+  if(custoEss>0){
+    const alvo=custoEss*(data.reservaMeses||3), falta=Math.max(0,alvo-(data.reservaGuardado||0));
+    linhas.push(falta>0?`Reserva de emergência: faltam ${formatBRL(falta)} para o alvo.`:'Reserva de emergência: alvo atingido.');
+  }
+  const dividas=(data.dividas||[]).filter(d=>!d.quitado).reduce((s,d)=>s+restanteDivida(d),0);
+  const faturas=(data.faturas||[]).filter(f=>!f.pago).reduce((s,f)=>s+f.valor+(f.gastos||[]).filter(g=>!g.pago).reduce((x,g)=>x+g.valor,0),0);
+  if(dividas>0&&faturas>0) linhas.push(`Dívidas com pessoas ${formatBRL(dividas)} + faturas pendentes ${formatBRL(faturas)} = ${formatBRL(dividas+faturas)}.`);
+  return linhas.length?'FATOS JÁ CALCULADOS (confiáveis; use-os em vez de refazer as contas):\n- '+linhas.join('\n- '):'';
+}
+
+/* As regras valem para qualquer modelo. Cada uma nasceu de uma resposta real
+   de teste: juros inventados, ordem dada ("quite tudo agora"), média por dia
+   tirada de um número que não sustenta média. */
+function regrasParaIA(){
+  return `REGRAS (valem acima de tudo):
+1) Use somente números que aparecem nos dados ou nos fatos calculados. Pode somar ou subtrair dois deles; qualquer outra conta (média, divisão, projeção) você não faz — diga que esse cálculo não está disponível.
+2) Nunca cite juros, taxas, rendimentos, percentuais ou preços que não estejam nos dados.
+3) Não dê ordens. Mostre as opções e o que cada uma muda, com os números dados, e deixe a decisão com a pessoa.
+4) Se faltar um dado, diga qual falta.
+5) Tom calmo e claro, sem alarmar.`;
+}
+
+/* Pergunta, confere e, se a resposta trouxe número de fora, pede de novo uma
+   vez dizendo qual foi. Se a segunda também vier com número de fora, a pessoa
+   NÃO vê o texto: uma resposta errada mostrada com confiança é o pior caso. */
+async function consultarIAConferindo(prompt,aoTentarDeNovo){
+  let texto=await chamarProvedorIA(prompt,aoTentarDeNovo);
+  let v=verificarRespostaIA(texto,prompt);
+  if(v.ok) return texto;
+  const corrigir=`${prompt}\n\nATENÇÃO: uma resposta anterior citou ${v.suspeitos.join(', ')}, que não está nos dados nem é soma ou diferença direta de dois deles. Responda de novo usando apenas os números dos dados e dos fatos calculados. Se a pergunta exigir outra conta, diga que esse cálculo não está disponível.`;
+  texto=await chamarProvedorIA(corrigir,aoTentarDeNovo);
+  v=verificarRespostaIA(texto,prompt);
+  if(v.ok) return texto;
+  return L('ia.respostaBloqueada');
+}
+
+/* Um lugar só decide para onde a pergunta vai. Tudo acima (resumo, fatos,
+   regras, conferência) é igual para os dois serviços. */
+function chamarProvedorIA(prompt,aoTentarDeNovo){
+  return iaProvedor()==='nvidia'?chamarNvidia(prompt,aoTentarDeNovo):chamarGemini(prompt,aoTentarDeNovo);
+}
+
+/* A NVIDIA não aceita chamada direta do navegador (o preflight volta sem
+   Access-Control-Allow-Origin), então a pergunta passa por api/ia-nvidia.js,
+   que repassa e não guarda nada. O modelo é escolhido lá. */
+async function chamarNvidia(prompt,aoTentarDeNovo){
+  const chave=getIaChave();
+  let ultimoStatus=0;
+  for(let tentativa=1;tentativa<=IA_TENTATIVAS;tentativa++){
+    const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),60000);
+    try{
+      const res=await fetch('/api/ia-nvidia',{
+        method:'POST', signal:ctrl.signal,
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+chave},
+        body:JSON.stringify({prompt})
+      });
+      if(res.ok){
+        const json=await res.json();
+        const texto=json&&typeof json.texto==='string'?json.texto.trim():'';
+        if(!texto) throw new Error(L('ia.erroVazio'));
+        return texto;
+      }
+      if(res.status===401||res.status===403) throw new Error(L('ia.erroChave'));
+      ultimoStatus=res.status;
+      if(!IA_STATUS_PASSAGEIRO.has(res.status)) throw new Error(L('ia.erroConexao').replace('{status}',res.status));
+    }catch(e){
+      if(e&&e.name==='AbortError') ultimoStatus=ultimoStatus||504;
+      else throw e;
+    }finally{ clearTimeout(to); }
+    if(tentativa<IA_TENTATIVAS){
+      if(aoTentarDeNovo) aoTentarDeNovo(tentativa);
+      await new Promise(r=>setTimeout(r,1200*tentativa));
+    }
+  }
+  throw new Error(L(ultimoStatus===429?'ia.erroLimiteNvidia':'ia.erroOcupado'));
+}
+
 
 async function chamarGemini(prompt,aoTentarDeNovo){
   const chave=getIaChave();
@@ -119,7 +230,7 @@ async function chamarGemini(prompt,aoTentarDeNovo){
       const res=await fetch(url,{
         method:'POST', signal:ctrl.signal,
         headers:{'Content-Type':'application/json','x-goog-api-key':chave},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.2}})
       });
       if(res.ok){
         const json=await res.json();

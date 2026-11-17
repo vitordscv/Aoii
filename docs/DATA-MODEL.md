@@ -342,8 +342,10 @@ Origem ausente/ambígua não escolhe um cartão arbitrário nem cria despesa.
 |---|---|
 | `financas-sync-code` | código de sincronização de 12 caracteres nos códigos novos |
 | `financas-ia-chave` | chave da API do Gemini |
+| `financas-ia-chave-nvidia` | chave da API da NVIDIA |
+| `financas-ia-provedor` | serviço de IA escolhido neste aparelho (`gemini` ou `nvidia`) |
 
-Nenhum dos dois entra no backup nem no conteúdo financeiro sincronizado. O
+Nenhum deles entra no backup nem no conteúdo financeiro sincronizado. O
 código identifica a linha no Supabase; a chave da IA não sai do aparelho e
 **não deveria** ficar guardada em texto puro. Ver [SECURITY.md](SECURITY.md).
 

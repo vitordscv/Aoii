@@ -1947,3 +1947,29 @@ navegador desenhar. O dublê troca de resposta no meio do teste — primeira lev
 com conta estranha e conexão caída, segunda só com a estranha — e a última
 conferência confirma o plano confirmando de verdade: a conta desconhecida valia
 R$ 5.000, e o saldo não se mexeu.
+
+## 17/11 - IA da NVIDIA como opção, e a resposta conferida
+
+**Escolha do serviço.** Nas Configurações da IA dá para escolher Google Gemini
+ou NVIDIA. Cada serviço tem a própria chave (`financas-ia-chave` continua sendo
+a do Gemini, para quem já usava não colar de novo); a escolha mora no aparelho,
+como a chave, fora do backup e da nuvem. Desligar a IA apaga as duas.
+
+**Por que uma ponte.** A NVIDIA não manda `Access-Control-Allow-Origin`, a
+mesma situação do Pierre. `api/ia-nvidia.js` repete o desenho de
+`api/pierre.js`: chave de quem usa, repassada e esquecida; nada registrado;
+modelo fixo para a função não virar ponte aberta.
+
+**Por que esse modelo.** Teste com dados fictícios, 12 perguntas (contas,
+perguntas sem dado disponível, opinião). O Nemotron Ultra acertou as contas e
+respondeu em ~6 s; o Mistral Large 4 levou ~28 s e devolveu respostas vazias; o
+Nemotron Lightning também devolveu vazias. Não houve comparação com o Gemini:
+pediria a chave do Gemini de alguém.
+
+**A conferência vale para os dois serviços.** O modelo escolhido, sem ajuda,
+inventou juros e rendimento. Com os fatos calculados pelo código e as regras,
+35 de 36 respostas saíram sem número de fora; a que sobrou é o caso que
+`verificarRespostaIA()` existe para pegar. Soma e diferença de dois valores
+enviados passam; divisão e média não, de propósito. A temperatura do Gemini
+também baixou para 0,2.
+

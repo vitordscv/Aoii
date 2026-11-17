@@ -33,7 +33,7 @@ src/data/          constantes, ids, estado, esquema e validação
 src/i18n/          um arquivo por idioma (pt, en, es, fr, it)
 src/core/          regras, comandos e cálculos financeiros
 src/storage/       localStorage e sincronização
-src/integrations/  Gemini, BrasilAPI
+src/integrations/  Gemini, NVIDIA, BrasilAPI
 src/ui/            desenho e eventos
 src/styles/        tokens, temas, componentes
 public/            service worker e artes de fundo

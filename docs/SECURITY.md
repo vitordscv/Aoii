@@ -20,7 +20,8 @@ rotina e a situação de alguém.
 | quem pega o aparelho desbloqueado | ler tudo em `localStorage` | sem proteção — é o mesmo risco de qualquer app local |
 | quem descobre um código de sincronização | atacar a cópia na nuvem | tabela fora do REST, escrita só por RPC com token, e todas as linhas cifradas desde 11/09/2026 — sem a senha, o código sozinho é endereço, não chave |
 | quem manda um backup/código adulterado | tentar injetar HTML e propriedades no objeto | branch valida as entradas e verifica escapes por lint |
-| o Google (Gemini) | ler o resumo financeiro enviado | só com a IA ligada; sem nome de pessoa, banco ou empregador — cartões vão numerados |
+| o Google (Gemini) ou a NVIDIA | ler o resumo financeiro enviado | só com a IA ligada, no serviço que a pessoa escolheu; sem nome de pessoa, banco ou empregador — cartões vão numerados |
+| o deploy do Aoii na Vercel | ver a chave da NVIDIA e o resumo em trânsito | só com a NVIDIA escolhida: `api/ia-nvidia.js` repassa sem registrar nada |
 | a Vercel | pageviews | script de analytics padrão |
 | a BrasilAPI | saber que alguém consultou CDI/Selic | consulta sem dado pessoal |
 
@@ -34,6 +35,8 @@ rotina e a situação de alguém.
 | `financas-sync-code` | identificador de sincronização (12 caracteres nos códigos novos) |
 | `financas-sync-estado:<ambiente>:<codigo>` | geração, revisão confirmada e pendência; sem senha ou token |
 | `financas-ia-chave` | chave da API do Gemini, **em texto puro** |
+| `financas-ia-chave-nvidia` | chave da API da NVIDIA, **em texto puro**, mesmas regras da do Gemini |
+| `financas-ia-provedor` | `gemini` ou `nvidia`; só a escolha, sem dado |
 
 **Enviado ao Supabase pelo branch**: envelope AES-GCM, inclusive nos snapshots
 novos. A senha não sai do aparelho; o token derivado é enviado à RPC. Depois da
@@ -53,7 +56,26 @@ exportados e apagados em 11/09/2026 — hoje não há nenhum.
 > depois: **5 linhas, 5 cifradas, 0 em texto puro**. Snapshots novos já nascem
 > cifrados, então isto era faxina do passado, não remendo permanente.
 
-**Enviado ao Gemini** (só com a IA ligada e chave própria): um resumo montado
+**A resposta da IA é conferida antes de aparecer** (desde 17/11/2026). Todo
+valor em dinheiro, percentual ou número com separador que ela citar precisa
+estar no que foi enviado, ou ser soma ou diferença direta de dois desses
+valores — `verificarRespostaIA()` em `src/core/ia-guarda.js`. Se não estiver,
+o app pede de novo uma vez dizendo qual número veio de fora; se a segunda
+resposta também falhar, a pessoa vê um aviso e **não** vê o texto. Junto com o
+resumo vão os fatos já calculados pelo código (`fatosCalculadosParaIA()`) e
+regras que proíbem juros, taxas e médias inventados e ordens ("quite tudo").
+Nasceu de um teste com dados fictícios em que um modelo acertou as contas e
+ainda escreveu "o cartão cobra ~300% ao ano".
+
+**NVIDIA** (opcional, escolhida nas Configurações): o navegador não consegue
+chamar a NVIDIA direto (o preflight volta sem `Access-Control-Allow-Origin`),
+então a pergunta passa por `api/ia-nvidia.js`. A ponte aceita só `POST`, só
+chave `nvapi-…`, pergunta de até 40 mil caracteres, usa sempre o mesmo modelo
+(`nvidia/nemotron-3-ultra-550b-a55b`) e não repassa o corpo dos erros da
+NVIDIA, que pode ecoar a chave. Trocar o modelo pede refazer o teste de
+qualidade antes.
+
+**Enviado ao Gemini ou à NVIDIA** (só com a IA ligada e chave própria): um resumo montado
 por `montarResumoFinanceiroParaIA()` — saldo, projeção, gastos por categoria,
 saúde financeira, faturas pendentes, reserva, investimentos, compras planejadas
 e os **nomes que a própria pessoa deu** às metas, viagens e gastos fixos.

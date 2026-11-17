@@ -27,6 +27,21 @@ function renderSettings(){
     iaCheck.checked=data.iaAtiva===true;
     if(iaFields) iaFields.style.display=data.iaAtiva===true?'block':'none';
   }
+  /* o serviço escolhido decide qual chave aparece no campo, o texto do campo e
+     a quem a ajuda diz que os dados vão */
+  const provedor=iaProvedor();
+  document.querySelectorAll('#ia-provedor .segmented-btn').forEach(btn=>{
+    const ativo=btn.getAttribute('data-provedor')===provedor;
+    btn.classList.toggle('active',ativo); btn.setAttribute('aria-pressed',ativo?'true':'false');
+  });
+  document.querySelectorAll('#ia-fields [data-ia-provedor]').forEach(el=>{ el.hidden=el.getAttribute('data-ia-provedor')!==provedor; });
+  if(iaChaveInput){
+    const ph=provedor==='nvidia'?'ph.colaChaveNvidia':'ph.colaChaveGemini';
+    iaChaveInput.setAttribute('data-i18n-placeholder',ph);
+    iaChaveInput.setAttribute('data-i18n-aria-label',ph);
+    iaChaveInput.placeholder=L(ph);
+    iaChaveInput.setAttribute('aria-label',L(ph));
+  }
   if(iaChaveInput && document.activeElement!==iaChaveInput) iaChaveInput.value=getIaChave();
   const pierreCheck=document.getElementById('pierre-ativo-check');
   const pierreCampos=document.getElementById('pierre-campos');
