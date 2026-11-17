@@ -49,9 +49,17 @@
 
 /* tooltip interativo dos gráficos */
 .chart-card,.patrimonio-chart-wrap{position:relative;}
-.chart-tooltip{position:absolute;pointer-events:none;background:var(--ink-navy);color:var(--cream);font-family:'Nunito Sans',sans-serif;font-size:11px;padding:6px 9px;border-radius:8px;box-shadow:0 8px 20px -6px rgba(11,24,48,.4);white-space:nowrap;transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;z-index:5;}
+.chart-tooltip{position:absolute;pointer-events:none;background:var(--ink-navy);color:var(--cream);font-family:'Nunito Sans',sans-serif;font-size:11px;padding:6px 9px;border-radius:8px;box-shadow:0 8px 20px -6px rgba(11,24,48,.4);max-width:min(260px,72vw);transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;z-index:5;}
 .chart-tooltip.visible{opacity:1;}
 .chart-tooltip .tt-date{opacity:.7;font-size:10px;display:block;}
+.chart-tooltip .tt-balance{font-weight:700;display:block;white-space:nowrap;}
+.tt-planned{border-top:1px solid color-mix(in srgb,var(--cream) 24%,transparent);margin-top:5px;padding-top:5px;display:grid;gap:3px;}
+.tt-planned-title{font-size:10px;opacity:.8;}
+.tt-planned-item{display:flex;gap:10px;justify-content:space-between;align-items:baseline;}
+.tt-planned-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tt-planned-item b{white-space:nowrap;color:#ffcfad;}
+.tt-planned-total{font-size:10px;font-weight:700;color:#ffcfad;margin-top:2px;}
+.chart-detail-hint{margin-left:auto;opacity:.72;font-size:10.5px;}
 .tt-guide{stroke:var(--muted2);stroke-width:1;stroke-dasharray:3,3;opacity:0;transition:opacity .12s;}
 .tt-guide.visible{opacity:.7;}
 

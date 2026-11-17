@@ -97,5 +97,10 @@ const I18N_IT={'nav.entradas':'Entrate','nav.fixos':'Bollette','nav.resumo':'Pan
 ,
 'compra.vinculada':"Le rate sono già registrate sulla carta. Correggi le voci nelle fatture; riaprire questo acquisto conterebbe l’importo due volte."
 ,
-'date.projecaoVencida':"La data di questa previsione è passata. Aggiorna la data sopra per pianificare."
+'date.projecaoVencida':"La data di questa previsione è passata. Aggiorna la data sopra per pianificare.",
+'chart.comprasHint':"Passa il mouse o tocca un punto per vedere gli acquisti pianificati.",
+'chart.comprasNoMes':"Acquisti pianificati questo mese",
+'chart.impactoNoSaldo':"Impatto sul saldo: −{valor}",
+'chart.pontoComCompras':"{mes}: acquisti pianificati di {valor}. Tocca o premi Invio per i dettagli.",
+'chart.pontoSaldo':"{mes}: saldo previsto di {valor}."
 };

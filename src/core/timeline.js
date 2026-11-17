@@ -54,7 +54,7 @@ function _buildTimeline(opts){
     }
     return mesAtual;
   };
-  const extrasPorMes=new Map(), comprasPorMes=new Map(), dividasPorMes=new Map();
+  const extrasPorMes=new Map(), comprasPorMes=new Map(), comprasItensPorMes=new Map(), dividasPorMes=new Map();
   const soma=(map,k,v)=>map.set(k,(map.get(k)||0)+(v||0));
 
   /* Entrada extra e dívida são o mesmo movimento com o sinal trocado: um
@@ -81,7 +81,13 @@ function _buildTimeline(opts){
   };
   espalhar(data.entradasExtras,extrasPorMes,'feito',restanteEntrada);
   espalhar(data.dividas,dividasPorMes,'quitado',restanteDivida);
-  (data.comprasPlanejadas||[]).forEach(c=>{ if(!c.feito&&c.id!==opts.exceto) soma(comprasPorMes,mesDoItem(c),c.valor); });
+  (data.comprasPlanejadas||[]).forEach(c=>{
+    if(c.feito||c.id===opts.exceto) return;
+    const k=mesDoItem(c);
+    soma(comprasPorMes,k,c.valor);
+    if(!comprasItensPorMes.has(k)) comprasItensPorMes.set(k,[]);
+    comprasItensPorMes.get(k).push({id:c.id,nome:c.nome||'',valor:c.valor||0});
+  });
 
   /* aportes automáticos das metas saem da conta todo mês, até a meta encher */
   const metasAtivas=(data.metas||[]).filter(m=>m.aporteMensal>0);
@@ -113,7 +119,7 @@ function _buildTimeline(opts){
     });
     const delta=m.saldoMes+extras-compras-aportes-dividas;
     cum+=delta;
-    pontos.push({k,ano,mes,fs,m,extras,compras,dividas,aportes,delta,value:cum,isPast:m.isPast,
+    pontos.push({k,ano,mes,fs,m,extras,compras,comprasPlanejadas:comprasItensPorMes.get(k)||[],dividas,aportes,delta,value:cum,isPast:m.isPast,
       label:MONTH_ABBR[mes-1],monthLabel:MONTH_NAMES[mes-1]+'/'+ano});
   }
   return pontos;

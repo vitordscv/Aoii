@@ -2,10 +2,11 @@
 /* ── trajetória de saldo (compartilhada pelo gráfico e pelas sugestões de compra) ── */
 function getTrajectoryPoints(opts){
   const inicial=data.saldoAtual+(data.dinheiroVivo||0);
-  const points=[{label:L('cal.hoje'),monthLabel:L('cal.agora'),value:inicial}];
+  const points=[{label:L('cal.hoje'),monthLabel:L('cal.agora'),value:inicial,comprasPlanejadas:[],compras:0}];
   buildTimeline(opts).forEach(p=>{
     if(p.isPast) return; // meses já encerrados só entram no acumulado, não no desenho
-    points.push({label:p.label,monthLabel:p.monthLabel,value:p.value});
+    points.push({label:p.label,monthLabel:p.monthLabel,value:p.value,
+      comprasPlanejadas:p.comprasPlanejadas||[],compras:p.compras||0});
   });
   return points;
 }
@@ -76,7 +77,12 @@ function renderChart(){
     if(i===minIdx&&minIdx!==0){ color='var(--neg)'; r=5.5; }
     if(p.value<0) color='var(--neg)';
     const showLabel=(i===maxIdx&&maxIdx!==0)||(i===minIdx&&minIdx!==0)||i===0||i===points.length-1;
-    return `<circle cx="${x(i)}" cy="${y(p.value)}" r="${r}" fill="${color}" stroke="var(--white)" stroke-width="1.5" data-tt="${esc(p.monthLabel)}" data-tt-val="${esc(formatBRL(p.value))}"/>
+    const compras=p.comprasPlanejadas||[];
+    const detalhe=compras.length?JSON.stringify({compras,total:p.compras||0}):'';
+    const aria=compras.length
+      ?L('chart.pontoComCompras').replace('{mes}',p.monthLabel).replace('{valor}',formatBRL(p.compras||0))
+      :L('chart.pontoSaldo').replace('{mes}',p.monthLabel).replace('{valor}',formatBRL(p.value));
+    return `<circle cx="${x(i)}" cy="${y(p.value)}" r="${r}" fill="${color}" stroke="var(--white)" stroke-width="1.5" tabindex="0" role="button" aria-label="${esc(aria)}" data-tt="${esc(p.monthLabel)}" data-tt-val="${esc(formatBRL(p.value))}"${detalhe?` data-tt-details="${esc(detalhe)}"`:''}/>
       ${showLabel?`<text x="${x(i)}" y="${y(p.value)-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="10.5" fill="${color}">${formatBRL(p.value)}</text>`:''}`;
   }).join('');
 
@@ -101,6 +107,7 @@ function renderChart(){
       <span><i style="background:var(--pos)"></i> ${L('cal.legendaMelhor')}</span>
       <span><i style="background:var(--neg)"></i> ${L('cal.legendaApertado')}</span>
       <span><i style="background:var(--disney-blue-deep)"></i> ${L('cal.trajetoriaPrevista')}</span>
+      <span class="chart-detail-hint">${L('chart.comprasHint')}</span>
     </div>`;
   attachChartTooltip(card);
 }

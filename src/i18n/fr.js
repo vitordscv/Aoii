@@ -97,5 +97,10 @@ const I18N_FR={'nav.entradas':'Revenus','nav.fixos':'Factures','nav.resumo':'Ape
 ,
 'compra.vinculada':"Les échéances sont déjà enregistrées sur la carte. Corrigez les lignes des factures ; rouvrir cet achat compterait le montant deux fois."
 ,
-'date.projecaoVencida':"La date de cette projection est passée. Actualisez la date ci-dessus pour planifier."
+'date.projecaoVencida':"La date de cette projection est passée. Actualisez la date ci-dessus pour planifier.",
+'chart.comprasHint':"Survolez ou touchez un point pour voir les achats prévus.",
+'chart.comprasNoMes':"Achats prévus ce mois-ci",
+'chart.impactoNoSaldo':"Impact sur le solde : −{valor}",
+'chart.pontoComCompras':"{mes} : achats prévus de {valor}. Touchez ou appuyez sur Entrée pour les détails.",
+'chart.pontoSaldo':"{mes} : solde prévisionnel de {valor}."
 };

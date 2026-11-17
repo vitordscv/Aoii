@@ -97,5 +97,10 @@ const I18N_PT={'nav.entradas':'Entradas','nav.fixos':'Fixos','nav.resumo':'Resum
 ,
 'compra.vinculada':"Parcelas já registradas no cartão. Corrija os lançamentos nas faturas; reabrir esta compra faria o valor contar duas vezes."
 ,
-'date.projecaoVencida':"A data desta projeção já passou. Atualize a data acima para planejar os próximos dias."
+'date.projecaoVencida':"A data desta projeção já passou. Atualize a data acima para planejar os próximos dias.",
+'chart.comprasHint':"Passe ou toque em um ponto para ver as compras planejadas.",
+'chart.comprasNoMes':"Compras planejadas neste mês",
+'chart.impactoNoSaldo':"Impacto no saldo: −{valor}",
+'chart.pontoComCompras':"{mes}: compras planejadas de {valor}. Toque ou pressione Enter para ver os detalhes.",
+'chart.pontoSaldo':"{mes}: saldo projetado de {valor}."
 };

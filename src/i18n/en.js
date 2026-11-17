@@ -97,5 +97,10 @@ const I18N_EN={'nav.entradas':'Income','nav.fixos':'Bills','nav.resumo':'Overvie
 ,
 'compra.vinculada':"Installments are already recorded on the card. Adjust the invoice entries; reopening this purchase would count the amount twice."
 ,
-'date.projecaoVencida':"This projection date has passed. Update the date above to plan ahead."
+'date.projecaoVencida':"This projection date has passed. Update the date above to plan ahead.",
+'chart.comprasHint':"Hover or tap a point to see planned purchases.",
+'chart.comprasNoMes':"Planned purchases this month",
+'chart.impactoNoSaldo':"Impact on balance: −{valor}",
+'chart.pontoComCompras':"{mes}: planned purchases of {valor}. Tap or press Enter for details.",
+'chart.pontoSaldo':"{mes}: projected balance of {valor}."
 };

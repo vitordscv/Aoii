@@ -94,6 +94,22 @@ function attachChartTooltip(container){
   let tip=container.querySelector('.chart-tooltip');
   if(!tip){ tip=document.createElement('div'); tip.className='chart-tooltip'; container.appendChild(tip); }
   function hide(){ tip.classList.remove('visible'); guide.classList.remove('visible'); }
+  function mostrar(best){
+    if(!best) return;
+    const cx=parseFloat(best.getAttribute('cx')), cy=parseFloat(best.getAttribute('cy'));
+    guide.setAttribute('x1',String(cx)); guide.setAttribute('x2',String(cx));
+    guide.classList.add('visible');
+    let detalhes=null;
+    try{ detalhes=JSON.parse(best.getAttribute('data-tt-details')||''); }catch(e){}
+    const lista=detalhes&&detalhes.compras&&detalhes.compras.length
+      ?`<div class="tt-planned"><span class="tt-planned-title">${esc(L('chart.comprasNoMes'))}</span>${detalhes.compras.map(c=>`<span class="tt-planned-item"><span>${esc(c.nome)}</span><b>−${esc(formatBRL(c.valor))}</b></span>`).join('')}<span class="tt-planned-total">${esc(L('chart.impactoNoSaldo').replace('{valor}',formatBRL(detalhes.total)))}</span></div>`
+      :'';
+    tip.innerHTML=`<span class="tt-date">${esc(best.getAttribute('data-tt')||'')}</span><span class="tt-balance">${esc(best.getAttribute('data-tt-val')||'')}</span>${lista}`;
+    const contRect=container.getBoundingClientRect(),rect=svg.getBoundingClientRect();
+    tip.style.left=(rect.left-contRect.left+cx*(rect.width/vb.width))+'px';
+    tip.style.top =(rect.top -contRect.top +cy*(rect.height/vb.height))+'px';
+    tip.classList.add('visible');
+  }
   function move(e){
     const rect=svg.getBoundingClientRect();
     if(!rect.width) return;
@@ -104,19 +120,15 @@ function attachChartTooltip(container){
       const dist=Math.abs(cx-sx);
       if(dist<bd){ bd=dist; best=d; }
     });
-    if(!best) return;
-    const cx=parseFloat(best.getAttribute('cx')), cy=parseFloat(best.getAttribute('cy'));
-    guide.setAttribute('x1',String(cx)); guide.setAttribute('x2',String(cx));
-    guide.classList.add('visible');
-    tip.innerHTML=`<span class="tt-date">${esc(best.getAttribute('data-tt')||'')}</span>${esc(best.getAttribute('data-tt-val')||'')}`;
-    const contRect=container.getBoundingClientRect();
-    tip.style.left=(rect.left-contRect.left+cx*(rect.width/vb.width))+'px';
-    tip.style.top =(rect.top -contRect.top +cy*(rect.height/vb.height))+'px';
-    tip.classList.add('visible');
+    mostrar(best);
   }
   svg.addEventListener('pointermove',move);
   svg.addEventListener('pointerdown',move);
   svg.addEventListener('pointerleave',hide);
+  dots.forEach(dot=>dot.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    e.preventDefault(); mostrar(dot);
+  }));
 }
 
 /* ── um envio por vez ───────────────────────────────────────────────────────
