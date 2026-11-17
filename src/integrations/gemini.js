@@ -86,20 +86,30 @@ function limitesDoResumoParaIA(){
 Se a pergunta depender de algo dessa lista, diga com todas as letras que o dado não está disponível e responda com o que dá, em vez de estimar.`;
 }
 
+/* O papel vem ANTES dos dados. Com "você é um consultor financeiro" no topo
+   e a liberdade só lá no meio das regras, o modelo seguia respondendo "só falo
+   das suas finanças" — a primeira frase pesa mais do que a quinta regra. */
+function papelDaIA(){
+  return `Você é o assistente do Aoii, um app de finanças pessoais. Responda em ${idiomaNomeCompleto()}. Você conversa sobre QUALQUER assunto que a pessoa trouxer — finanças, compras, carreira, tecnologia, curiosidades, contas, opiniões, ideias — como um amigo esperto e direto. Nunca recuse uma pergunta por não ser de finanças. Quando o assunto for o dinheiro dela, aí você usa os dados abaixo com rigor.`;
+}
+function fechoDaIA(){
+  return 'Responda de forma curta (até 6 frases), sem rodeios. Se não for sobre as finanças dela, responda normalmente, com sua opinião se fizer sentido.';
+}
+
 function idiomaNomeCompleto(){ return ({pt:'português do Brasil',en:'English',es:'español',fr:'français',it:'italiano'})[data.idioma||'pt']; }
 async function perguntarIA(pergunta,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const prompt=`Você é o assistente do Aoii: um consultor financeiro pessoal, direto e prático, que também conversa sobre outros assuntos e dá opinião quando pedem, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(pergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda de forma curta (até 6 frases), sem rodeios.`;
+  const prompt=`${papelDaIA()}\n\nDados financeiros atuais do usuário (use quando a pergunta for sobre as finanças dele):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(pergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\n${fechoDaIA()}`;
   return consultarIAConferindo(prompt,aoTentarDeNovo,pergunta);
 }
 
 /* ── mesma coisa, mas mantendo o histórico da conversa do chat (reanalisa os dados a cada pergunta) ── */
 async function perguntarIAComHistorico(historico,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Consultor'}: ${h.texto}`).join('\n');
+  const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Assistente'}: ${h.texto}`).join('\n');
   const falas=historico.filter(h=>h.role==='user').map(h=>h.texto);
   const ultimaPergunta=falas[falas.length-1]||'';
-  const prompt=`Você é o assistente do Aoii: um consultor financeiro pessoal, direto e prático, que também conversa sobre outros assuntos e dá opinião quando pedem, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(ultimaPergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário de forma curta (até 6 frases), sem rodeios.`;
+  const prompt=`${papelDaIA()}\n\nDados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta; use quando a pergunta for sobre as finanças dele):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(ultimaPergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nSe alguma resposta anterior desta conversa recusou um assunto por não ser de finanças, aquela recusa estava errada: agora responda de verdade.\n\n${fechoDaIA()}`;
   return consultarIAConferindo(prompt,aoTentarDeNovo,falas.join('\n'));
 }
 

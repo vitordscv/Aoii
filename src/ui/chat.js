@@ -58,7 +58,7 @@ function setupIaChatSheet(){
     ajustarAltura();                 // volta a uma linha depois de enviar
     addMsg('user',pergunta);
     historico.push({role:'user',texto:pergunta});
-    const loadingEl=addMsg('bot loading',L('ia.analisando'));
+    const loadingEl=addMsg('bot loading',L('ia.pensando'));
     sendBtn.disabled=true;
     try{
       const resposta=await perguntarIAComHistorico(historico,()=>{
