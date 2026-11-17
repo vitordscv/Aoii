@@ -73,27 +73,100 @@ function numerosConferiveis(texto){
   return achados;
 }
 
-/* aceita v se ele está na lista ou é soma/diferença de dois valores de base */
-function bateComLista(v,lista,base){
+/* aceita v se ele está na lista, se é soma/diferença de dois valores de base,
+   ou se é um valor de base multiplicado ou dividido por uma contagem (2 a
+   120: meses, parcelas, pessoas) que aparece no texto — "R$ 500 por mês em 12
+   meses dá R$ 6.000", "R$ 1.200 em 4 parcelas de R$ 300". */
+function bateComLista(v,lista,base,contagens){
   const conjunto=new Set(lista);
   if(conjunto.has(v)) return true;
   const ops=new Set(base||lista);
   for(const a of ops){
     if(ops.has(Math.round((v-a)*100)/100)) return true;
     if(ops.has(Math.round((a-v)*100)/100)) return true;
+    for(const k of contagens||[]){
+      if(Math.abs(a*k-v)<0.011||Math.abs(a/k-v)<0.011) return true;
+    }
   }
   return false;
 }
 
-function verificarRespostaIA(resposta,fonte){
-  /* repetir um número enviado vale para qualquer número do texto; somar ou
-     subtrair só vale entre valores de dinheiro enviados. Somar dia do mês,
-     ano e contagem dava para "justificar" quase qualquer valor pequeno.
-     Multiplicação e divisão ficam de fora de propósito — é nelas que
-     aparecem as médias por dia e as projeções que o resumo não sustenta. */
+/* Conta pedida na pergunta ("20+20+20+7", "1.200 / 4", "10% de 3.500") é
+   resolvida aqui, e o resultado vai pronto para o modelo. Sem isso ele ou
+   errava a conta, ou — com a regra de não inventar número — se recusava a
+   somar o que a própria pessoa escreveu. Só + − × ÷ e parênteses; nada de
+   eval. */
+function contasDaPergunta(texto){
+  /* data não é conta: "17/11" não é dezessete dividido por onze, nem
+     "2026 - 2027" é menos um */
+  const t=String(texto||'').replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g,' ').replace(/\b(19|20)\d{2}\s*[-–]\s*(19|20)\d{2}\b/g,' ');
+  const contas=[];
+  const num='\\d{1,3}(?:[.,]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d+)?';
+  const termo='[(\\s]*(?:R\\$\\s?)?(?:'+num+')[)\\s]*';
+  const reExpr=new RegExp(termo+'(?:\\s*[-+*/x×÷]\\s*'+termo+')+','g');
+  for(const m of t.matchAll(reExpr)){
+    const expr=m[0].trim();
+    const r=avaliarConta(expr);
+    if(r!==null) contas.push({expressao:expr,resultado:r});
+  }
+  const rePct=new RegExp('('+num+')\\s?%\\s*(?:de|of|di|du)\\s*(?:R\\$\\s?)?('+num+')','gi');
+  for(const m of t.matchAll(rePct)){
+    const p=leiturasDoNumero(m[1])[0], b=leiturasDoNumero(m[2])[0];
+    if(p!==undefined&&b!==undefined) contas.push({expressao:m[0].trim(),resultado:Math.round(p*b)/100});
+  }
+  return contas;
+}
+
+/* avaliador pequeno: números, + − × ÷ e parênteses, com precedência */
+function avaliarConta(expr){
+  const fichas=[];
+  const re=/\s*(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d+)?|[-+*/x×÷()])/gy;
+  const limpa=String(expr).replace(/R\$\s?/g,'');
+  let m, fim=0;
+  while((m=re.exec(limpa))){ fichas.push(m[1]); fim=re.lastIndex; }
+  if(limpa.slice(fim).trim()||fichas.length<3) return null;
+  let i=0;
+  const ver=()=>fichas[i];
+  function fator(){
+    const f=fichas[i++];
+    if(f==='('){ const v=soma(); if(fichas[i++]!==')') throw new Error('parêntese'); return v; }
+    if(f==='-') return -fator();
+    const n=leiturasDoNumero(f)[0];
+    if(n===undefined) throw new Error('número');
+    return n;
+  }
+  function produto(){
+    let v=fator();
+    while(['*','/','x','×','÷'].includes(ver())){
+      const o=fichas[i++], d=fator();
+      if(o==='/'||o==='÷'){ if(d===0) throw new Error('divisão por zero'); v/=d; } else v*=d;
+    }
+    return v;
+  }
+  function soma(){
+    let v=produto();
+    while(ver()==='+'||ver()==='-'){ const o=fichas[i++]; const d=produto(); v=o==='+'?v+d:v-d; }
+    return v;
+  }
+  try{
+    const v=soma();
+    if(i!==fichas.length||!Number.isFinite(v)) return null;
+    return Math.round(v*100)/100;
+  }catch(e){ return null; }
+}
+
+function verificarRespostaIA(resposta,fonte,pergunta){
+  /* repetir um número enviado vale para qualquer número do texto. Somar,
+     subtrair, ou multiplicar/dividir por uma contagem vale entre valores de
+     dinheiro enviados e números que a pessoa escreveu na pergunta. Somar dia
+     do mês, ano e contagem entre si dava para "justificar" quase qualquer
+     valor pequeno; média por dia, rendimento ou projeção sem o dado
+     continuam barrados pelas regras e por aqui. */
   const valores=numerosDoTexto(fonte);
   const conferiveis=numerosConferiveis(fonte);
-  const dinheiro=conferiveis.filter(n=>!n.pct).flatMap(n=>n.valores);
+  const daPergunta=numerosDoTexto(pergunta||'');
+  const dinheiro=[...conferiveis.filter(n=>!n.pct).flatMap(n=>n.valores),...daPergunta];
+  const contagens=[...new Set(valores.filter(n=>Number.isInteger(n)&&n>=2&&n<=120))];
   /* percentual só bate com percentual: "300% ao ano" não vira verdade porque
      existe uma compra de R$ 300 nos dados */
   const percentuais=conferiveis.filter(n=>n.pct).flatMap(n=>n.valores);
@@ -102,7 +175,7 @@ function verificarRespostaIA(resposta,fonte){
     let ok;
     if(n.tolerancia) ok=n.valores.some(v=>dinheiro.some(d=>Math.abs(d-v)<n.tolerancia));
     else if(n.pct) ok=n.valores.some(v=>bateComLista(v,percentuais));
-    else ok=n.valores.some(v=>bateComLista(v,valores,dinheiro));
+    else ok=n.valores.some(v=>bateComLista(v,valores,dinheiro,contagens));
     if(!ok && !suspeitos.includes(n.texto)) suspeitos.push(n.texto);
   }
   return {ok:suspeitos.length===0,suspeitos};

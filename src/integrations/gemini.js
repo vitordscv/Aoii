@@ -89,16 +89,18 @@ Se a pergunta depender de algo dessa lista, diga com todas as letras que o dado 
 function idiomaNomeCompleto(){ return ({pt:'português do Brasil',en:'English',es:'español',fr:'français',it:'italiano'})[data.idioma||'pt']; }
 async function perguntarIA(pergunta,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return consultarIAConferindo(prompt,aoTentarDeNovo);
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros atuais do usuário:\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(pergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nPergunta do usuário: ${pergunta}\n\nResponda em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return consultarIAConferindo(prompt,aoTentarDeNovo,pergunta);
 }
 
 /* ── mesma coisa, mas mantendo o histórico da conversa do chat (reanalisa os dados a cada pergunta) ── */
 async function perguntarIAComHistorico(historico,aoTentarDeNovo){
   const resumo=montarResumoFinanceiroParaIA();
   const conversa=historico.map(h=>`${h.role==='user'?'Usuário':'Consultor'}: ${h.texto}`).join('\n');
-  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
-  return consultarIAConferindo(prompt,aoTentarDeNovo);
+  const falas=historico.filter(h=>h.role==='user').map(h=>h.texto);
+  const ultimaPergunta=falas[falas.length-1]||'';
+  const prompt=`Você é um consultor financeiro pessoal, direto e prático, respondendo em ${idiomaNomeCompleto()}. Aqui estão os dados financeiros ATUAIS do usuário (sempre atualizados a cada pergunta):\n\n${resumo}\n\n${fatosCalculadosParaIA()}${contasParaIA(ultimaPergunta)}\n\n${limitesDoResumoParaIA()}\n\n${regrasParaIA()}\n\nConversa até agora:\n${conversa}\n\nResponda à última pergunta do usuário em no máximo 5 frases, sem rodeios, com base nesses dados.`;
+  return consultarIAConferindo(prompt,aoTentarDeNovo,falas.join('\n'));
 }
 
 /* Respostas do Google que passam sozinhas: 503 é "estou cheio agora", 429 é
@@ -156,23 +158,33 @@ function fatosCalculadosParaIA(){
    tirada de um número que não sustenta média. */
 function regrasParaIA(){
   return `REGRAS (valem acima de tudo):
-1) Use somente números que aparecem nos dados ou nos fatos calculados. Pode somar ou subtrair dois deles; qualquer outra conta (média, divisão, projeção) você não faz — diga que esse cálculo não está disponível.
+1) Use os números dos dados, dos fatos calculados e os que a pessoa escreveu. Contas simples com eles (somar, subtrair, multiplicar ou dividir por meses ou parcelas) você pode fazer, mostrando a conta; se houver CONTAS DA PERGUNTA, use exatamente esses resultados. Não estime o que depende de dado que não existe (média por dia sem saber quantos dias, rendimento sem taxa, gasto de meses que não estão nos dados) — diga qual dado falta.
 2) Nunca cite juros, taxas, rendimentos, percentuais ou preços que não estejam nos dados.
 3) Não dê ordens. Mostre as opções e o que cada uma muda, com os números dados, e deixe a decisão com a pessoa.
 4) Se faltar um dado, diga qual falta.
-5) Tom calmo e claro, sem alarmar.`;
+5) Tom calmo e claro, sem alarmar.
+6) Pergunta que não é sobre as finanças (uma conta solta, uma dúvida geral) se responde direto, sem recusar.`;
+}
+
+/* A conta que a pessoa pediu, resolvida pelo app (contasDaPergunta). O
+   modelo só repete o resultado: "20+20+20+7" não depende dele somar bem. */
+function contasParaIA(texto){
+  const contas=contasDaPergunta(texto);
+  if(!contas.length) return '';
+  const fmt=n=>Number(n).toLocaleString(localeAtual(),{maximumFractionDigits:2});
+  return '\n\nCONTAS DA PERGUNTA (resolvidas pelo app, exatas):\n- '+contas.map(c=>c.expressao+' = '+fmt(c.resultado)).join('\n- ');
 }
 
 /* Pergunta, confere e, se a resposta trouxe número de fora, pede de novo uma
    vez dizendo qual foi. Se a segunda também vier com número de fora, a pessoa
    NÃO vê o texto: uma resposta errada mostrada com confiança é o pior caso. */
-async function consultarIAConferindo(prompt,aoTentarDeNovo){
+async function consultarIAConferindo(prompt,aoTentarDeNovo,pergunta){
   let texto=await chamarProvedorIA(prompt,aoTentarDeNovo);
-  let v=verificarRespostaIA(texto,prompt);
+  let v=verificarRespostaIA(texto,prompt,pergunta);
   if(v.ok) return texto;
-  const corrigir=`${prompt}\n\nATENÇÃO: uma resposta anterior citou ${v.suspeitos.join(', ')}, que não está nos dados nem é soma ou diferença direta de dois deles. Responda de novo usando apenas os números dos dados e dos fatos calculados. Se a pergunta exigir outra conta, diga que esse cálculo não está disponível.`;
+  const corrigir=`${prompt}\n\nATENÇÃO: uma resposta anterior citou ${v.suspeitos.join(', ')}, que não está nos dados nem sai de uma conta simples com eles ou com os números da pergunta. Responda de novo usando só esses números e, se houver, os resultados de CONTAS DA PERGUNTA. Se a resposta depender de um dado que não existe, diga qual falta.`;
   texto=await chamarProvedorIA(corrigir,aoTentarDeNovo);
-  v=verificarRespostaIA(texto,prompt);
+  v=verificarRespostaIA(texto,prompt,pergunta);
   if(v.ok) return texto;
   return L('ia.respostaBloqueada');
 }

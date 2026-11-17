@@ -58,8 +58,9 @@ exportados e apagados em 11/09/2026 — hoje não há nenhum.
 
 **A resposta da IA é conferida antes de aparecer** (desde 17/11/2026). Todo
 valor em dinheiro, percentual ou número com separador que ela citar precisa
-estar no que foi enviado, ou ser soma ou diferença direta de dois desses
-valores — `verificarRespostaIA()` em `src/core/ia-guarda.js`. Se não estiver,
+estar no que foi enviado, ser soma ou diferença de dois valores em dinheiro
+(dos dados ou da pergunta), ou um deles multiplicado ou dividido por uma
+contagem de 2 a 120 que aparece no texto (meses, parcelas) — `verificarRespostaIA()` em `src/core/ia-guarda.js`. Se não estiver,
 o app pede de novo uma vez dizendo qual número veio de fora; se a segunda
 resposta também falhar, a pessoa vê um aviso e **não** vê o texto. Junto com o
 resumo vão os fatos já calculados pelo código (`fatosCalculadosParaIA()`) e

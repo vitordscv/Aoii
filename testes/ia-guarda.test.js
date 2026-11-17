@@ -45,6 +45,29 @@ module.exports=function(t){
   t.igual(v.suspeitos.length,2,'cada número barrado aparece uma vez só');
   t.verdadeiro(ctx.verificarRespostaIA('Sem números aqui, só uma opinião calma.',fonte).ok,'resposta sem número passa');
 
+  console.log('\n\x1b[1mIA: contas que a pessoa pede\x1b[0m');
+  /* Antes desta rodada, "20+20+20+7 quanto dá?" recebia uma recusa: a regra
+     de não inventar número barrava até a conta que a própria pessoa
+     escreveu. Agora o app resolve a conta e o modelo só repete. */
+  const conta=q=>ctx.contasDaPergunta(q).map(c=>c.resultado);
+  t.igual(JSON.stringify(conta('20+20+20+7 quanto dá?')),'[67]','soma solta é resolvida pelo app');
+  t.igual(JSON.stringify(conta('quanto é 1.200 / 4?')),'[300]','divisão com milhar brasileiro');
+  t.igual(JSON.stringify(conta('(1.500,50 + 300) x 2')),'[3601]','parênteses e "x" como vezes');
+  t.igual(JSON.stringify(conta('2 + 3 * 4')),'[14]','multiplicação antes da soma');
+  t.igual(JSON.stringify(conta('quanto é 10% de 3.500?')),'[350]','percentual de um valor');
+  t.igual(JSON.stringify(conta('vence dia 17/11 e o outro 05/12/2026')),'[]','data não vira divisão');
+  t.igual(JSON.stringify(conta('planos de 2026 - 2027')),'[]','intervalo de anos não vira subtração');
+  t.igual(JSON.stringify(conta('dá pra comprar algo de 300?')),'[]','pergunta sem conta não inventa conta');
+  t.igual(ctx.avaliarConta('10 / 0'),null,'divisão por zero não devolve número');
+  const pergunta='Se eu guardar R$ 500 por mês, em 12 meses junto quanto?';
+  const comPergunta=fonte+' Pergunta do usuário: '+pergunta;
+  t.verdadeiro(ctx.verificarRespostaIA('Em 12 meses você junta R$ 6.000,00.',comPergunta,pergunta).ok,
+    'valor da pergunta vezes a contagem da pergunta passa (500 × 12)');
+  t.verdadeiro(ctx.verificarRespostaIA('Seriam 4 parcelas de R$ 875,00.',fonte+' em 4 parcelas','em 4 parcelas').ok,
+    'valor dos dados dividido em parcelas passa (3.500 ÷ 4)');
+  t.verdadeiro(!ctx.verificarRespostaIA('Em 12 meses você junta R$ 7.300,00.',comPergunta,pergunta).ok,
+    'resultado errado da mesma conta continua barrado');
+
   console.log('\n\x1b[1mIA: fatos já calculados\x1b[0m');
   const dados={idioma:'pt',moeda:'BRL',saldoAtual:2400,transacoes:[],gastosMensais:[],faturas:[{id:'f1',mes:11,ano:2026,valor:3500,pago:false,gastos:[]}],
     orcamentos:{Mercado:800,Lazer:500},

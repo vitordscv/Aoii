@@ -92,7 +92,7 @@ const FUNCOES=[
   'removerRendaRecorrente','restaurarRendaRecorrente','computeCategoryBreakdown','vencimentoDaFatura','computeCategoryDetalhe','computeCategoryPrevMonth',
   'computeGastoMesPorCategoria','definirOrcamento','computeMonthSpend','computeWeekSummary','computeDailyBudget',
   'temDadoParaSaude','computeSaudeFinanceira',
-  'leiturasDoNumero','numerosDoTexto','numerosConferiveis','bateComLista','verificarRespostaIA','fatosCalculadosParaIA',
+  'leiturasDoNumero','numerosDoTexto','numerosConferiveis','bateComLista','contasDaPergunta','avaliarConta','verificarRespostaIA','fatosCalculadosParaIA',
   'getTrajectoryPoints','suggestPurchaseTiming','sobraMensalMedia','rendaMediaMensal','taxaAnualDisponivel','atualizarTaxasManuais','jurosProjetados',
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',

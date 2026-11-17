@@ -1973,3 +1973,18 @@ inventou juros e rendimento. Com os fatos calculados pelo código e as regras,
 enviados passam; divisão e média não, de propósito. A temperatura do Gemini
 também baixou para 0,2.
 
+### 17/11 - a conta que a pessoa pede
+
+A primeira versão das regras proibia qualquer conta além de somar ou subtrair
+dois valores dos dados — e o consultor passou a recusar "20+20+20+7 quanto
+dá?", porque 20 e 7 não estavam no resumo. Recusar a dúvida da pessoa também
+atrapalha. Agora:
+
+- `contasDaPergunta()` resolve no código a conta escrita na pergunta (+ − × ÷,
+  parênteses, "10% de 3.500"; datas como 17/11 não viram divisão) e o
+  resultado vai ao modelo em CONTAS DA PERGUNTA.
+- A regra 1 permite contas simples com os números dos dados e os que a pessoa
+  escreveu, e continua proibindo estimar o que depende de dado que não existe.
+- A conferência aceita também os números da pergunta e multiplicação ou
+  divisão por uma contagem de 2 a 120 presente no texto (R$ 500 × 12 meses).
+
