@@ -31,6 +31,13 @@ function defaultData(){
     metas:[],
     patrimonioHistorico:[],
     rendasRecorrentes:[],
+    /* imposto: nasce tudo vazio, e a tabela do ano vem do padrão embutido —
+       gravar a tabela em defaultData() congelaria 2026 no aparelho de quem
+       instala hoje, e uma correção futura do app nunca o alcançaria */
+    irFontes:[],
+    impostoTabelas:[],
+    impostoDarfs:[],
+    impostoDeducoes:{dependentes:0,pensao:0,inss:0},
     orcamentos:{},
     investimentos:[],
     viagens:[],
@@ -96,6 +103,33 @@ function migrateData(d){
     lista('viagens').forEach(v=>{ v.orcamento=n(v.orcamento); });
     lista('cartoes').forEach(c=>{ c.limite=n(c.limite); });
     if(d.orcamentos&&typeof d.orcamentos==='object') Object.keys(d.orcamentos).forEach(k=>{ d.orcamentos[k]=n(d.orcamentos[k]); });
+    /* imposto: valor de fonte, dedução e tabela editada também podem chegar
+       como texto de um backup ou da nuvem. Tabela de imposto com "607,20" em
+       texto daria base negativa — e imposto a mais, calado. */
+    lista('irFontes').forEach(f=>{ f.valorPadrao=n(f.valorPadrao); });
+    if(d.impostoDeducoes&&typeof d.impostoDeducoes==='object'){
+      d.impostoDeducoes.pensao=n(d.impostoDeducoes.pensao);
+      d.impostoDeducoes.inss=n(d.impostoDeducoes.inss);
+      d.impostoDeducoes.dependentes=Math.max(0,parseInt(d.impostoDeducoes.dependentes,10)||0);
+    }
+    lista('impostoTabelas').forEach(t=>{
+      t.descontoSimplificado=n(t.descontoSimplificado);
+      t.dependente=n(t.dependente);
+      t.darfMinimo=n(t.darfMinimo);
+      (t.faixas||[]).forEach(f=>{
+        /* `ate` nulo é a última faixa e tem que CONTINUAR nulo: passar por
+           n() daria 0, e uma faixa com teto zero não pega ninguém — a tabela
+           inteira cairia na alíquota errada */
+        if(f.ate!=null&&f.ate!=='') f.ate=n(f.ate);
+        f.aliquota=n(f.aliquota); f.deduzir=n(f.deduzir);
+      });
+      if(t.reducao&&typeof t.reducao==='object'){
+        t.reducao.isentoAte=n(t.reducao.isentoAte);
+        t.reducao.limite=n(t.reducao.limite);
+        t.reducao.base=n(t.reducao.base);
+        t.reducao.fator=n(t.reducao.fator);
+      }
+    });
   }
   if(typeof d.onboardingCompleto!=='boolean') d.onboardingCompleto=true; // quem já tinha dados salvos não precisa do assistente
   if(typeof d.tourCompleto!=='boolean') d.tourCompleto=false; // o tour guiado é novo pra todo mundo, mesmo quem já usava o app
@@ -127,6 +161,15 @@ function migrateData(d){
   if(!d.cartoes) d.cartoes=[];
   if(!d.categoriaEmojis||typeof d.categoriaEmojis!=='object'||Array.isArray(d.categoriaEmojis)){
     d.categoriaEmojis={};
+  }
+  /* Imposto (Carnê-Leão) nasceu depois. Quem já tinha dados abre sem nenhuma
+     fonte e sem nenhuma marca de IR, que é o certo: marcar recebimento antigo
+     como tributável por conta própria seria o app inventando declaração. */
+  if(!Array.isArray(d.irFontes))       d.irFontes=[];
+  if(!Array.isArray(d.impostoTabelas)) d.impostoTabelas=[];
+  if(!Array.isArray(d.impostoDarfs))   d.impostoDarfs=[];
+  if(!d.impostoDeducoes||typeof d.impostoDeducoes!=='object'||Array.isArray(d.impostoDeducoes)){
+    d.impostoDeducoes={dependentes:0,pensao:0,inss:0};
   }
   if(!d.categorias||!d.categorias.length) d.categorias=CATEGORIAS_DEFAULT.slice();
   /* "Assinaturas" nasceu depois. Acrescentar e aditivo -- nao mexe em gasto

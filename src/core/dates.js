@@ -144,3 +144,70 @@ function monthMetrics(fatura){
   const isAtual=ano===t.getFullYear()&&mes===t.getMonth()+1;
   return {renda,gastosCusto,gastosMensaisDetalhe,gastosMensaisCusto,despesas,saldoMes,isPast,isAtual};
 }
+
+/* ── dias úteis e feriados nacionais ──────────────────────────────────────
+
+   O vencimento do DARF é o último dia útil do mês seguinte ao recebimento, e
+   "útil" aqui não é só "não é fim de semana": banco fechado em feriado empurra
+   o prazo. Sem isto o app diria 31/12 — que nunca é dia útil — e mandaria a
+   pessoa pagar com multa.
+
+   A tabela é LOCAL, calculada, sem rede. O app funciona offline e pedir
+   feriado a um servidor para saber o vencimento seria trocar uma conta certa
+   por uma dependência que falha no avião. Carnaval, Sexta-feira Santa e Corpus
+   Christi saem da Páscoa, que sai do algoritmo de Gauss.
+
+   O que NÃO cobre: feriado estadual e municipal, e ponto facultativo. Nenhum
+   dos dois é calculável sem saber onde a pessoa está, e errar para o lado de
+   "é dia útil" é o lado seguro — o prazo aparece mais curto, não mais longo. */
+
+/* Domingo de Páscoa pelo algoritmo de Gauss, no calendário gregoriano. */
+function domingoDePascoa(ano){
+  const a=ano%19, b=Math.floor(ano/100), c=ano%100;
+  const d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25);
+  const g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const mes=Math.floor((h+l-7*m+114)/31);
+  const dia=((h+l-7*m+114)%31)+1;
+  return new Date(ano,mes-1,dia);
+}
+
+function _somaDias(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+/* Os feriados nacionais do ano, como ISO. Set para a consulta ser direta. */
+function feriadosNacionais(ano){
+  const pascoa=domingoDePascoa(ano);
+  const fixos=[[1,1],[4,21],[5,1],[9,7],[10,12],[11,2],[11,15],[11,20],[12,25]];
+  const dias=fixos.map(([m,d])=>isoDate(new Date(ano,m-1,d)));
+  /* móveis: Carnaval (-48 e -47), Sexta-feira Santa (-2), Corpus Christi (+60) */
+  [-48,-47,-2,60].forEach(n=>{ dias.push(isoDate(_somaDias(pascoa,n))); });
+  return new Set(dias);
+}
+
+function ehDiaUtil(d,feriados){
+  const dia=d.getDay();
+  if(dia===0||dia===6) return false;
+  const lista=feriados||feriadosNacionais(d.getFullYear());
+  return !lista.has(isoDate(d));
+}
+
+/* O último dia útil do mês: anda para trás do último dia até achar um. */
+function ultimoDiaUtilDoMes(ano,mes){ // mes: 1-12
+  const feriados=feriadosNacionais(ano);
+  const d=new Date(ano,mes,0);
+  /* 31 dias é folga de sobra: não existe mês inteiro de feriado */
+  for(let i=0;i<31;i++){
+    if(ehDiaUtil(d,feriados)) return d;
+    d.setDate(d.getDate()-1);
+  }
+  return new Date(ano,mes,0);
+}
+
+/* O vencimento do DARF de um recebimento: último dia útil do mês SEGUINTE.
+   Dezembro vence em janeiro do ano que vem, e aí os feriados são os do ano
+   novo — por isso a virada passa pelo ano, e não só pelo mês. */
+function ultimoDiaUtilDoMesSeguinte(ano,mes){ // mes: 1-12
+  const proximo=mes===12?{ano:ano+1,mes:1}:{ano,mes:mes+1};
+  return ultimoDiaUtilDoMes(proximo.ano,proximo.mes);
+}

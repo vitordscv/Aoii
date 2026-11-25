@@ -137,5 +137,6 @@ async function init(){
   setupCartaoSheet();
   setupInvSheet();
   setupRRSheet();
+  setupImposto();
   animateBars(document);
 }

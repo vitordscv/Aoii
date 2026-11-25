@@ -97,6 +97,17 @@ const FUNCOES=[
   'custoMensalEssencial','reservaContaNoPatrimonio','patrimonioCalculado',
   'TIPOS_INVEST','tipoInvest','camposInvestimento','criarInvestimento','atualizarInvestimento','removerInvestimento','restaurarInvestimento',
   'aplicarAportesAutomaticos','computeReceitasMesDetalhe',
+  /* imposto (Carnê-Leão) */
+  'arred2','tabelaSalvaIR','tabelaIRDoAno','anoVigenciaIR','confirmarAnoVigenciaIR',
+  'validarTabelaIR','salvarTabelaIR','restaurarTabelaIR',
+  'camposFonteIR','criarFonteIR','atualizarFonteIR','removerFonteIR','fonteIR',
+  'nomeFonteIR','registrarDiariaIR','_mesDoISO','recebimentosTributaveisIR',
+  'tributavelPorFonteIR','faixaIR','deducoesIR','reducaoIR','calcularIRMes',
+  'darfsDoAnoIR','darfIR','marcarDarfIRPago','resumoAnualIR','_diaBR',
+  'textoCarneLeaoIR',
+  /* dias úteis, que o vencimento do DARF usa */
+  'domingoDePascoa','_somaDias','feriadosNacionais','ehDiaUtil',
+  'ultimoDiaUtilDoMes','ultimoDiaUtilDoMesSeguinte','isoDate',
   'semAcento','categoriaDoPierre','ehEntradaNoPierre','ehDeCartao','transacaoDoPierre',
   'saldoDoPierre','planoDeSincronizacaoPierre','aplicarSincronizacaoPierre',
   'numeroDoPierre','contaEhBanco','contaNaoReconhecida','nomeDaContaPierre','aindaNaoCaiu',
@@ -130,6 +141,10 @@ function montarMotor(arquivo){
   const naoEhFixo=/const PIERRE_NAO_EH_FIXO\s*=\s*\/[^\n]*\/;/.exec(src);
   /* os prefixos de maquininha: assinaturaDoGasto() consulta */
   const prefixos=/const PIERRE_PREFIXOS_DE_MAQUINA\s*=\s*\/[^\n]*\/;/.exec(src);
+  /* a tabela do IR embutida: tabelaIRDoAno() cai nela quando não há editada */
+  const tabelaIR=/const IR_TABELA_PADRAO\s*=\s*\{[\s\S]*?\n\};/.exec(src);
+  /* os tipos de fonte: camposFonteIR() valida contra ela */
+  const tiposFonteIR=/const IR_TIPOS_DE_FONTE\s*=\s*\[[^\]]*\];/.exec(src);
   /* os campos de data e o limite de frescor: frescorDoPierre() consulta */
   const camposData=/const PIERRE_CAMPOS_DE_DATA\s*=\s*\[[\s\S]*?\];/.exec(src);
   const frescorDias=/const PIERRE_DIAS_DE_FRESCOR\s*=\s*\d+;/.exec(src);
@@ -143,7 +158,7 @@ function montarMotor(arquivo){
   const janelaPg2=/const PIERRE_DIAS_DEPOIS_DO_VENCIMENTO\s*=\s*\d+;/.exec(src);
   let codigo=(meses?meses[0]+';\n':'')+(abrev?abrev[0]+';\n':'')+(cats?cats[0]+';\n':'')+
     (tiposRenda?tiposRenda[0]+'\n':'')+(moedas?moedas[0]+'\n':'')+
-    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(rotBanco?rotBanco[0]+'\n':'')+(rotNaoBanco?rotNaoBanco[0]+'\n':'')+(camposData?camposData[0]+'\n':'')+(frescorDias?frescorDias[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'')+(janelaPg?janelaPg[0]+'\n':'')+(janelaPg2?janelaPg2[0]+'\n':'');
+    (catsPierre?catsPierre[0]+'\n':'')+(naoEhFixo?naoEhFixo[0]+'\n':'')+(prefixos?prefixos[0]+'\n':'')+(rotBanco?rotBanco[0]+'\n':'')+(rotNaoBanco?rotNaoBanco[0]+'\n':'')+(camposData?camposData[0]+'\n':'')+(frescorDias?frescorDias[0]+'\n':'')+(tabelaIR?tabelaIR[0]+'\n':'')+(tiposFonteIR?tiposFonteIR[0]+'\n':'')+(folgaDias?folgaDias[0]+'\n':'')+(janelaPg?janelaPg[0]+'\n':'')+(janelaPg2?janelaPg2[0]+'\n':'');
   /* Endereço FALSO de propósito. O transporte precisa dessas constantes pra
      existir, mas nenhum teste pode encostar no projeto real nem por acidente —
      com um host inválido, um fetch que escapasse do dublê falha na hora em vez

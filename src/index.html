@@ -356,6 +356,7 @@
     <button type="button" class="view-tab" id="tab-entradas-extras" role="tab" aria-controls="pane-entradas-extras" aria-selected="false" tabindex="-1" data-pane="extras" data-sub="entradas.abaExtrasSub"><span data-i18n="main.entradasExtras">Entradas extras</span></button>
     <button type="button" class="view-tab" id="tab-entradas-dividas" role="tab" aria-controls="pane-entradas-dividas" aria-selected="false" tabindex="-1" data-pane="dividas" data-sub="entradas.abaDividasSub"><span data-i18n="main.dividas">Dívidas</span></button>
     <button type="button" class="view-tab" id="tab-entradas-compras" role="tab" aria-controls="pane-entradas-compras" aria-selected="false" tabindex="-1" data-pane="compras" data-sub="entradas.abaComprasSub"><span data-i18n="main.comprasPlanejadas">Compras planejadas</span></button>
+    <button type="button" class="view-tab" id="tab-entradas-imposto" role="tab" aria-controls="pane-entradas-imposto" aria-selected="false" tabindex="-1" data-pane="imposto" data-sub="entradas.abaImpostoSub"><span data-i18n="main.imposto">Imposto</span></button>
   </div>
   </div>
   <div class="view-tab-sub" data-abas-sub="entradas"></div>
@@ -431,6 +432,75 @@
         </div>
         <div class="help-text" data-i18n="planned.cardHelp">Marcando "Cartão", ao dar como comprada essa compra é dividida automaticamente nas faturas dos próximos meses.</div>
       </div>
+  </div>
+  </div>
+  <div class="view-pane" id="pane-entradas-imposto" role="tabpanel" tabindex="0" aria-labelledby="tab-entradas-imposto" hidden>
+  <div class="section entradas-planejamento">
+
+      <div id="ir-banner-ano"></div>
+
+      <div class="list-panel">
+        <h3 data-i18n="ir.titulo">Imposto do mês (Carnê-Leão)</h3>
+        <div class="panel-sub" data-i18n="ir.sub">O que você recebeu no mês, com data e valor, e o imposto que isso gera. Marque a entrada como tributável ao registrá-la.</div>
+
+        <div class="ir-mes-nav">
+          <button type="button" class="ir-mes-btn" id="ir-mes-ant" title="Mês anterior" data-i18n-title="ir.mesAnterior" aria-label="Mês anterior" data-i18n-aria-label="ir.mesAnterior">‹</button>
+          <span class="ir-mes-label" id="ir-mes-label" aria-live="polite"></span>
+          <button type="button" class="ir-mes-btn" id="ir-mes-prox" title="Próximo mês" data-i18n-title="ir.mesProximo" aria-label="Próximo mês" data-i18n-aria-label="ir.mesProximo">›</button>
+        </div>
+
+        <div id="ir-resumo"></div>
+        <div id="ir-calculo"></div>
+        <div id="ir-darf"></div>
+
+        <button type="button" class="gf-new-btn" id="ir-copiar" data-i18n="ir.copiar">📋 Copiar valores pro Carnê-Leão</button>
+        <div class="help-text ir-aviso" data-i18n="ir.aviso">Estimativa, para você conferir antes de digitar. Não substitui contador nem o programa da Receita.</div>
+      </div>
+
+      <div class="list-panel">
+        <h3 data-i18n="ir.fontesTitulo">Fontes de renda</h3>
+        <div class="panel-sub" data-i18n="ir.fontesSub">De onde o dinheiro vem. Fonte mensal é valor fixo num dia; fonte por diária você registra uma a uma, em um toque.</div>
+        <div id="ir-fontes-list"></div>
+        <div class="add-item-row">
+          <input type="text" id="ir-fonte-nome" placeholder="Nova fonte (ex: Financeiro pizzaria)" data-i18n-placeholder="ph.novaFonteIR">
+          <select id="ir-fonte-tipo" title="Tipo da fonte" data-i18n-title="ir.fonteTipo">
+            <option value="mensal" data-i18n="ir.fonteMensal">Fixa mensal</option>
+            <option value="diaria" data-i18n="ir.fonteDiaria">Por diária</option>
+          </select>
+          <input type="text" inputmode="decimal" id="ir-fonte-valor" placeholder="0,00" step="0.01">
+          <button id="ir-fonte-add" data-i18n="btn.adicionarSimples">Adicionar</button>
+        </div>
+      </div>
+
+      <div class="list-panel">
+        <h3 data-i18n="ir.deducoesTitulo">Deduções</h3>
+        <div class="panel-sub" data-i18n="ir.deducoesSub">O app usa o desconto simplificado ou estas deduções — o que for maior pra você. Nunca os dois juntos.</div>
+        <div class="ir-deducoes-grade">
+          <label class="sheet-field ir-campo" for="ir-dependentes"><span data-i18n="ir.dependentes">Dependentes</span>
+            <input type="text" inputmode="numeric" id="ir-dependentes" placeholder="0">
+          </label>
+          <label class="sheet-field ir-campo" for="ir-pensao"><span data-i18n="ir.pensao">Pensão alimentícia</span>
+            <input type="text" inputmode="decimal" id="ir-pensao" placeholder="0,00">
+          </label>
+          <label class="sheet-field ir-campo" for="ir-inss"><span data-i18n="ir.inss">INSS pago</span>
+            <input type="text" inputmode="decimal" id="ir-inss" placeholder="0,00">
+          </label>
+        </div>
+        <div class="help-text" id="ir-deducoes-nota"></div>
+      </div>
+
+      <div class="list-panel">
+        <h3 data-i18n="ir.anualTitulo">O ano</h3>
+        <div class="panel-sub" data-i18n="ir.anualSub">O que a declaração do ano seguinte vai pedir: quanto entrou, quanto de imposto, e o que ficou pendente.</div>
+        <label class="sheet-field ir-campo" for="ir-ano-select"><span data-i18n="ir.anoLabel">Ano</span>
+          <select id="ir-ano-select"></select>
+        </label>
+        <div id="ir-anual"></div>
+        <button type="button" class="reset-btn" id="ir-abrir-tabela" data-i18n="ir.bannerEditar">Editar tabela</button>
+      </div>
+
+      <div id="ir-tabela-editor" hidden></div>
+
   </div>
   </div>
   </div><!-- /view-entradas -->
@@ -942,6 +1012,15 @@
       </div>
     </div>
 
+    <!-- Carnê-Leão: só aparece em receita. Gasto não tem o que tributar, e o
+         campo visível no gasto só confundiria. -->
+    <div class="sheet-field" id="gasto-ir-field" style="display:none;">
+      <label class="mini-check" for="gasto-ir">
+        <input type="checkbox" id="gasto-ir"> <span data-i18n="ir.contaParaIR">Conta para o IR (Carnê-Leão)</span>
+      </label>
+      <select id="gasto-ir-fonte" title="De qual fonte" data-i18n-title="ir.deQualFonte"></select>
+    </div>
+
     <div class="sheet-field" id="gasto-viagem-field" style="display:none;">
       <label for="gasto-viagem" data-i18n="gasto.viagemOpcional">Viagem (opcional)</label>
       <select id="gasto-viagem"><option value="" data-i18n="gasto.nenhuma">Nenhuma</option></select>
@@ -1229,6 +1308,18 @@
     <div class="sheet-field">
       <label for="rr-dia" data-i18n="rr.diaRecebimento">Dia do recebimento</label>
       <input type="text" inputmode="decimal" min="1" max="31" id="rr-dia" placeholder="5">
+    </div>
+
+    <div class="rr-toggle-row">
+      <div>
+        <div class="t-txt" data-i18n="ir.contaParaIR">Conta para o IR (Carnê-Leão)</div>
+        <div class="t-sub" data-i18n="ir.rrSub">Entra no resumo do imposto todo mês, no dia do recebimento. Não cria lançamento no Diário nem mexe no saldo.</div>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="rr-ir"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="sheet-field" id="rr-ir-fonte-field" style="display:none;">
+      <label for="rr-ir-fonte" data-i18n="ir.deQualFonte">De qual fonte</label>
+      <select id="rr-ir-fonte"></select>
     </div>
 
     <div class="rr-toggle-row">

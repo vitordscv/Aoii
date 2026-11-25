@@ -99,12 +99,14 @@ Hoje o que vale é a lista `cartoes`.
 ### `transacoes` — o Diário
 
 ```js
-{ id, nome, valor, categoria, metodo, data, tipo?, viagemId? }
+{ id, nome, valor, categoria, metodo, data, tipo?, viagemId?, ir?, irFonteId? }
 ```
 
 - `metodo`: `'debito'` \| `'dinheiro'` \| `'pix'` \| `'credito'`
 - `tipo`: ausente = **gasto**; `'receita'` = **entrada**
 - `data`: `YYYY-MM-DD`
+- `ir`: `true` = rendimento tributável no Carnê-Leão. Só em `tipo:'receita'`
+- `irFonteId`: de qual `irFontes` veio
 
 **Receita não é gasto.** Sempre filtre com `transacoesGasto()`, que tira as
 `tipo:'receita'`. Compra no crédito não entra aqui como saída de caixa — ela
@@ -265,8 +267,35 @@ O patrimônio não muda com isso — o dinheiro só trocou de lugar.
 ### `rendasRecorrentes`
 
 ```js
-{ id, tipo, nome, valor, diaDoMes, ativo, criadoEm }
+{ id, tipo, nome, valor, diaDoMes, ativo, criadoEm, irPadrao?, irFonteId? }
 ```
+
+`irPadrao` faz a renda entrar no resumo do imposto todo mês, no `diaDoMes`.
+**Não cria lançamento**: a ocorrência é derivada na hora de calcular. Gravar
+movimento mexeria no `saldoAtual` e somaria dinheiro que talvez não entrou.
+
+### Imposto (Carnê-Leão)
+
+```js
+irFontes:         [{ id, nome, tipo, valorPadrao, criadoEm }]
+impostoDeducoes:  { dependentes, pensao, inss }
+impostoTabelas:   [{ ano, anoVigencia, descontoSimplificado, dependente, darfMinimo,
+                     faixas: [{ ate, aliquota, deduzir }],
+                     reducao: { isentoAte, limite, base, fator } }]
+impostoDarfs:     [{ ano, mes, pago, pagoEm }]
+```
+
+- `irFontes[].tipo`: `'mensal'` (valor fixo num dia) \| `'diaria'` (por dia
+  trabalhado, registrado um a um)
+- `impostoTabelas` é **lista, uma por ano**, e não mapa de ano para tabela: o
+  validador não tem tipo "mapa de objetos", e lista ele confere item a item,
+  faixas aninhadas incluídas. Sem tabela salva para um ano, vale a embutida em
+  `IR_TABELA_PADRAO` — mês antigo continua calculado com a tabela do ano dele
+- `faixas[].ate`: **nulo na última**, que é a faixa sem teto. Zero ali seria
+  faixa que não pega ninguém
+- `faixas[].aliquota`: fração (`0.075` = 7,5%)
+- `impostoDarfs` guarda **só** o "eu paguei". O valor se recalcula da tabela e
+  dos recebimentos; gravá-lo criaria duas verdades sobre o mesmo mês
 
 ### `investimentos`
 

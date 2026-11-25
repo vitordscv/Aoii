@@ -1310,3 +1310,69 @@ body{padding-bottom:78px;}
 .skip-cal-actions button:disabled{opacity:.5;cursor:default;}
 .skip-calendar button:focus-visible{outline:2px solid var(--ink-navy);outline-offset:2px;}
 @media(max-width:359px){.skip-calendar{padding:8px;}.skip-cal-grid{gap:1px;}.skip-cal-day{min-height:40px;}}
+/* ── imposto (Carnê-Leão) ────────────────────────────────────────────────
+   Nada de cor nova: tudo sai dos tokens do tema, senão a tela de imposto
+   seria a única que não acompanha os sete temas do app. */
+.ir-mes-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 4px;}
+.ir-mes-btn{flex:none;width:44px;min-height:44px;border:1px solid var(--line);border-radius:11px;background:var(--card);font-size:19px;line-height:1;color:var(--ink-navy);cursor:pointer;}
+.ir-mes-btn:hover,.ir-mes-btn:focus-visible{border-color:var(--accent-ink);}
+.ir-mes-label{flex:1;text-align:center;font-weight:700;font-size:13.5px;color:var(--ink-navy);}
+
+.ir-banner{display:flex;flex-direction:column;gap:8px;}
+.ir-banner-txt{font-family:'Nunito Sans',sans-serif;font-size:12.5px;line-height:1.5;}
+.ir-banner-acoes{display:flex;gap:8px;flex-wrap:wrap;}
+.ir-banner-acoes button{flex:1;min-width:130px;min-height:40px;}
+
+.ir-fonte-grupo{margin-top:10px;}
+.ir-fonte-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+.ir-fonte-nome{font-weight:700;font-size:12.5px;color:var(--ink-navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ir-fonte-total{font-weight:700;font-size:12.5px;color:var(--ink-navy);white-space:nowrap;}
+.ir-receb-lista{display:flex;flex-direction:column;}
+.ir-receb{display:flex;align-items:center;gap:10px;padding:7px 2px;min-height:34px;border-bottom:1px solid var(--line);}
+.ir-receb:last-child{border-bottom:none;}
+.ir-receb-data{flex:none;width:46px;font-family:'Nunito Sans',sans-serif;font-size:11.5px;color:var(--muted2);}
+.ir-receb-marca{flex:1;min-width:0;font-family:'Nunito Sans',sans-serif;font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ir-receb-valor{flex:none;font-size:12.5px;color:var(--pos);white-space:nowrap;}
+
+.ir-linha{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 2px;font-family:'Nunito Sans',sans-serif;font-size:12.5px;color:var(--muted2);border-bottom:1px solid var(--line);}
+.ir-linha:last-child{border-bottom:none;}
+.ir-linha-forte{color:var(--ink-navy);font-weight:700;}
+.ir-linha-total{color:var(--ink-navy);font-weight:800;font-size:14px;border-top:1px solid var(--line);}
+
+.ir-darf{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--cream);}
+.ir-darf-acumula{background:none;}
+.ir-darf-pago{border-color:var(--pos);}
+.ir-darf-vencido{border-color:var(--neg);}
+.ir-darf-titulo{font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted2);}
+.ir-darf-valor{margin-top:4px;font-weight:800;font-size:22px;color:var(--ink-navy);}
+.ir-darf-venc{margin-top:2px;font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted2);}
+.ir-darf-alerta{margin-top:6px;font-family:'Nunito Sans',sans-serif;font-size:12px;font-weight:700;color:var(--neg);}
+.ir-darf-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.ir-darf-status button{flex:1;min-width:130px;min-height:40px;}
+.ir-darf-tag{flex:none;padding:3px 9px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-family:'Nunito Sans',sans-serif;font-size:11px;font-weight:700;color:var(--muted2);}
+.ir-darf-tag.pago{color:var(--pos);border-color:var(--pos);}
+
+.ir-fonte-acoes{display:flex;align-items:center;gap:6px;flex:none;}
+.ir-lancar{min-height:36px;padding:0 10px;font-size:11.5px;}
+.ir-fonte-del{flex:none;}
+
+.ir-pendentes{margin-top:10px;}
+.ir-pendentes-titulo{font-weight:700;font-size:12px;color:var(--ink-navy);margin-bottom:4px;}
+.ir-pendente{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 2px;font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--muted2);border-bottom:1px solid var(--line);}
+.ir-pendente:last-child{border-bottom:none;}
+.ir-pendente.vencido{color:var(--neg);}
+.ir-pendente.vencido span{color:var(--neg);}
+
+.ir-deducoes-grade{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.ir-campo{flex:1;min-width:120px;margin:0;}
+.ir-aviso{margin-top:10px;font-style:italic;}
+
+.ir-editor{margin-top:0;}
+.ir-editor-sub{margin-top:14px;font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted2);}
+.ir-faixas-cab{display:flex;gap:6px;margin-top:6px;}
+.ir-faixas-cab span{flex:1;font-family:'Nunito Sans',sans-serif;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted2);}
+.ir-faixa-linha{display:flex;gap:6px;margin-top:5px;}
+.ir-faixa-linha input{flex:1;min-width:0;min-height:40px;}
+.ir-f-ate:disabled{color:var(--muted2);font-style:italic;}
+.ir-f-aliquota{text-align:right;}
+.ir-f-deduzir{text-align:right;}

@@ -1998,3 +1998,107 @@ mercado, taxa típica) agora pode aparecer, mas marcado com `≈` e dito como
 estimativa geral; sem a marca, continua barrado. `~` não serve de marca — era
 o que o modelo usava para soltar juros inventados como fato.
 
+## Imposto (Carnê-Leão)
+
+Quem recebe como pessoa física informal recolhe o IR todo mês, por conta
+própria. O programa da Receita pede **data e valor de cada recebimento** — é
+imposto de regime de caixa, não de competência. Isso mandou no desenho inteiro.
+
+**Onde ficou.** Quinta sub-aba de Entradas, e não um sexto item na barra de
+baixo: a barra tem cinco e está cheia no celular, e Carnê-Leão tributa entrada.
+Herdou a rolagem horizontal das abas, a navegação por setas e o anúncio de
+leitor de tela sem uma linha nova de código.
+
+**A tabela é por ano, e mês antigo usa a tabela do ano dele.** As faixas mudam
+por lei. `tabelaIRDoAno()` é a porta única para as constantes, e ninguém lê
+`IR_TABELA_PADRAO` direto. Recalcular janeiro de um ano com a tabela do
+seguinte produziria um número que nunca foi devido — e numa declaração isso não
+é arredondamento, é erro assinado.
+
+**"Renda fixa automática" NÃO virou lançamento.** O pedido era que a renda fixa
+mensal entrasse sozinha no imposto. Fazer isso por `registrarMovimento()`
+chamaria `aplicarEfeitoTransacao()` e mexeria no `saldoAtual`: o app passaria a
+somar dinheiro que talvez não tenha entrado, e a projeção — que é o motor do
+app todo — iria atrás. A ocorrência é **derivada** na hora de calcular, com a
+data do `diaDoMes` e o valor da renda. Automático na prática, sem inventar
+dinheiro. Tem teste conferindo que `transacoes` continua vazia e o saldo
+intacto.
+
+**Recebimento registrado vence a ocorrência derivada.** Quem lança a
+mensalidade no Diário e marca "conta para o IR" veria o mesmo dinheiro duas
+vezes. Havendo registro da mesma fonte no mês, a derivada sai de cena: o que a
+pessoa escreveu é mais verdade que a projeção.
+
+**A redução de 2026 incide sobre o BRUTO, não sobre a base.** Fonte de erro
+clássica, e a razão pela qual o teto do "nunca negativo" existe: a redução vem
+do bruto, o imposto vem da base, e dedução derruba a base sem derrubar o bruto.
+Com dependentes a redução passa o imposto — e sem o teto o app diria que a
+Receita deve dinheiro a você. Descobrir isso custou um teste: a fórmula foi
+desenhada pra encostar no imposto em R$ 5.000 (medido: imposto 312,89, redução
+312,90), então sem dedução nenhuma o teto quase nunca é alcançado.
+
+**O DARF acumula, e a cadeia tem que ser percorrida do começo do ano.** Imposto
+abaixo de R$ 10 não vira DARF: soma com o do mês seguinte. Por isso não existe
+"o DARF de março" isolado. O acúmulo não atravessa o ano — é o comportamento
+comum do código 0190 e mantém a declaração de um ano fechada em si mesma.
+Dezembro abaixo do mínimo some, e a tela diz isso em vez de esconder.
+
+**O vencimento precisa de feriado, e a tabela é calculada em casa.** Último dia
+útil do mês seguinte, e "útil" não é só "não é fim de semana": banco fechado
+empurra o prazo. `feriadosNacionais()` sai dos fixos mais os móveis derivados
+da Páscoa (Gauss), sem rede — pedir feriado a um servidor pra saber o
+vencimento seria trocar uma conta certa por uma dependência que falha no avião.
+Não cobre feriado estadual nem municipal: não são calculáveis sem saber onde a
+pessoa está, e errar para o lado de "é dia útil" é o lado seguro, porque mostra
+o prazo mais curto e não mais longo. A tela diz isso.
+
+**O que o app guarda do DARF é só "eu paguei".** O valor se recalcula da tabela
+e dos recebimentos; gravá-lo criaria duas verdades sobre o mesmo mês.
+
+**Mapas viraram listas.** `impostoTabelas` e `impostoDarfs` seriam naturalmente
+mapas — ano → tabela, `YYYY-MM` → pago. O validador do app não tem tipo "mapa
+de objetos", e inventar um significaria mexer em `validation.js`, que é o
+portão por onde todo dado de fora entra. Lista ele já confere item a item,
+faixas aninhadas incluídas. A chave virou campo do item.
+
+**O texto copiado não leva o aviso de estimativa.** O aviso está na tela, em
+`help-text`, porque é lá que a pessoa decide. No texto, que vai ser colado num
+formulário, aviso só dá trabalho de apagar.
+
+### Duas coisas que os testes me corrigiram
+
+A suíte derrubou três expectativas minhas, e as três eram o teste errado, não o
+código:
+
+1. achei que bruto de R$ 2.650 daria imposto de centavos — com a redução de
+   2026, bruto até R$ 5.000 não paga **nada**, e o DARF nem chegava a existir.
+   A janela em que o imposto existe mas fica abaixo de R$ 10 é estreita:
+   imposto = 0,358145 × bruto − 1.790,73, zero em 5.000 e R$ 10 em 5.027,90;
+2. contei um DARF vencido onde havia dois — o relógio do teste é novembro, e os
+   vencimentos de março e abril já tinham passado os dois;
+3. escrevi uma conferência em `validarTabelaIR()` recusando tabela sem faixa
+   aberta. Ela nunca podia falhar: o laço acima força `ate:null` na última.
+   Código que não pode falhar dá a impressão de guardar algo que ninguém
+   guarda, e saiu. O contrato ficou explícito num teste: teto digitado na
+   última faixa é **ignorado**, não recusado.
+
+### Tela, não só conta
+
+`testes/interface/t_imposto.js`, 33 conferências. O motor mede as contas e não
+vê o que só existe depois de o navegador desenhar. Duas armadilhas do caminho:
+
+- as funções do app vivem num IIFE e **não existem no `window`** — ler
+  `textoCarneLeaoIR` do teste dá `ReferenceError`. O caminho é o real: clicar no
+  botão e ler a área de transferência de volta, com a permissão concedida pelo
+  CDP e `setFocusEmulationEnabled`, porque `readText()` recusa em documento sem
+  foco e no headless a aba não tem;
+- o editor da tabela mostrava `607,2`. Num campo de real isso parece valor
+  truncado, e quem abre o editor pra conferir contra a tabela da Receita precisa
+  reconhecer o número que leu lá. Campo de dinheiro passou a sair com duas
+  casas; o fator da redução, que tem seis, continua cru.
+
+### O que fica em aberto
+
+O resumo não alimenta `ui/report.js`, o documento que a pessoa entrega ao
+contador. É o passo natural seguinte, e ficou de fora pra não misturar assunto
+num commit só.

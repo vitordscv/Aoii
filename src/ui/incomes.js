@@ -61,6 +61,22 @@ function setupRRSheet(){
   let tipoAtual='clt';
   let editingId=null;
 
+  /* O interruptor de IR e a fonte. A fonte só aparece marcada, e a lista vem
+     de `irFontes` — a mesma do painel de Imposto, pra não haver duas verdades
+     sobre o nome de "Financeiro pizzaria". */
+  function refreshIrDaRenda(renda){
+    const check=document.getElementById('rr-ir');
+    const campo=document.getElementById('rr-ir-fonte-field');
+    const sel=document.getElementById('rr-ir-fonte');
+    if(!check||!campo||!sel) return;
+    check.checked=!!(renda&&renda.irPadrao);
+    const fontes=data.irFontes||[];
+    sel.innerHTML=`<option value="">${esc(L('ir.semFonte'))}</option>`
+      +fontes.map(f=>`<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('');
+    sel.value=renda&&renda.irFonteId?renda.irFonteId:'';
+    campo.style.display=check.checked?'block':'none';
+  }
+
   function renderTipoGrid(){
     const grid=document.getElementById('rr-tipo-grid');
     grid.innerHTML=TIPOS_RENDA.map(t=>{ const info=tipoRenda(t.id); return `<button type="button" class="cat-pill${t.id===tipoAtual?' active':''}" aria-pressed="${t.id===tipoAtual}" data-tipo="${t.id}">${info.icon} ${esc(info.label)}</button>`; }).join('');
@@ -77,6 +93,7 @@ function setupRRSheet(){
     document.getElementById('rr-dia').value=r?r.diaDoMes:'';
     document.getElementById('rr-ativo').checked=r?r.ativo!==false:true;
     delBtn.style.display=r?'block':'none';
+    refreshIrDaRenda(r);
     renderTipoGrid();
   }
   function open(id){
@@ -93,6 +110,10 @@ function setupRRSheet(){
   if(newBtn) newBtn.addEventListener('click',()=>{ vibrate(8); open(null); });
   cancelBtn.addEventListener('click',close);
   backdrop.addEventListener('click',close);
+  document.getElementById('rr-ir')?.addEventListener('change',e=>{
+    const campo=document.getElementById('rr-ir-fonte-field');
+    if(campo) campo.style.display=e.target.checked?'block':'none';
+  });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sheet.style.display==='block') close(); });
   delBtn.addEventListener('click',()=>{
     if(!editingId) return;
@@ -115,6 +136,16 @@ function setupRRSheet(){
     const campos={tipo:tipoAtual,nome,valor,diaDoMes:dia,ativo};
     const renda=editingId?atualizarRendaRecorrente(editingId,campos):criarRendaRecorrente(campos);
     if(!renda) return;
+    /* `camposRendaRecorrente()` valida os campos que o motor conhece e devolve
+       só eles; a marca de IR entra depois, e desmarcar APAGA — renda que saiu
+       do IR não pode continuar somando no resumo do mês. */
+    const marcaIR=!!document.getElementById('rr-ir')?.checked;
+    if(marcaIR){
+      renda.irPadrao=true;
+      renda.irFonteId=document.getElementById('rr-ir-fonte')?.value||null;
+    }else{
+      delete renda.irPadrao; delete renda.irFonteId;
+    }
     vibrate([10,30,10]);
     await persist(); render();
     close();

@@ -151,6 +151,7 @@ const VIEW_RENDERERS={
     renderList('entradasExtras','extras-list','extras-total','feito','recebido');
     renderDividas();
     renderList('comprasPlanejadas','purchases-list','purchases-total','feito','comprado');
+    renderImposto();
   },
   'view-economias':()=>{
     renderMetas();

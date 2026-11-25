@@ -203,7 +203,15 @@ function setupGastoSheet(){
       atualizarRotulosDoTipo();
       atualizarDividirVisivel();
       updateAlertaMedia();
+      refreshCampoIR(null);
     });
+  });
+
+  /* a fonte só faz sentido depois de marcado: sem isso o select fica na tela
+     pedindo uma escolha que não vai a lugar nenhum */
+  document.getElementById('gasto-ir')?.addEventListener('change',e=>{
+    const fonte=document.getElementById('gasto-ir-fonte');
+    if(fonte) fonte.style.display=e.target.checked?'block':'none';
   });
   sheet.querySelectorAll('.pay-method-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{ metodoAtual=btn.getAttribute('data-metodo'); renderPayGrid(); });
@@ -262,6 +270,24 @@ function setupGastoSheet(){
     sel.innerHTML=`<option value="">${L('viagem.nenhuma')}</option>`+ativas.map(v=>`<option value="${v.id}">${esc(v.nome)}</option>`).join('');
   }
 
+  /* Carnê-Leão: só em receita, e a fonte só depois de marcado. Gasto não tem
+     o que tributar, e campo visível sem uso é campo que confunde. */
+  function refreshCampoIR(t){
+    const campo=document.getElementById('gasto-ir-field');
+    const check=document.getElementById('gasto-ir');
+    const fonte=document.getElementById('gasto-ir-fonte');
+    if(!campo||!check||!fonte) return;
+    const ehReceita=tipoAtual==='receita';
+    campo.style.display=ehReceita?'block':'none';
+    if(!ehReceita){ check.checked=false; fonte.style.display='none'; return; }
+    check.checked=!!(t&&t.ir);
+    const fontes=data.irFontes||[];
+    fonte.innerHTML=`<option value="">${esc(L('ir.semFonte'))}</option>`
+      +fontes.map(f=>`<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('');
+    fonte.value=t&&t.irFonteId?t.irFonteId:'';
+    fonte.style.display=check.checked?'block':'none';
+  }
+
   function resetForm(t){
     editingTransacaoId=t?t.id:null;
     tipoAtual=t?(t.tipo==='receita'?'receita':'gasto'):'gasto';
@@ -283,6 +309,7 @@ function setupGastoSheet(){
     refreshViagemSelect();
     const viagemEl=document.getElementById('gasto-viagem');
     if(viagemEl) viagemEl.value=t&&t.viagemId?t.viagemId:'';
+    refreshCampoIR(t);
     dividirCheck.checked=!!(t&&t.percentual&&t.percentual<100);
     dividirFields.style.display=dividirCheck.checked?'block':'none';
     document.getElementById('gasto-dividir-pct').value=t&&t.percentual?t.percentual:50;
@@ -333,6 +360,11 @@ function setupGastoSheet(){
     const tags=tagsRaw?tagsRaw.split(',').map(s=>s.trim()).filter(Boolean):[];
     const nota=document.getElementById('gasto-nota').value.trim();
 
+    /* Carnê-Leão: a marca só existe em receita. Gasto marcado seria rendimento
+       tributável negativo, que não é coisa que exista. */
+    const marcaIR=tipoAtual==='receita'&&!!document.getElementById('gasto-ir')?.checked;
+    const fonteIRId=marcaIR?(document.getElementById('gasto-ir-fonte')?.value||null):null;
+
     if(editingTransacaoId){
       atualizarTransacao(editingTransacaoId,{
         nome,valor:valorEfetivo,categoria,metodo:metodoAtual,data:dataISO,
@@ -340,8 +372,17 @@ function setupGastoSheet(){
         percentual:tipoAtual!=='receita'&&dividir?pct:null,
         valorTotal:tipoAtual!=='receita'&&dividir?valor:null,
       });
+      /* `atualizarTransacao()` só escreve os campos que conhece; a marca entra
+         aqui, e desmarcar APAGA — senão o mês antigo continuaria tributado por
+         um campo que a pessoa já tirou da tela. */
+      const alvo=(data.transacoes||[]).find(x=>x.id===editingTransacaoId);
+      if(alvo){
+        if(marcaIR){ alvo.ir=true; alvo.irFonteId=fonteIRId; }
+        else{ delete alvo.ir; delete alvo.irFonteId; }
+      }
     }else if(tipoAtual==='receita'){
-      registrarMovimento({tipo:'receita',nome,valor,categoria,metodo:metodoAtual,data:dataISO,viagemId,tags,nota});
+      const mov=registrarMovimento({tipo:'receita',nome,valor,categoria,metodo:metodoAtual,data:dataISO,viagemId,tags,nota});
+      if(mov&&marcaIR){ mov.ir=true; mov.irFonteId=fonteIRId; }
     }else if(metodoAtual==='credito'){
       const parcelas=Math.max(1,parseInt(document.getElementById('gasto-parcelas').value,10)||1);
       const cartaoEl=document.getElementById('gasto-cartao');

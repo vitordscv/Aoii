@@ -107,6 +107,12 @@ const ITEM_TRANSACAO = {
   data: { tipo: 'dia', padrao: null },
   /* ausente = gasto; 'receita' = entrada. Ver docs/DATA-MODEL.md. */
   tipo: { tipo: 'opcao', valores: ['receita'], nulo: true },
+  /* Carnê-Leão: este recebimento é rendimento tributável, e de qual fonte.
+     Precisa sobreviver à reabertura porque o imposto de um mês fechado se
+     recalcula do zero a cada abertura do app — sem a marca, o mês antigo
+     passaria a dar imposto zero e a declaração do ano sairia errada. */
+  ir: { tipo: 'booleano', nulo: true },
+  irFonteId: { tipo: 'ref', de: 'irFontes', nulo: true },
   viagemId: { tipo: 'ref', de: 'viagens', nulo: true },
   tags: { tipo: 'listaTexto', max: LIMITES.tag },
   nota: { tipo: 'texto', max: LIMITES.nota, nulo: true },
@@ -230,6 +236,60 @@ const ITEM_RENDA = {
   diaDoMes: { tipo: 'inteiro', min: 1, max: 31, padrao: 1 },
   ativo: { tipo: 'booleano', padrao: true },
   criadoEm: { tipo: 'iso', nulo: true },
+  /* Carnê-Leão: esta renda é tributável. Não cria lançamento nenhum — o resumo
+     do imposto DERIVA a ocorrência do mês a partir do dia e do valor. Ver a
+     decisão 2 em core/imposto.js. */
+  irPadrao: { tipo: 'booleano', nulo: true },
+  irFonteId: { tipo: 'ref', de: 'irFontes', nulo: true },
+};
+
+const ITEM_FONTE_IR = {
+  id: { tipo: 'id' },
+  nome: { tipo: 'texto', max: 60, padrao: '' },
+  /* 'mensal' é valor fixo num dia do mês; 'diaria' é valor por dia
+     trabalhado, registrado um a um */
+  tipo: { tipo: 'opcao', valores: ['mensal', 'diaria'], padrao: 'mensal' },
+  valorPadrao: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  criadoEm: { tipo: 'iso', nulo: true },
+};
+
+const ITEM_FAIXA_IR = {
+  /* o teto da faixa. NULO é a última, a que não tem teto — e é por isso que
+     este campo não tem padrão: zero aqui seria uma faixa que não pega ninguém */
+  ate: { tipo: 'dinheiro', min: 0, nulo: true },
+  aliquota: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  deduzir: { tipo: 'dinheiro', min: 0, padrao: 0 },
+};
+
+/* A tabela do IR de UM ano, como a pessoa a editou. Uma por ano, porque mês
+   antigo tem que continuar calculável com o que valia nele. */
+const ITEM_TABELA_IR = {
+  ano: { tipo: 'inteiro', min: 2000, max: 2200, padrao: 2026 },
+  anoVigencia: { tipo: 'inteiro', min: 2000, max: 2200, padrao: 2026 },
+  descontoSimplificado: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  dependente: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  darfMinimo: { tipo: 'dinheiro', min: 0, padrao: 0 },
+  faixas: { tipo: 'lista', item: ITEM_FAIXA_IR },
+  reducao: {
+    tipo: 'objeto',
+    campos: {
+      isentoAte: { tipo: 'dinheiro', min: 0, padrao: 0 },
+      limite: { tipo: 'dinheiro', min: 0, padrao: 0 },
+      base: { tipo: 'dinheiro', min: 0, padrao: 0 },
+      /* fração, não dinheiro — 0,133145. `dinheiro` serve: é número com
+         casas decimais e mínimo zero, e é o tipo que o validador tem. */
+      fator: { tipo: 'dinheiro', min: 0, padrao: 0 },
+    },
+  },
+};
+
+/* "Eu paguei este DARF". O valor NÃO entra aqui: ele se recalcula da tabela e
+   dos recebimentos. Guardar o valor criaria duas verdades sobre o mesmo mês. */
+const ITEM_DARF_IR = {
+  ano: { tipo: 'inteiro', min: 2000, max: 2200, padrao: 2026 },
+  mes: { tipo: 'inteiro', min: 1, max: 12, padrao: 1 },
+  pago: { tipo: 'booleano', padrao: false },
+  pagoEm: { tipo: 'dia', nulo: true },
 };
 
 const ITEM_DIVIDENDO = {
@@ -283,6 +343,19 @@ const ESQUEMA = {
     },
   },
   rendasRecorrentes: { tipo: 'lista', item: ITEM_RENDA },
+
+  /* imposto (Carnê-Leão) — ver core/imposto.js */
+  irFontes: { tipo: 'lista', item: ITEM_FONTE_IR, idNamespace: 'irFontes' },
+  impostoTabelas: { tipo: 'lista', item: ITEM_TABELA_IR },
+  impostoDarfs: { tipo: 'lista', item: ITEM_DARF_IR },
+  impostoDeducoes: {
+    tipo: 'objeto',
+    campos: {
+      dependentes: { tipo: 'inteiro', min: 0, max: 30, padrao: 0 },
+      pensao: { tipo: 'dinheiro', min: 0, padrao: 0 },
+      inss: { tipo: 'dinheiro', min: 0, padrao: 0 },
+    },
+  },
 
   /* projeção */
   dataAlvo: { tipo: 'dia', nulo: true },
