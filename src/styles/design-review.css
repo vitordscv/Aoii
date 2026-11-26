@@ -12,7 +12,7 @@ button.date-trigger:hover{border-color:var(--disney-blue-deep);background:var(--
 .calendar-dialog .skip-calendar{padding:0;border:0;margin:0;max-width:none;background:transparent;}
 .date-month-nav{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 36px;gap:5px;align-items:center;margin:14px 0;}
 .date-month-nav>button{height:44px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink-navy);font-size:24px;}
-.date-month-nav select,.date-month-nav input{min-width:0;width:100%;box-sizing:border-box;height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--white);color:var(--ink-navy);}
+.date-month-nav select,.date-month-nav input:not([type="checkbox"]):not([type="radio"]){min-width:0;width:100%;box-sizing:border-box;height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--white);color:var(--ink-navy);}
 .date-month-nav [data-date-year]{font-variant-numeric:tabular-nums;}
 @media(prefers-reduced-motion:no-preference){
   button.date-trigger,.skip-calendar-open,.calendar-dialog button,.view-tab{transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s;}

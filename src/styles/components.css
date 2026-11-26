@@ -884,7 +884,15 @@ select.cat-select{border:1px solid var(--line);border-radius:9px;padding:7px 8px
 .sheet-cat-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .sheet-field{margin-top:14px;}
 .sheet-field label:not([class]){display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
-.sheet-field input,.sheet-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;box-sizing:border-box;}
+/* Caixa de marcar NAO e campo de texto. A regra abaixo nasceu para o campo
+   largo de uma folha -- nome, valor, data -- e pegava tambem o checkbox de um
+   `.mini-check` posto dentro de uma `.sheet-field`: as duas regras tem a MESMA
+   especificidade, entao vencia a ultima do arquivo, e o quadradinho de 15px
+   esticava para a largura inteira. O rotulo ia junto para fora da folha, que
+   ganhava rolagem horizontal e mostrava "Co..." no lugar de
+   "Conta para o IR". Excluir os dois tipos aqui resolve onde quer que esse
+   encontro aconteca, e nao so onde ele ja aconteceu. */
+.sheet-field input:not([type="checkbox"]):not([type="radio"]),.sheet-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;box-sizing:border-box;}
 .sheet-field select{padding-right:26px;}
 .gasto-alerta-media{margin:-8px 0 14px;text-align:center;font-size:12px;font-weight:600;color:var(--gold-ink);background:color-mix(in srgb,var(--gold),transparent 88%);border-radius:9px;padding:8px 10px;}
 /* a caixinha alinhada com o texto, não com a linha de base dele */
