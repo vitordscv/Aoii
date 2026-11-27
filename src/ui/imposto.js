@@ -140,6 +140,14 @@ function renderIrMes(){
     +linha(L('ir.impostoTabela'),formatBRL(calc.impostoDaTabela))
     +(calc.reducao>0?linha(L('ir.reducao'),'− '+formatBRL(calc.reducao)):'')
     +linha(L('ir.imposto'),formatBRL(calc.imposto),'ir-linha-total')
+    /* Quando o bruto cabe no teto de isencao, a reducao anula o imposto
+       inteiro. Os passos acima mostram isso em numeros -- um imposto pela
+       tabela e uma reducao do mesmo tamanho -- mas quem le quer a frase, nao
+       a subtracao. */
+    +(calc.imposto===0&&calc.bruto>0&&calc.bruto<=calc.tabela.reducao.isentoAte
+      ?`<div class="help-text ir-isento-nota">${esc(L('ir.isentoMes')
+          .replace('{limite}',formatBRL(calc.tabela.reducao.isentoAte)))}</div>`
+      :'')
     +linha(L('ir.aliquotaEfetiva'),irPct(calc.aliquotaEfetiva))
     +linha(L('ir.liquido'),formatBRL(calc.liquido))
     +`<div class="help-text">${esc(L('ir.tabelaDoAno').replace('{ano}',calc.anoDaTabela))}</div>`;

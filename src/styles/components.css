@@ -1384,3 +1384,7 @@ body{padding-bottom:78px;}
 .ir-f-ate:disabled{color:var(--muted2);font-style:italic;}
 .ir-f-aliquota{text-align:right;}
 .ir-f-deduzir{text-align:right;}
+
+/* A frase de isenção é boa notícia, e lê como tal: cor de positivo, e um
+   pouco de ar depois do total pra não parecer rodapé do total. */
+.ir-isento-nota{color:var(--pos);margin-top:6px;}

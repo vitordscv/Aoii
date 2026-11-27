@@ -233,6 +233,59 @@ const IR_ATE_ABRIL = `
     'e o mês passa a ser calculado com ela',
     'a tabela é por ano: editar não pode deixar o cálculo no valor antigo');
 
+  /* O ponto que a pessoa mais quer ver escrito: abaixo do teto nao paga.
+     A conta ja estava certa -- a reducao anula o imposto inteiro -- mas a tela
+     so mostrava "imposto pela tabela" e "reducao" do mesmo tamanho, deixando a
+     subtracao por conta de quem le. Mede nos dois lados do teto, porque uma
+     nota que aparece sempre nao prova nada.
+
+     O recarregamento e feito do lado do Node: `location.reload()` dentro de uma
+     avaliacao derruba o contexto e a promessa nunca volta. */
+  titulo('abaixo do teto a tela diz que nao ha nada a pagar');
+
+  const AO_MES_DE_MARCO = `
+    document.querySelector('.bn-item[data-target="view-entradas"]').click();
+    await new Promise(r=>setTimeout(r,520));
+    document.getElementById('tab-entradas-imposto').click();
+    await new Promise(r=>setTimeout(r,520));
+    const label=()=>document.getElementById('ir-mes-label').textContent;
+    for(let i=0;i<24;i++){
+      if(/2026/.test(label())&&/(Março|Marco|March|Mars|Marzo)/i.test(label())) break;
+      document.getElementById('ir-mes-ant').click();
+      await new Promise(r=>setTimeout(r,100));
+    }
+    const el=document.getElementById('ir-calculo');
+    return {mes:label(),texto:el.textContent,
+      nota:!!el.querySelector('.ir-isento-nota')};`;
+
+  const marcoCom = async valor => {
+    await avaliar(cdp, `
+      const d=JSON.parse(localStorage.getItem('financas-data'));
+      d.transacoes=(d.transacoes||[]).filter(t=>t.id!=='isento1').concat([
+        {id:'isento1',nome:'Financeiro pizzaria',valor:${valor},
+         categoria:'Outros',metodo:'pix',data:'2026-03-10',tipo:'receita',
+         ir:true,irFonteId:'f1'}]);
+      localStorage.setItem('financas-data',JSON.stringify(d));
+      return 1;`);
+    await irPara(cdp, APP);
+    await esperar(1700);
+    return avaliar(cdp, AO_MES_DE_MARCO);
+  };
+
+  const abaixo = await marcoCom(4500);
+  conferir(/2026/.test(abaixo.mes), `o seletor chegou em ${abaixo.mes}`);
+  conferir(abaixo.nota,
+    'com 4.500 no mes, a frase aparece',
+    'o imposto da zero, mas sem a frase a pessoa faz a subtracao de cabeca');
+  conferir(/5\.000,00/.test(abaixo.texto),
+    'e ela diz qual e o teto, lido da tabela do ano',
+    'teto escrito a mao mentiria no dia em que a tabela mudar');
+
+  const acima = await marcoCom(6000);
+  conferir(!acima.nota,
+    'com 6.000 no mesmo mes, a frase nao aparece',
+    'uma nota que aparece sempre nao informa nada');
+
   await cdp.enviar('Emulation.clearDeviceMetricsOverride');
   encerrar();
 })();
