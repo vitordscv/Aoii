@@ -10,10 +10,26 @@
    É um texto de JavaScript, não um objeto: roda dentro da página, pelo CDP,
    escrevendo direto no localStorage antes de o app abrir. */
 const CENARIO = `
+  /* Datas relativas a HOJE, nunca escritas a mao. A versao anterior cravava
+     setembro de 2026 nas faturas; quando o calendario passou por cima disso,
+     o mes corrente deixou de existir na lista de meses em uso, \`#month-atual\`
+     virou null e tres arquivos da suite passaram a falhar por envelhecimento
+     -- sem nenhuma mudanca no app. Uma fixtura presa a uma data e uma bomba
+     relogio. */
+  const _h=new Date();
+  const _p=v=>String(v).padStart(2,'0');
+  /* mes corrente + n, como {ano,mes} de 1 a 12 */
+  const _mes=n=>{const x=new Date(_h.getFullYear(),_h.getMonth()+n,1);
+    return {ano:x.getFullYear(),mes:x.getMonth()+1};};
+  /* dia \`dia\` do mes corrente + n, em ISO. Montado a mao: toISOString()
+     converte pra UTC e, a oeste de Greenwich, devolve o dia anterior. */
+  const _iso=(n,dia)=>{const x=new Date(_h.getFullYear(),_h.getMonth()+n,dia);
+    return x.getFullYear()+'-'+_p(x.getMonth()+1)+'-'+_p(x.getDate());};
+  const _daquiAAnos=(n,mmdd)=>(_h.getFullYear()+n)+'-'+mmdd;
   const d = {
     schemaVersion:1, saldoAtual:12345.67, dinheiroVivo:230.5,
     saldoAtualizadoEm:new Date().toISOString(), dinheiroVivoAtualizadoEm:new Date().toISOString(),
-    dataAlvo:'2027-12-31', tipoRenda:'mensal', rendaDiaria:0, diasTrabalho:[1,2,3,4,5],
+    dataAlvo:_daquiAAnos(1,'12-31'), tipoRenda:'mensal', rendaDiaria:0, diasTrabalho:[1,2,3,4,5],
     rendaMensal:{valor:8750.4,diaDoMes:5},
     categorias:['Mercado','Transporte','Lazer','Saúde','Casa','Outros','Assinaturas e serviços digitais'],
     cartoes:[
@@ -31,16 +47,16 @@ const CENARIO = `
       tags: i%6===0 ? ['reembolsável','trabalho'] : undefined,
       nota: i%7===0 ? 'Uma observação razoavelmente longa sobre este gasto' : undefined})),
     faturas:[
-      {id:'f1',ano:2026,mes:9,valor:0,pago:false,cartaoId:'c1',gastos:[
-        {id:'fg1',nome:'Notebook Dell XPS 15 polegadas (1/10)',valor:1250,pago:false,categoria:'Outros',parcelamentoId:'p1',dataCompra:'2026-09-02'},
+      {id:'f1',ano:_mes(0).ano,mes:_mes(0).mes,valor:0,pago:false,cartaoId:'c1',gastos:[
+        {id:'fg1',nome:'Notebook Dell XPS 15 polegadas (1/10)',valor:1250,pago:false,categoria:'Outros',parcelamentoId:'p1',dataCompra:_iso(0,2)},
         {id:'fg2',nome:'Mercado',valor:430.2,pago:false,categoria:'Mercado'}]},
-      {id:'f2',ano:2026,mes:10,valor:0,pago:false,cartaoId:'c1',gastos:[
+      {id:'f2',ano:_mes(1).ano,mes:_mes(1).mes,valor:0,pago:false,cartaoId:'c1',gastos:[
         {id:'fg3',nome:'Notebook Dell XPS 15 polegadas (2/10)',valor:1250,pago:false,categoria:'Outros',parcelamentoId:'p1'}]}],
     entradasExtras:[{id:'e1',nome:'Reembolso da viagem a trabalho para São Paulo',valor:1780,modo:'unica',feito:false,recebido:0,nota:''}],
-    dividas:[{id:'dv1',nome:'Bicicleta',credor:'João',valor:2400,pago:600,modo:'aosPoucos',dataPrevista:'2027-03-01',quitado:false,nota:''}],
+    dividas:[{id:'dv1',nome:'Bicicleta',credor:'João',valor:2400,pago:600,modo:'aosPoucos',dataPrevista:_daquiAAnos(1,'03-01'),quitado:false,nota:''}],
     comprasPlanejadas:[{id:'cp1',nome:'Cadeira ergonômica Herman Miller Aeron',valor:9800,parcelas:12,cartao:true,cartaoId:'c1',feito:false}],
-    metas:[{id:'m1',nome:'Viagem para o Japão em 2027',valorAlvo:28000,valorGuardado:9400,aporteMensal:1200,dataAlvo:'2027-10-01'}],
-    investimentos:[{id:'i1',nome:'HGLG11',tipo:'fii',valorInvestido:15200,descricao:'fundo de galpões logísticos',dividendos:[{id:'dd1',data:'2026-08-15',valor:118.4}]}],
+    metas:[{id:'m1',nome:'Viagem para o Japão em 2027',valorAlvo:28000,valorGuardado:9400,aporteMensal:1200,dataAlvo:_daquiAAnos(1,'10-01')}],
+    investimentos:[{id:'i1',nome:'HGLG11',tipo:'fii',valorInvestido:15200,descricao:'fundo de galpões logísticos',dividendos:[{id:'dd1',data:_iso(-1,15),valor:118.4}]}],
     viagens:[{id:'v1',nome:'Japão 2027',orcamento:25000}],
     orcamentos:{Mercado:1500,Lazer:600},
     rendasRecorrentes:[{id:'r1',nome:'Salário · TechBrasil',valor:8750.4,diaDoMes:5,ativo:true,tipo:'salario'}],
@@ -60,7 +76,7 @@ const CENARIO = `
 const SIMPLES = `
   const d={schemaVersion:1,saldoAtual:2000,dinheiroVivo:100,
     saldoAtualizadoEm:new Date().toISOString(),dinheiroVivoAtualizadoEm:new Date().toISOString(),
-    dataAlvo:'2027-12-31',tipoRenda:'mensal',rendaDiaria:0,diasTrabalho:[1,2,3,4,5],
+    dataAlvo:(new Date().getFullYear()+1)+'-12-31',tipoRenda:'mensal',rendaDiaria:0,diasTrabalho:[1,2,3,4,5],
     rendaMensal:{valor:5000,diaDoMes:5},categorias:['Mercado','Transporte','Lazer','Saúde','Casa','Outros'],
     cartoes:[{id:'c1',nome:'Cartão',limite:5000,diaFechamento:20,diaVencimento:28}],
     gastosMensais:[],transacoes:[],faturas:[],entradasExtras:[],dividas:[],comprasPlanejadas:[],

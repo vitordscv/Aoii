@@ -195,10 +195,33 @@ titulo('PWA e funcionamento offline');
   if(!fs.existsSync(swPath)) ruim('service worker não foi publicado');
   else{
     const sw=fs.readFileSync(swPath,'utf8');
+    /* A pagina tem que sair com a versao carimbada: e por ela que o app
+       compara o que esta na tela com o que esta publicado. Sem a marca, a
+       comparacao cai no modo antigo -- o que so sabia dizer que a assinatura
+       mudou desde o inicio da sessao, e deixava quem abriu com HTML velho do
+       cache do navegador preso na versao antiga. */
+    const marcaDaPagina=/<meta name="aoii-versao" content="(aoii-[a-f0-9]{12})">/.exec(src);
+    if(marcaDaPagina&&marcaDaPagina[1]===(/const VERSAO='([^']+)'/.exec(sw)||[])[1]){
+      ok('a pagina sai carimbada com a mesma versao do cache ('+marcaDaPagina[1]+')');
+    } else if(marcaDaPagina) ruim('a marca da pagina nao bate com a do service worker');
+    else ruim('a pagina saiu sem marca de versao: o app nao sabe se esta velho');
     if(/const VERSAO='aoii-[a-f0-9]{12}'/.test(sw)&&!sw.includes('__AOII_BUILD_VERSION__')) ok('cache offline recebe versão automática do build');
     else ruim('service worker saiu sem versão automática');
-    if(sw.includes("'/manifest.webmanifest'")&&sw.includes("'/assets/icons/icon-512.png'")) ok('shell offline inclui manifesto e ícones');
+    /* O shell tem que citar manifesto e ícone RELATIVOS ao escopo. Com caminho
+       absoluto ('/manifest.webmanifest') o addAll dava 404 em qualquer site
+       que não fosse a raiz de um domínio -- e o nosso mora em /Aoii/ --, a
+       instalação falhava inteira e não havia shell offline nenhum. Esta
+       conferência existia e passava: ela exigia exatamente a forma quebrada. */
+    const temRelativos=sw.includes("RAIZ+'manifest.webmanifest'")&&sw.includes("RAIZ+'assets/icons/icon-512.png'");
+    const temAbsolutos=/['"]\/(manifest\.webmanifest|assets\/)/.test(sw);
+    if(temRelativos&&!temAbsolutos) ok('shell offline inclui manifesto e ícones, relativos ao escopo');
+    else if(temAbsolutos) ruim('shell offline usa caminho absoluto: quebra fora da raiz do domínio');
     else ruim('shell offline não inclui os arquivos de instalação');
+
+    /* E o registro, do outro lado. Era '/sw.js' num site em /Aoii/: 404, o
+       worker nunca registrou no ar. */
+    if(/register\(\s*['"]\//.test(src)) ruim('service worker registrado por caminho absoluto: 404 fora da raiz');
+    else ok('service worker é registrado por caminho relativo à página');
   }
 }
 

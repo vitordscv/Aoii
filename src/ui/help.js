@@ -115,7 +115,13 @@ async function init(){
        empacotador desempacota o HTML e troca o documento), então um ouvinte
        de 'load' registrado aqui nunca seria chamado — o service worker
        nunca subia. Registra na hora quando a página já terminou. */
-    const registrarSW=()=>{ navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).catch(()=>{}); };
+    /* Caminho RELATIVO, nao '/sw.js'. O site publicado mora em /Aoii/, e um
+       caminho absoluto pedia https://.../sw.js — 404. O worker nunca registrou
+       no ar: o app ficou sem shell offline e sem o aviso de versao nova desde
+       que foi para o GitHub Pages. Relativo, o escopo sai certo em qualquer
+       subpasta, inclusive na raiz. */
+    const alvoSW=new URL('sw.js',document.baseURI);
+    const registrarSW=()=>{ navigator.serviceWorker.register(alvoSW,{updateViaCache:'none'}).catch(()=>{}); };
     if(document.readyState==='complete') registrarSW();
     else window.addEventListener('load',registrarSW);
   }

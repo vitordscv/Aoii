@@ -210,8 +210,7 @@ function setupGastoSheet(){
   /* a fonte só faz sentido depois de marcado: sem isso o select fica na tela
      pedindo uma escolha que não vai a lugar nenhum */
   document.getElementById('gasto-ir')?.addEventListener('change',e=>{
-    const fonte=document.getElementById('gasto-ir-fonte');
-    if(fonte) fonte.style.display=e.target.checked?'block':'none';
+    mostrarFonteIR(e.target.checked);
   });
   sheet.querySelectorAll('.pay-method-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{ metodoAtual=btn.getAttribute('data-metodo'); renderPayGrid(); });
@@ -272,6 +271,21 @@ function setupGastoSheet(){
 
   /* Carnê-Leão: só em receita, e a fonte só depois de marcado. Gasto não tem
      o que tributar, e campo visível sem uso é campo que confunde. */
+  /* Esconde o ROTULO junto com o campo. Escondendo so o `select`, o rotulo
+     "De qual fonte" ficava sozinho na folha, apontando para o nada.
+
+     E quando nao ha fonte nenhuma cadastrada o escolhedor nao aparece: a unica
+     opcao seria "Sem fonte", que e o mesmo que nao escolher. Quem quiser
+     separar por fonte cadastra em Entradas > Imposto, e o campo passa a
+     existir. A fonte e opcional: sem ela o valor conta no imposto do mesmo
+     jeito. */
+  function mostrarFonteIR(marcado){
+    const linha=document.getElementById('gasto-ir-fonte-linha');
+    if(!linha) return;
+    const temFontes=(data.irFontes||[]).length>0;
+    linha.style.display=marcado&&temFontes?'block':'none';
+  }
+
   function refreshCampoIR(t){
     const campo=document.getElementById('gasto-ir-field');
     const check=document.getElementById('gasto-ir');
@@ -279,13 +293,13 @@ function setupGastoSheet(){
     if(!campo||!check||!fonte) return;
     const ehReceita=tipoAtual==='receita';
     campo.style.display=ehReceita?'block':'none';
-    if(!ehReceita){ check.checked=false; fonte.style.display='none'; return; }
+    if(!ehReceita){ check.checked=false; mostrarFonteIR(false); return; }
     check.checked=!!(t&&t.ir);
     const fontes=data.irFontes||[];
     fonte.innerHTML=`<option value="">${esc(L('ir.semFonte'))}</option>`
       +fontes.map(f=>`<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('');
     fonte.value=t&&t.irFonteId?t.irFonteId:'';
-    fonte.style.display=check.checked?'block':'none';
+    mostrarFonteIR(check.checked);
   }
 
   function resetForm(t){

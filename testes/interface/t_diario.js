@@ -6,6 +6,13 @@ const { conectar, avaliar, irPara, esperar } = require('./cdp');
 
 const CEN = require('./cenario').CENARIO;
 
+/* O mes de hoje, nas duas formas que a tela usa: o valor do seletor
+   ('AAAA-MM') e o fim da data impressa ('/MM/AAAA'). */
+const _hoje = new Date();
+const _pp = v => String(v).padStart(2, '0');
+const MES_CORRENTE = _hoje.getFullYear() + '-' + _pp(_hoje.getMonth() + 1);
+const SUFIXO_BR = '/' + _pp(_hoje.getMonth() + 1) + '/' + _hoje.getFullYear();
+
 let falhas = 0;
 const conferir = (c, m, d) => { c ? console.log(`  \x1b[32mok\x1b[0m ${m}`)
   : (falhas++, console.log(`  \x1b[31m!!\x1b[0m ${m}${d ? '\n       ' + d : ''}`)); };
@@ -47,11 +54,15 @@ const estado = cdp => avaliar(cdp, TODOS + `
   await avaliar(cdp, CEN);
   /* o cenario nao tem receita nenhuma; sem isso o filtro nao teria o que separar */
   await avaliar(cdp, `
+    /* no mes corrente, seja ele qual for: data escrita a mao aqui envelhece e
+       derruba o teste sem o app ter mudado nada */
+    const h=new Date(), p=v=>String(v).padStart(2,'0');
+    const dia=n=>h.getFullYear()+'-'+p(h.getMonth()+1)+'-'+p(n);
     const d=JSON.parse(localStorage.getItem('financas-data'));
     d.transacoes.push({id:'rec-1',tipo:'receita',nome:'Venda de um movel',valor:450,
-      data:'2026-09-04',categoria:'Outros',metodo:'pix'});
+      data:dia(4),categoria:'Outros',metodo:'pix'});
     d.transacoes.push({id:'rec-2',tipo:'receita',nome:'Reembolso do plano',valor:120,
-      data:'2026-09-09',categoria:'Outros',metodo:'pix'});
+      data:dia(9),categoria:'Outros',metodo:'pix'});
     localStorage.setItem('financas-data',JSON.stringify(d));
     return 1;`);
   await irPara(cdp, 'http://localhost:4173/');
@@ -61,10 +72,10 @@ const estado = cdp => avaliar(cdp, TODOS + `
   console.log('\n  \x1b[1mabre no mês em que estou\x1b[0m');
   let e = await estado(cdp);
   console.log(`     mês: "${e.mesRotulo}" (${e.mes}) · ${e.n} lançamentos · tipo: ${e.tipo}`);
-  conferir(e.mes === '2026-09', `abre em setembro de 2026, não em "todos" (${e.mes})`);
+  conferir(e.mes === MES_CORRENTE, `abre no mês corrente, não em "todos" (${e.mes} vs ${MES_CORRENTE})`);
   conferir(!e.vazio && e.n > 0, `e a lista tem ${e.n} lançamentos`);
-  conferir(e.datas.every(d => !d || d.endsWith('/09/2026')), 'todos do mês corrente',
-    `datas: ${e.datas.join(', ')}`);
+  conferir(e.datas.every(d => !d || d.endsWith(SUFIXO_BR)), 'todos do mês corrente',
+    `datas: ${e.datas.join(', ')} (esperado terminar em ${SUFIXO_BR})`);
 
   console.log('\n  \x1b[1mo seletor de entrada/saída\x1b[0m');
   conferir(e.opcoesTipo.length === 3, `tem três opções: ${e.opcoesTipo.join(' / ')}`);
@@ -114,10 +125,14 @@ const estado = cdp => avaliar(cdp, TODOS + `
 
   console.log('\n  \x1b[1mmês corrente sem nenhum lançamento\x1b[0m');
   await avaliar(cdp, `
-    /* joga tudo pro ano passado: hoje é setembro/2026, nada em 2026-09 */
+    /* empurra TODA data tres anos pra tras, pra nao sobrar nada no mes de
+       hoje. Antes isto trocava o texto '2026' por '2024' -- so funcionava
+       enquanto 2026 fosse o ano corrente. */
+    const recua=iso=>(Number(iso.slice(0,4))-3)+iso.slice(4);
     const d=JSON.parse(localStorage.getItem('financas-data'));
-    d.transacoes.forEach(t=>{ t.data=t.data.replace('2026','2024'); });
-    d.faturas.forEach(f=>{ if(f.ano===2026) f.ano=2024; (f.gastos||[]).forEach(g=>{ if(g.dataCompra) g.dataCompra=g.dataCompra.replace('2026','2024'); }); });
+    d.transacoes.forEach(t=>{ if(t.data) t.data=recua(t.data); });
+    d.faturas.forEach(f=>{ f.ano=f.ano-3;
+      (f.gastos||[]).forEach(g=>{ if(g.dataCompra) g.dataCompra=recua(g.dataCompra); }); });
     localStorage.setItem('financas-data',JSON.stringify(d));
     return 1;`);
   await irPara(cdp, 'http://localhost:4173/');

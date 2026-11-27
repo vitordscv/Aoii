@@ -3,7 +3,38 @@ function setupAutoUpdate(){
   const url=location.href.split('#')[0].split('?')[0];
   let assinatura=null, checking=false;
 
-  /* assinatura do arquivo publicado, sem baixar o corpo */
+  /* A versao que ESTA NA TELA, carimbada no HTML pelo build. */
+  function versaoLocal(){
+    const m=document.querySelector('meta[name="aoii-versao"]');
+    return m?m.getAttribute('content'):null;
+  }
+
+  /* A versao que esta PUBLICADA, lida dos primeiros bytes. O carimbo fica no
+     comeco do <head> justamente pra caber num pedido de 4 KB: a pagina inteira
+     tem 1,3 MB, e sondar isso a cada volta de aba seria absurdo.
+
+     Devolve undefined quando nao deu pra saber (sem rede, servidor sem Range,
+     resposta sem carimbo) — que e diferente de "nao mudou". */
+  async function versaoPublicada(){
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    try{
+      const res=await fetch(url+'?_v='+Date.now(),
+        {cache:'no-store',signal:ctrl.signal,headers:{Range:'bytes=0-4095'}});
+      /* 206 e o pedaco pedido. 200 significa que o servidor ignorou o Range e
+         vai mandar tudo — a abortamos, pra nao torrar 1,3 MB de dados moveis
+         numa sondagem. */
+      if(res.status!==206){ ctrl.abort(); return undefined; }
+      const texto=await res.text();
+      const m=texto.match(/name="aoii-versao" content="([^"]+)"/);
+      return m?m[1]:undefined;
+    }catch(e){ return undefined; }
+    finally{ clearTimeout(t); }
+  }
+
+  /* O jeito antigo, guardado pra quando o Range nao serve. Vale menos: ele so
+     sabe que a assinatura MUDOU desde a primeira leitura desta sessao, nao se
+     a tela esta velha. */
   async function assinaturaRemota(){
     const ctrl=new AbortController();
     const t=setTimeout(()=>ctrl.abort(),8000);
@@ -41,15 +72,31 @@ function setupAutoUpdate(){
     },2000);
   }
 
+  /* ANTES: a primeira leitura so guardava a assinatura remota e seguia. Se o
+     navegador tivesse servido um HTML velho do cache dele — e serve, com
+     `max-age` de dez minutos no GitHub Pages — o app anotava a assinatura NOVA
+     como se fosse a sua e nunca mais recarregava. Ficava preso na versao
+     antiga por sessao inteira, sem nada na tela dizendo isso. Foi assim que
+     uma correcao publicada e conferida no ar continuou sem chegar em quem usa.
+
+     AGORA a comparacao e entre a versao da tela e a versao publicada, que nao
+     depende de quando esta sessao comecou. A assinatura so entra quando o
+     carimbo nao da pra ler. */
   async function checkForUpdate(){
     if(checking||document.visibilityState!=='visible') return;
     checking=true;
-    const nova=await assinaturaRemota();
-    if(nova){
-      if(assinatura===null) assinatura=nova;          // primeira leitura: só guarda
-      else if(nova!==assinatura) recarregarQuandoDer();
-    }
-    checking=false;
+    try{
+      const daTela=versaoLocal();
+      if(daTela){
+        const noAr=await versaoPublicada();
+        if(noAr){ if(noAr!==daTela) recarregarQuandoDer(); return; }
+      }
+      const nova=await assinaturaRemota();
+      if(nova){
+        if(assinatura===null) assinatura=nova;
+        else if(nova!==assinatura) recarregarQuandoDer();
+      }
+    } finally { checking=false; }
   }
 
   /* Com o service worker no comando, quem sabe que chegou versao nova e ele:

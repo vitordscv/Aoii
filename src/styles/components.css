@@ -1388,3 +1388,8 @@ body{padding-bottom:78px;}
 /* A frase de isenção é boa notícia, e lê como tal: cor de positivo, e um
    pouco de ar depois do total pra não parecer rodapé do total. */
 .ir-isento-nota{color:var(--pos);margin-top:6px;}
+
+/* O escolhedor de fonte nasce colado na explicação da marca de IR, que é um
+   parágrafo de três linhas. Sem este ar, o rótulo parece continuação do texto
+   em vez de um campo novo. */
+#gasto-ir-fonte-linha{margin-top:12px;}

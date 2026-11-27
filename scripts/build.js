@@ -85,13 +85,30 @@ function versaoBuild(html, itens) {
   return 'aoii-' + hash.digest('hex').slice(0, 12);
 }
 
+const TOKEN_VERSAO = '__AOII_BUILD_VERSION__';
+
+/* O carimbo acontece DEPOIS do hash, sempre. O hash corre sobre o texto com o
+   token ainda dentro — senão a versão dependeria dela mesma e não haveria
+   número que fechasse. É o mesmo motivo pelo qual sw.js fica fora do hash. */
+function carimbar(texto, versao, quem, exigir) {
+  const quantas = texto.split(TOKEN_VERSAO).length - 1;
+  if (quantas > 1) throw new Error(quem + ' tem mais de uma marca de versão');
+  if (quantas === 0) {
+    /* Sem marca não é erro para o HTML: `testes/interface/t_atualiza.js`
+       compila um commit ANTERIOR a esta marca existir, de propósito, para
+       simular quem tem a versão velha instalada. Exigir aqui quebraria o
+       único teste que anda o caminho da atualização de ponta a ponta.
+       Quem exige a marca no que vai ao ar é `testes/auditar.js`. */
+    if (exigir) throw new Error(quem + ' precisa conter uma marca de versão');
+    return texto;
+  }
+  return texto.replace(TOKEN_VERSAO, versao);
+}
+
 function conteudoPublic(item, versao) {
   const bruto = fs.readFileSync(item.cheio);
   if (item.rel !== 'sw.js') return bruto;
-  const texto = bruto.toString('utf8');
-  const token = '__AOII_BUILD_VERSION__';
-  if ((texto.split(token).length - 1) !== 1) throw new Error('public/sw.js precisa conter uma marca de versão');
-  return Buffer.from(texto.replace(token, versao));
+  return Buffer.from(carimbar(bruto.toString('utf8'), versao, 'public/sw.js', true));
 }
 
 function copiarPublic(destino, itens, versao) {
@@ -117,9 +134,11 @@ function main() {
   const publicos = listarPublic();
   const versao = versaoBuild(html, publicos);
 
+  const htmlCarimbado = carimbar(html, versao, 'src/index.html');
+
   if (checando) {
     const atual = fs.existsSync(alvo) ? fs.readFileSync(alvo, 'utf8') : null;
-    if (atual !== html) {
+    if (atual !== htmlCarimbado) {
       console.error('dist/index.html está diferente do que src/ produz. Rode: npm run build');
       process.exit(1);
     }
@@ -133,7 +152,7 @@ function main() {
   }
 
   fs.mkdirSync(DIST, { recursive: true });
-  fs.writeFileSync(alvo, html);
+  fs.writeFileSync(alvo, htmlCarimbado);
   const copiados = copiarPublic(DIST, publicos, versao);
   console.log('dist/index.html  ' + Buffer.byteLength(html).toLocaleString('pt-BR') + ' bytes');
   console.log('public/ → dist/  ' + copiados.length + ' arquivos');

@@ -2,13 +2,20 @@
 const VERSAO='__AOII_BUILD_VERSION__';
 const CACHE_SHELL=VERSAO+'-shell';
 const CACHE_FONTES=VERSAO+'-fontes';
+/* Tudo relativo ao escopo. Com caminho absoluto -- barra na frente -- o
+   `addAll` dava 404 em qualquer site que nao fosse a raiz de um dominio, a
+   instalacao falhava inteira e nao havia shell offline nenhum. (O texto aqui
+   evita escrever a forma quebrada: o auditor procura por ela, e nao distingue
+   comentario de codigo.) */
+const RAIZ=new URL('./',self.registration.scope).pathname;
+const PAGINA=RAIZ;
 const SHELL=[
-  '/',
-  '/manifest.webmanifest',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png',
-  '/assets/icons/apple-touch-icon.png',
-  '/assets/icons/logo-128.png',
+  RAIZ,
+  RAIZ+'manifest.webmanifest',
+  RAIZ+'assets/icons/icon-192.png',
+  RAIZ+'assets/icons/icon-512.png',
+  RAIZ+'assets/icons/apple-touch-icon.png',
+  RAIZ+'assets/icons/logo-128.png',
 ];
 
 self.addEventListener('install',event=>{
@@ -62,7 +69,7 @@ async function avisarVersaoNova(){
    o laço se repetiria. */
 async function cacheERevalida(event){
   const cache=await caches.open(CACHE_SHELL);
-  const salvo=await cache.match('/');
+  const salvo=await cache.match(PAGINA);
 
   const daRede=fetch(event.request).then(async res=>{
     if(!res||!res.ok) return res;
@@ -71,9 +78,9 @@ async function cacheERevalida(event){
        pagina le um, esta comparacao leria o outro segundos depois, e com 1,2 MB
        o buffer entre eles enche e a leitura da pagina TRAVA — o app ficava em
        branco. `match()` devolve uma resposta independente, sem ramo nenhum. */
-    const antigo=await cache.match('/');
+    const antigo=await cache.match(PAGINA);
     const trocou=antigo?await ehOutraPublicacao(antigo,res):false;
-    await cache.put('/',res.clone());
+    await cache.put(PAGINA,res.clone());
     if(trocou) await avisarVersaoNova();
     return res;
   }).catch(()=>null);
@@ -111,7 +118,7 @@ self.addEventListener('fetch',event=>{
      passava a conter 3 KB de ticker, e era isso que aparecia offline. Com
      rede-primeiro o estrago ficava escondido, porque a pagina certa sempre
      vinha da rede. */
-  const ehAPagina=ehNavegacao&&url.origin===self.location.origin&&(url.pathname==='/'||url.pathname==='/index.html');
+  const ehAPagina=ehNavegacao&&url.origin===self.location.origin&&(url.pathname===PAGINA||url.pathname===PAGINA+'index.html');
   if(ehAPagina){
     event.respondWith(cacheERevalida(event));
     return;
@@ -120,7 +127,7 @@ self.addEventListener('fetch',event=>{
     event.respondWith(cachePrimeiro(request,CACHE_SHELL));
     return;
   }
-  if(url.origin===self.location.origin&&(url.pathname==='/manifest.webmanifest'||url.pathname.startsWith('/assets/'))){
+  if(url.origin===self.location.origin&&(url.pathname===RAIZ+'manifest.webmanifest'||url.pathname.startsWith(RAIZ+'assets/'))){
     event.respondWith(cachePrimeiro(request,CACHE_SHELL));
     return;
   }

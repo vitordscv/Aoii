@@ -17,6 +17,14 @@ const { APP, titulo, conferir, encerrar, limparAparelho, abrirApp } = require('.
 
 /* troca o fetch só para /api/pierre; o resto do app continua com o de verdade */
 const DUBLE = `
+  /* As datas do banco falso sao OFFSETS a partir de hoje, nunca escritas a
+     mao. A historia que elas contam -- fatura do mes passado sem pagamento,
+     a do retrasado com pagamento, parcelas atras e a frente -- so faz sentido
+     em relacao ao mes corrente. Cravada em setembro de 2026, ela envelheceu e
+     o teste passou a falhar sozinho. */
+  const _h=new Date(), _p=v=>String(v).padStart(2,'0');
+  const _d=(n,dia)=>{const x=new Date(_h.getFullYear(),_h.getMonth()+n,dia);
+    return x.getFullYear()+'-'+_p(x.getMonth()+1)+'-'+_p(x.getDate());};
   window.__pierreChamadas=[];
   const fetchReal=window.fetch;
   window.fetch=async function(entrada,init){
@@ -26,16 +34,16 @@ const DUBLE = `
     const rota=new URL(url,location.origin).searchParams.get('rota');
     if(rota==='get-bills'){
       return new Response(JSON.stringify({success:true,count:2,data:[
-        {accountId:'a2',dueDate:'2026-08-28',billClosingDate:'2026-08-21',totalAmount:1200.00},
-        {accountId:'a2',dueDate:'2026-07-28',billClosingDate:'2026-07-21',totalAmount:900.00},
+        {accountId:'a2',dueDate:_d(-1,28),billClosingDate:_d(-1,21),totalAmount:1200.00},
+        {accountId:'a2',dueDate:_d(-2,28),billClosingDate:_d(-2,21),totalAmount:900.00},
       ]}),{status:200,headers:{'Content-Type':'application/json'}});
     }
     if(rota==='get-installments'){
       return new Response(JSON.stringify({success:true,data:{purchases:[
-        {purchaseDate:'2026-06-20',totalAmount:300,installments:[
-          {installmentNumber:1,totalInstallments:3,amount:100,dueDate:'2026-08-20',isPaid:true,status:'POSTED',description:'Fone'},
-          {installmentNumber:2,totalInstallments:3,amount:100,dueDate:'2026-10-20',isPaid:false,status:'PENDING',description:'Fone'},
-          {installmentNumber:3,totalInstallments:3,amount:100,dueDate:'2026-11-20',isPaid:false,status:'PENDING',description:'Fone'},
+        {purchaseDate:_d(-3,20),totalAmount:300,installments:[
+          {installmentNumber:1,totalInstallments:3,amount:100,dueDate:_d(-1,20),isPaid:true,status:'POSTED',description:'Fone'},
+          {installmentNumber:2,totalInstallments:3,amount:100,dueDate:_d(1,20),isPaid:false,status:'PENDING',description:'Fone'},
+          {installmentNumber:3,totalInstallments:3,amount:100,dueDate:_d(2,20),isPaid:false,status:'PENDING',description:'Fone'},
         ]}]}}),{status:200,headers:{'Content-Type':'application/json'}});
     }
     const corpo = rota==='get-accounts' ? {
@@ -48,24 +56,24 @@ const DUBLE = `
          subtype:'SAVINGS',balance:'500.00',currencyCode:'BRL',itemIsActive:true},
       ]} : {
       success:true, count:4, data:[
-        {id:'px1',description:'Padaria do Ze',amount:-42.9,type:'DEBIT',date:'2026-09-10',
+        {id:'px1',description:'Padaria do Ze',amount:-42.9,type:'DEBIT',date:_d(0,10),
          category:'Alimentação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
-        {id:'px2',description:'Salario',amount:5000,type:'CREDIT',date:'2026-09-05',
+        {id:'px2',description:'Salario',amount:5000,type:'CREDIT',date:_d(0,5),
          category:'Outros',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
-        {id:'px3',description:'Notebook',amount:-2500,type:'DEBIT',date:'2026-09-08',
+        {id:'px3',description:'Notebook',amount:-2500,type:'DEBIT',date:_d(0,8),
          category:'Outros',status:'POSTED',account_type:'CREDIT',account_subtype:'CREDIT_CARD'},
-        {id:'px4',description:'Uber',amount:-18.5,type:'DEBIT',date:'2026-09-11',
+        {id:'px4',description:'Uber',amount:-18.5,type:'DEBIT',date:_d(0,11),
          category:'Transporte',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
-        {id:'px5',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-08-05',
+        {id:'px5',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:_d(-1,5),
          account_id:'a1',
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
-        {id:'px6',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:'2026-09-05',
+        {id:'px6',description:'TIM Celular',amount:-129.99,type:'DEBIT',date:_d(0,5),
          account_id:'a1',
          category:'Telecomunicação',status:'POSTED',account_type:'BANK',account_subtype:'CHECKING_ACCOUNT'},
         /* o pagamento da fatura de JULHO (900), e nenhum da de agosto (1200):
            uma entra com prova, a outra fica de fora */
         {id:'px7',description:'Pagamento de fatura',amount:-900,type:'CREDIT',
-         date:'2026-08-02',status:'POSTED',operation_type:'PAGAMENTO',
+         date:_d(-1,2),status:'POSTED',operation_type:'PAGAMENTO',
          account_id:'a2',
          category:'Pagamento de cartão de crédito',
          account_type:'CREDIT',account_subtype:'CREDIT_CARD'},
@@ -356,10 +364,16 @@ const abrirPainel = cdp => avaliar(cdp, `
       const doPierre=(d.cartoes||[]).filter(c=>c.idExterno);
       const ids=new Set(doPierre.map(c=>c.id));
       const delas=(d.faturas||[]).filter(f=>ids.has(f.cartaoId));
-      const passadas=delas.filter(f=>f.ano*12+f.mes<2026*12+9);
+      /* "passada" = anterior ao mes corrente, qualquer que ele seja */
+      const _n=new Date(), _agora=_n.getFullYear()*12+(_n.getMonth()+1);
+      const _chave=f=>f.ano*12+f.mes;
+      const _mesAtras=k=>{const x=new Date(_n.getFullYear(),_n.getMonth()-k,1);
+        return x.getFullYear()*12+(x.getMonth()+1);};
+      const passadas=delas.filter(f=>_chave(f)<_agora);
       return {cartoes:(d.cartoes||[]).length,
-        temJulho:passadas.some(f=>f.mes===7),
-        temAgosto:passadas.some(f=>f.mes===8),
+        /* a do retrasado tem pagamento confirmado; a do mes passado nao */
+        temRetrasada:passadas.some(f=>_chave(f)===_mesAtras(2)),
+        temDoMesPassado:passadas.some(f=>_chave(f)===_mesAtras(1)),
         textoDoPlano:planoTexto,
         doPierre:doPierre.length,
         faturasDoCartao:delas.length,
@@ -374,9 +388,9 @@ const abrirPainel = cdp => avaliar(cdp, `
     conferir(depois.passadasPagas === depois.passadas,
       `fatura fechada que entrou está marcada como paga (${depois.passadasPagas} de ${depois.passadas})`,
       'sem isso computeCartao() soma o histórico como dívida e o limite fica negativo');
-    conferir(depois.temJulho && !depois.temAgosto,
-      `só a fatura com pagamento confirmado entra (julho sim, agosto não)`,
-      'trazer a de agosto como paga, só porque o mês virou, esconderia um atraso');
+    conferir(depois.temRetrasada && !depois.temDoMesPassado,
+      `só a fatura com pagamento confirmado entra (a retrasada sim, a do mês passado não)`,
+      'trazer a do mês passado como paga, só porque o mês virou, esconderia um atraso');
     conferir(/n\u00e3o confirma|ficam de fora/.test(depois.textoDoPlano),
       'e o plano explica por que a outra ficou de fora');
     conferir(depois.fixos === antesDosFixos,

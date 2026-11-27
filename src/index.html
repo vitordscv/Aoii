@@ -3,7 +3,10 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<meta name="app-version" content="v50">
+<!-- A versao do build, carimbada por scripts/build.js. Fica nos primeiros
+     bytes de proposito: o app le os 4 KB iniciais do que esta publicado
+     pra saber se o que ele tem na tela ainda e o que esta no ar. -->
+<meta name="aoii-versao" content="__AOII_BUILD_VERSION__">
 <script defer="" src="/_vercel/insights/script.js"></script>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1018,7 +1021,11 @@
       <label class="mini-check" for="gasto-ir">
         <input type="checkbox" id="gasto-ir"> <span data-i18n="ir.contaParaIR">Conta para o IR (Carnê-Leão)</span>
       </label>
-      <select id="gasto-ir-fonte" title="De qual fonte" data-i18n-title="ir.deQualFonte"></select>
+      <div class="help-text" data-i18n="ir.contaParaIRSub">Carnê-Leão é o imposto sobre dinheiro que entra sem desconto na fonte: cliente, aluguel, diária. Marcado, este valor passa a contar na aba Imposto.</div>
+      <div id="gasto-ir-fonte-linha" style="display:none;">
+        <label for="gasto-ir-fonte" data-i18n="ir.deQualFonte">De qual fonte</label>
+        <select id="gasto-ir-fonte"></select>
+      </div>
     </div>
 
     <div class="sheet-field" id="gasto-viagem-field" style="display:none;">
